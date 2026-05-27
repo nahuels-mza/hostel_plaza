@@ -1,0 +1,27 @@
+# 1. Kill 'smart' matching (Crucial for preventing the /room/ 404 error)
+Options -MultiViews -Indexes
+RewriteEngine On
+RewriteBase /
+
+# 2. Fix the /admin folder specifically
+# If someone goes to /admin, force it to load /admin/index.php
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.php -f
+RewriteRule ^admin/?$ admin/index.php [L]
+
+# 3. Remove .php extension from URLs (External Redirect)
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.php
+RewriteRule ^/?(.*)\.php$ /$1 [L,R=301]
+
+# 4. Map the dynamic Room URLs (MUST be placed before the generic .php rule)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^room/([^/]+)/?$ room.php?name=$1 [L,QSA]
+
+# 5. Map clean URLs back to .php files (Internal Routing)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
+
+# 6. Default index
+DirectoryIndex index.php

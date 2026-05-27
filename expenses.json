@@ -1,0 +1,16 @@
+[
+    {
+        "id": "exp_69dac138e4119",
+        "date": "2026-04-11",
+        "description": "Cleaning Supplies",
+        "category": "Cleaning",
+        "amount": 10000
+    },
+    {
+        "id": "exp_69dac16ce4579",
+        "date": "2026-04-11",
+        "description": "General Maintenance",
+        "category": "Maintenance",
+        "amount": 20000
+    }
+]

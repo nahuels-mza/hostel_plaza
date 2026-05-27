@@ -1,0 +1,26 @@
+[
+    {
+        "id": "cl_69eccbb5a4304",
+        "staffName": "Marc Ben",
+        "date": "2026-04-25",
+        "color": "bg-emerald-500",
+        "name": "Daily Checklist",
+        "tasks": [
+            {
+                "id": "t_69eccbb5a4300",
+                "text": "Test 1",
+                "done": true
+            },
+            {
+                "id": "t_69eccbb5a4302",
+                "text": "Belly Dance",
+                "done": false
+            },
+            {
+                "id": "t_69eccbb5a4303",
+                "text": "Build a house",
+                "done": true
+            }
+        ]
+    }
+]

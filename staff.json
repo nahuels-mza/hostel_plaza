@@ -1,0 +1,44 @@
+[
+    {
+        "id": "s2",
+        "name": "John Smith",
+        "email": "john@hostelplaza.com",
+        "schedule": {
+            "MON": "OFF",
+            "TUE": "OFF",
+            "WED": "15:00 - 23:00",
+            "THU": "15:00 - 23:00",
+            "FRI": "15:00 - 23:00",
+            "SAT": "15:00 - 23:00",
+            "SUN": "15:00 - 23:00"
+        }
+    },
+    {
+        "id": "s3",
+        "name": "Maria Garcia",
+        "email": "maria@hostelplaza.com",
+        "schedule": {
+            "MON": "23:00 - 07:00",
+            "TUE": "23:00 - 07:00",
+            "WED": "23:00 - 07:00",
+            "THU": "OFF",
+            "FRI": "OFF",
+            "SAT": "23:00 - 07:00",
+            "SUN": "23:00 - 07:00"
+        }
+    },
+    {
+        "id": "s_69eccba3408df",
+        "name": "Marc Ben",
+        "email": "marc.b@skncbba.com",
+        "schedule": {
+            "MON": "OFF",
+            "TUE": "OFF",
+            "WED": "OFF",
+            "THU": "OFF",
+            "FRI": "OFF",
+            "SAT": "OFF",
+            "SUN": "OFF"
+        }
+    }
+]

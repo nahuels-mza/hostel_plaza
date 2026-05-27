@@ -1,0 +1,93 @@
+[
+    {
+        "id": "evt_69c93d52d5d7a",
+        "title": "Wine Tour - Explore Maip\u00fa wine region",
+        "season": "Monday to Saturday | 2 PM - 8 PM Explore Maip\u00fa wine region! Visit 3 wineries and an olive oil factory, learn the wine-making secrets, and taste loads of wines, organic products, jams, and oils. Includes: Visits + Tastings + Transfer + Tour Guide Bring: Water, extra cash.",
+        "image": "https:\/\/dynamic-media.tacdn.com\/media\/photo-o\/2f\/bb\/a0\/e2\/caption.jpg?w=1100&amp;h=800&amp;s=1",
+        "price": "AR$48.000",
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat"
+        ]
+    },
+    {
+        "id": "evt_69c93d083fe07",
+        "title": "Bike Rental on Wine Region",
+        "season": "Monday to Saturday | 10 AM - 6 PM Pedal your way to Mendoza's wineries! An affordable and fun adventure for wine lovers. Pay only for the services you want at the wineries, visit, tastes, food or alltogether! Includes: Bike + Map Bring: Comfortable clothes, water, snacks, sunscreen, hat.",
+        "image": "https:\/\/www.wineandride.com.ar\/imgs\/actividades1.jpg",
+        "price": "AR$14,000",
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat"
+        ]
+    },
+    {
+        "id": "evt_69c93c99dc345",
+        "title": "Sunset Horseride + BBQ & Wine",
+        "season": "Tuesday, Thursday, Saturday and Sunday | 4 PM - 10 PM Live like a gaucho! Ride through the countryside, feast on an Argentine BBQ with loads of wine and dive into the pool (summer). Includes: Horse ride, Transfer, Asado, Wine. Bring: Water, long pants, sunscreen, hat.",
+        "image": "https:\/\/dynamic-media.tacdn.com\/media\/photo-o\/2f\/11\/61\/52\/caption.jpg?w=1100&h=800&s=1",
+        "price": "AR$125,000",
+        "days": [
+            "Tue",
+            "Thu",
+            "Sat",
+            "Sun"
+        ]
+    },
+    {
+        "id": "evt_69c93c45b4adc",
+        "title": "Paragliding in Mendoza from Cerro Arco",
+        "season": "Everyday | 9 AM - 1 PM &amp;amp; 3 PM - 6 PM Fly over Mendoza from Cerro Arco! Pure thrill and panoramic beauty. Fly for about 25min enjoying amazing views of the Andes mountains and Mendoza City, videos and photos included! Includes: Transfer, Guide, Photos &amp;amp; Videos Bring: Water, sunscreen.",
+        "image": "https:\/\/dynamic-media.tacdn.com\/media\/photo-o\/2f\/06\/0d\/85\/caption.jpg?w=1100&amp;amp;h=800&amp;amp;s=1",
+        "price": "AR$119.000",
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+        ]
+    },
+    {
+        "id": "evt_69c93bf67c643",
+        "title": "Rafting on the Mendoza River",
+        "season": "Everyday | 9 AM - 5 PM Conquer the Mendoza River rapids! Feel the adrenaline paddling 12km through thrilling waters. Rafting takes aproximately 1,30hs in the water and you have a few spare hours to have lunch or do other activities such as treking, rappeling or zipline (not included) Includes: Transfer, Guide, Equipment. Bring: Extra clothes, towel, sunscreen, money for lunch.",
+        "image": "https:\/\/dynamic-media.tacdn.com\/media\/photo-o\/2f\/15\/74\/a8\/caption.jpg?w=1100&h=800&s=1",
+        "price": "AR$91,000",
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+        ]
+    },
+    {
+        "id": "evt_69c93b8d9e45f",
+        "title": "Andes High Mountain full day Tour",
+        "season": "Everyday | 7 AM - 7 PM Reach 3600m, travel through three mountain ranges to the Aconcagua, the highest peak in America! Includes stops at Potrerillos Lake, Uspallata Valley, Puente de Inca, Aconcagua Park and Las cuevas Village. Unbelievable landscapes await! Includes: Transportation + Guide Bring: Water, meals, money, warm clothes, windbreaker.",
+        "image": "https:\/\/dynamic-media.tacdn.com\/media\/photo-o\/2f\/0f\/3c\/62\/caption.jpg?w=1400&amp;h=1000&amp;s=1",
+        "price": "AR$86.000",
+        "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+        ]
+    }
+]

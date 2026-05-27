@@ -1,0 +1,10 @@
+{
+    "_comment": "Mapea el id de rooms.json al room_type_id de BananaDesk. Si no sabés el ID de un tipo, dejalo en null y completalo después mirando la URL de tu motor de reservas, o el JSON crudo del endpoint /room-type-availability. Las habitaciones con valor null no se filtrarán contra BananaDesk en book.php.",
+    "1": 22917,
+    "2": 22850,
+    "3": 22851,
+    "4": 22874,
+    "5": 22852,
+    "6": 23068,
+    "7": 23397
+}

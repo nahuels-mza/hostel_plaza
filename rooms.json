@@ -1,0 +1,189 @@
+[
+    {
+        "id": 1,
+        "name": "Family Room with Shared Bathroom",
+        "type": "Superior Private",
+        "capacity": 4,
+        "price": "From $31",
+        "price_ars": "ARS $68,000",
+        "description": "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
+        "amenities": [
+            "Air Conditioning",
+            "WiFi",
+            "Double Bed",
+            "Bunk Bed",
+            "Fan",
+            "Shared Bathroom",
+            "Stove",
+            "Big windows with views to the city",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https:\/\/cf.bstatic.com\/xdata\/images\/hotel\/max1024x768\/729495898.jpg?k=35f2d062726868da5ba53f68a2d7f964da6e6839de4e4476b483ec6b909ee07c&o=",
+        "image_list": [
+            "https://cf.bstatic.com/xdata/images/hotel/square60/729495898.jpg?k=35f2d062726868da5ba53f68a2d7f964da6e6839de4e4476b483ec6b909ee07c&o=",
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495891.jpg?k=88a480e2189627ee637f42c503fb9b38b1ef333dc0ea4c844ba11d31342c3c05&o="
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Double Room with Shared Bathroom",
+        "type": "Superior Private",
+        "capacity": 3,
+        "price": "From $24",
+        "price_ars": "",
+        "description": "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
+        "amenities": [
+            "Air Conditioning",
+            "WiFi",
+            "Double Bed.",
+            "Fan",
+            "Shared Bathroom",
+            "Big windows with views to the city",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https:\/\/cf.bstatic.com\/xdata\/images\/hotel\/max1024x768\/729495911.jpg?k=2d05efc0c85d55bc46117c2fac077f173fc192703ecc6f42a6b1d03f69f2397b&o=",
+        "image_list": [
+            "https:\/\/cf.bstatic.com/xdata/images/hotel/max1024x768/729495902.jpg?k=8e5e0e917abc32bcab65fbf8024a22c373c0a9c53c58cca4c22f678f2f511a62&o=",
+            "https:\/\/cf.bstatic.com/xdata/images/hotel/max1024x768/729495911.jpg?k=2d05efc0c85d55bc46117c2fac077f173fc192703ecc6f42a6b1d03f69f2397b&o="
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Standard 4-Bed Female Dorm",
+        "type": "Female Only",
+        "capacity": 4,
+        "price": "From $12",
+        "price_ars": "",
+        "description": "A safe and comfortable space exclusively for female travelers.",
+        "amenities": [
+            "Air Conditioning",
+            "WiFi",
+            "Bunk Bed",
+            "Lockers",
+            "Shared Bathroom",
+            "Plug near the bed",
+            "Stove",
+            "Mirror",
+            "Big windows with views to the city",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https:\/\/cf.bstatic.com\/xdata\/images\/hotel\/max1024x768\/729495909.jpg?k=83cb891bba2e912e65b133b0a7523947600befddbccdeee68ff26ce30b5e37b3&o=",
+        "image_list": [
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495910.jpg?k=1acfa254915c345a8b7b464e9c411928f3942a45ae347e7cc6cdbcc469ac335a&o=",
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495909.jpg?k=83cb891bba2e912e65b133b0a7523947600befddbccdeee68ff26ce30b5e37b3&o="
+        ]
+    },
+    {
+        "id": 4,
+        "name": "Standard 4-Bed Mixed Dorm",
+        "type": "Shared Dormitory",
+        "capacity": 4,
+        "price": "From $12",
+        "price_ars": "",
+        "description": "Private room with one double bed and one single bed, great for small families or groups.",
+        "amenities": [
+            "Air Conditioning",
+            "Wi-Fi",
+            "Bunk Bed",
+            "Lockers",
+            "Shared Bathroom",
+            "Plug near the bed",
+            "Fan",
+            "Mirror",
+            "Windows with views to our patio",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https:\/\/cf.bstatic.com\/xdata\/images\/hotel\/max1024x768\/729495915.jpg?k=96bca737f1985971884b70e028507f92633ac7a28f2a52a37683029a75b158e9&o=",
+        "image_list": [
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495908.jpg?k=4f836bab581183ad5255677714f5a449d7c81105c3cf84e655a1113201f869ac&o=",
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495914.jpg?k=ad125fdcd022df876df445a95f38002c3ba89db6d73a84ab4dc5aea50759e42c&o="
+        ]
+    },
+    {
+        "id": 5,
+        "name": "Standard 8-Bed Mixed Dorm",
+        "type": "Shared Dormitory",
+        "capacity": 8,
+        "price": "From $10",
+        "price_ars": "",
+        "description": "Our most economical option, perfect for meeting fellow travelers.",
+        "amenities": [
+            "Air Conditioning",
+            "Wi-Fi",
+            "Bunk Bed",
+            "Lockers",
+            "Shared Bathroom",
+            "Plug near the bed",
+            "Fan",
+            "Stove",
+            "Mirror",
+            "Windows with views to our patio",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https:\/\/cf.bstatic.com\/xdata\/images\/hotel\/max1024x768\/729495893.jpg?k=651b859b6581c92f8fcdfd7b0deb8ebecd90d1aa688208f85ae81e2b3032c466&o=",
+        "image_list": [
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495896.jpg?k=982012450a76a8e726fa7ef47a5a6b4b376deab7a80cff9591c957f932a3985a&o=",
+            "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495892.jpg?k=bab55b10675a7db500f714c33727d203f807827e1a85ded6758cfe45e09580b5&o="
+        ]
+    },
+    {
+        "id": 6,
+        "name": "Double Room with Private Bathroom",
+        "type": "Private Dormitory",
+        "capacity": 2,
+        "price": "From $22",
+        "price_ars": "ARS $35,000",
+        "description": "Private room for two people with small bathroom, bunk bed, window overlooking the patio and fan. Sheets, towels, hand soap, and toilet paper included.",
+        "amenities": [
+            "Private Bathroom",
+            "Bunk bed",
+            "Wi-Fi",
+            "Mirror",
+            "Fan",
+            "Windows with views to our patio",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https://d3nn2dzpzvuioi.cloudfront.net/room-type-photos/2026/02/10/1770761467/WhatsAppImage2026-02-10at7.09.43PM4.jpeg",
+        "image_list": [
+            "https://d3nn2dzpzvuioi.cloudfront.net/room-type-photos/2026/02/10/1770761466/WhatsAppImage2026-02-10at7.09.43PM3.jpeg",
+            "https://d3nn2dzpzvuioi.cloudfront.net/room-type-photos/2026/02/10/1770761466/WhatsAppImage2026-02-10at7.09.43PM1.jpeg"
+        ]
+    },
+    {
+        "id": 7,
+        "name": "Double Room with Private Bathroom",
+        "type": "Private Dormitory",
+        "capacity": 2,
+        "price": "From $25",
+        "price_ars": "ARS $35,000",
+        "description": "Private room for two people with small bathroom, double bed, window overlooking the patio and fan. Sheets, towels, hand soap, and toilet paper included.",
+        "amenities": [
+            "Private Bathroom",
+            "Double bed",
+            "Wi-Fi",
+            "Mirror",
+            "Fan",
+            "Windows with views to our patio",
+            "Smoking is prohibited",
+            "All our beds has fresh clean clothes",
+            "Enjoy Breakfast from 7:30am. to 10am."
+        ],
+        "image": "https://d3nn2dzpzvuioi.cloudfront.net/room-type-photos/2026/02/26/1772128795/WhatsAppImage2026-02-26at2.58.18PM1.jpeg",
+        "image_list": [
+            "https://d3nn2dzpzvuioi.cloudfront.net/room-type-photos/2026/02/26/1772128806/WhatsAppImage2026-02-26at2.58.19PM.jpeg",
+            "https://d3nn2dzpzvuioi.cloudfront.net/room-type-photos/2026/02/26/1772128795/WhatsAppImage2026-02-26at2.58.18PM.jpeg"
+        ]
+    }
+]

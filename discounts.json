@@ -1,0 +1,29 @@
+[
+    {
+        "id": "disc_69ce51c8cdd5c",
+        "email": "marcbender62@gmail.com",
+        "code": "VIP-E58129",
+        "value": "10",
+        "type": "percent",
+        "expiry": "2026-10-02",
+        "used": false
+    },
+    {
+        "id": "disc_69d05e2ea75a9",
+        "email": "marcbender62@gmail.com",
+        "code": "VIP-C5A5A1",
+        "value": "20",
+        "type": "flat",
+        "expiry": "2026-10-03",
+        "used": false
+    },
+    {
+        "id": "disc_69d1923303a52",
+        "email": "marcbender62@gmail.com",
+        "code": "VIP-F32223",
+        "value": "10",
+        "type": "percent",
+        "expiry": "2026-10-04",
+        "used": false
+    }
+]

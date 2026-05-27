@@ -1,0 +1,11 @@
+# Proteger archivos sensibles
+<FilesMatch "^(config\.php|config\.example\.php|conversations\.json|.*\.log)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear acceso a las carpetas de logs y cache
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^logs/  - [F,L]
+    RewriteRule ^cache/ - [F,L]
+</IfModule>
