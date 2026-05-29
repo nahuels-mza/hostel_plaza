@@ -10,88 +10,6 @@ if (file_exists($roomsFile)) {
     $rooms = json_decode(file_get_contents($roomsFile), true) ?: [];
 }
 
-// Fallback just in case JSON is empty or missing
-// if (empty($rooms)) {
-//     $rooms = [
-//         [
-//             "id" => 1,
-//             "name" => "Double Room with Shared Bathroom",
-//             "type" => "Superior Private",
-//             "capacity" => 3,
-//             "price" => "From $35",
-//             "price_ars" => "AR$ 38,911",
-//             "description" => "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
-//             "amenities" => ["Air Conditioning", "Private Bathroom", "TV", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495911.jpg?k=2d05efc0c85d55bc46117c2fac077f173fc192703ecc6f42a6b1d03f69f2397b&o="
-//         ],
-//         [
-//             "id" => 2,
-//             "name" => "Family Room",
-//             "type" => "Superior Private",
-//             "capacity" => 4,
-//             "price" => "From $35",
-//             "price_ars" => "AR$ 35,024",
-//             "description" => "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
-//             "amenities" => ["Air Conditioning", "Private Bathroom", "TV", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495898.jpg?k=35f2d062726868da5ba53f68a2d7f964da6e6839de4e4476b483ec6b909ee07c&o="
-//         ],
-//         [
-//             "id" => 4,
-//             "name" => "4-Bed Female Dorm",
-//             "type" => "Female Only",
-//             "capacity" => 4,
-//             "price" => "From $18",
-//             "price_ars" => "AR$ 17,883",
-//             "description" => "A safe and comfortable space exclusively for female travelers.",
-//             "amenities" => ["Lockers", "Shared Bathroom", "Wi-Fi", "Mirror"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495909.jpg?k=83cb891bba2e912e65b133b0a7523947600befddbccdeee68ff26ce30b5e37b3&o="
-//         ],
-//         [
-//             "id" => 5,
-//             "name" => "4-Bed Mixed Dorm",
-//             "type" => "Shared Dormitory",
-//             "capacity" => 4,
-//             "price" => "From $18",
-//             "description" => "Private room with one double bed and one single bed, great for small families or groups.",
-//             "amenities" => ["Air Conditioning", "Private Bathroom", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495915.jpg?k=96bca737f1985971884b70e028507f92633ac7a28f2a52a37683029a75b158e9&o="
-//         ],
-//         [
-//             "id" => 6,
-//             "name" => "8-Bed Mixed Dorm",
-//             "type" => "Shared Dormitory",
-//             "capacity" => 8,
-//             "price" => "From $15",
-//             "description" => "Our most economical option, perfect for meeting fellow travelers.",
-//             "amenities" => ["Lockers", "Shared Bathroom", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495893.jpg?k=651b859b6581c92f8fcdfd7b0deb8ebecd90d1aa688208f85ae81e2b3032c466&o="
-//         ],
-
-
-//         [
-//             "id" => 7,
-//             "name"=> "Double Room with Private Bathroom",
-//             "type" => "Private Dormitory",
-//             "capacity" => 2,
-//             "price" => "From $25",
-//             "price_ars" => "",
-//             "description" => "Private room for two people with small bathroom, bunk bed, window overlooking the patio and fan. Sheets, towels, hand soap, and toilet paper included.",
-//             "image" => "https:\/\/hostelplaza.com.ar\/static\/media\/habitacion6.f2157d48adedd5a6164d.jpg",
-
-//         ],
-//         [
-//             "id" => 8,
-//             "name"=> "Family Room with Private Bedroom",
-//             "type" => "Private Dormitory",
-//             "capacity" => 2,
-//             "price" => "From $35",
-//             "price_ars" => "",
-//             "image"=> "https=>\/\/hostelplaza.com.ar\/static\/media\/habitacion7.4b84d789a7efa00b87d1.jpeg",
-//             "description"=> "Private room for two people with a double bed and private bathroom, window with city view, fan, linens, towels, hand soap, and toilet paper included.",
-//         ]
-
-//     ];
-//
 
 // Ensure price_ars is calculated based on price and exchangeRateARS
 foreach ($rooms as &$room) {
@@ -400,14 +318,24 @@ if (empty($plazaEvents)) {
         </div>
 
         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-6 z-20">
-            <form action="book" method="GET" class="bg-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-end border border-slate-200">
+            <?php
+                $hero_today    = date('Y-m-d');
+                $hero_tomorrow = date('Y-m-d', strtotime('+1 day'));
+            ?>
+            <form id="hero_book_form" action="book.php" method="GET" class="bg-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-end border border-slate-200">
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check In</label>
-                    <input type="date" name="checkIn" required class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none" />
+                    <input type="date" name="check_in" id="hero_check_in"
+                           min="<?php echo $hero_today; ?>"
+                           required
+                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none" />
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check Out</label>
-                    <input type="date" name="checkOut" required class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none" />
+                    <input type="date" name="check_out" id="hero_check_out"
+                           min="<?php echo $hero_tomorrow; ?>"
+                           required
+                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none" />
                 </div>
                 <button type="submit" class="bg-teal-400 text-slate-900 h-[50px] rounded-lg font-bold text-lg hover:bg-teal-300 transition-all shadow-md">Book Now</button>
             </form>
@@ -481,9 +409,12 @@ if (empty($plazaEvents)) {
                         <?php echo htmlspecialchars($room['description']); ?>
                     </p>
 
-                    <div class="mt-auto">
-                        <a href="room.php?id=<?php echo urlencode($room['id']); ?>" class="block text-center w-full py-4 bg-white text-teal rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal hover:text-white group-hover:shadow-md">
-                            Check Availability
+                    <div class="mt-auto flex gap-2">
+                        <a href="room.php?id=<?php echo urlencode($room['id']); ?>" class="flex-1 block text-center py-4 bg-white text-teal rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-light group-hover:shadow-md">
+                            View
+                        </a>
+                        <a href="book.php?room_id=<?php echo urlencode($room['id']); ?>" class="flex-1 block text-center py-4 bg-teal text-white rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-hover group-hover:shadow-md">
+                            Book
                         </a>
                     </div>
                 </div>
@@ -620,28 +551,105 @@ if (empty($plazaEvents)) {
     <script>
         lucide.createIcons();
 
+        // --- HERO BOOK FORM: prevent past dates + keep check-out after check-in ---
+        (function () {
+            const ci = document.getElementById('hero_check_in');
+            const co = document.getElementById('hero_check_out');
+            if (!ci || !co) return;
+
+            const todayStr = () => {
+                const d = new Date();
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            const addDays = (s, n) => {
+                const d = new Date(s + 'T00:00:00');
+                d.setDate(d.getDate() + n);
+                return d.toISOString().split('T')[0];
+            };
+
+            // Refrescar "hoy" desde el cliente (por si la HTML quedó cacheada).
+            const today = todayStr();
+            ci.min = today;
+            co.min = addDays(today, 1);
+
+            // Sincronizar check-out cuando cambia check-in
+            ci.addEventListener('change', () => {
+                if (!ci.value) return;
+                if (ci.value < today) { ci.value = today; }
+                const minCo = addDays(ci.value, 1);
+                co.min = minCo;
+                if (!co.value || co.value < minCo) co.value = minCo;
+            });
+
+            // Sanity check al submit
+            ci.form.addEventListener('submit', (e) => {
+                const tToday = todayStr();
+                if (ci.value && ci.value < tToday) {
+                    e.preventDefault();
+                    alert("Check-in can't be in the past.");
+                    ci.focus();
+                    return;
+                }
+                if (ci.value && co.value && co.value <= ci.value) {
+                    e.preventDefault();
+                    alert('Check-out must be after check-in.');
+                    co.focus();
+                }
+            });
+        })();
+
         // --- CAROUSEL AUTO-SCROLL ENGINE ---
         const eventsCarousel = document.getElementById('events-carousel');
         const roomsCarousel = document.getElementById('rooms-carousel');
 
         function setupEndless(carousel) {
             if (!carousel) return;
+
+            // Duplicamos el contenido para crear el efecto loop.
             const children = Array.from(carousel.children);
             children.forEach(child => {
                 const clone = child.cloneNode(true);
+                clone.setAttribute('aria-hidden', 'true');
                 carousel.appendChild(clone);
             });
 
-            carousel.addEventListener('scroll', () => {
-                const scrollLeft = carousel.scrollLeft;
-                const halfWidth = carousel.scrollWidth / 2;
+            // Flag para evitar reentradas mientras estamos teletransportando.
+            let teleporting = false;
 
+            carousel.addEventListener('scroll', () => {
+                if (teleporting) return;
+
+                const scrollLeft = carousel.scrollLeft;
+                const halfWidth  = carousel.scrollWidth / 2;
+                // Margen mínimo para evitar wraps por sub-píxeles de los bordes.
+                const edge = 2;
+
+                let target = null;
                 if (scrollLeft >= halfWidth) {
-                    carousel.scrollLeft = scrollLeft - halfWidth;
-                } else if (scrollLeft <= 0) {
-                    carousel.scrollLeft = scrollLeft + halfWidth;
+                    target = scrollLeft - halfWidth;
+                } else if (scrollLeft <= edge) {
+                    target = scrollLeft + halfWidth;
                 }
-            });
+                if (target === null) return;
+
+                // CLAVE: el contenedor tiene CSS `scroll-behavior: smooth`
+                // (clase scroll-smooth). Si solo asignamos scrollLeft, el
+                // navegador ANIMA el salto y se ve como un "rewind" desde
+                // el final hasta el principio. Lo forzamos a instantáneo.
+                teleporting = true;
+                const prevBehavior = carousel.style.scrollBehavior;
+                carousel.style.scrollBehavior = 'auto';
+                carousel.scrollLeft = target;
+                // Restauramos en el siguiente frame para que el scroll
+                // disparado por las flechas siga siendo suave.
+                requestAnimationFrame(() => {
+                    carousel.style.scrollBehavior = prevBehavior;
+                    teleporting = false;
+                });
+            }, { passive: true });
         }
 
         setupEndless(eventsCarousel);

@@ -9,67 +9,6 @@ if (file_exists($roomsFile)) {
     $rooms = json_decode(file_get_contents($roomsFile), true) ?: [];
 }
 
-// Fallback just in case JSON is empty or missing
-// if (empty($rooms)) {
-//     $rooms = [
-//         [
-//             "id" => 1,
-//             "name" => "Double Room with Shared Bathroom",
-//             "type" => "Superior Private",
-//             "capacity" => 3,
-//             "price" => "From $37", // Converted from 38,911 ARS
-//             "price_ars" => "AR$ 38,911",
-//             "description" => "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
-//             "amenities" => ["Air Conditioning", "Shared Bathroom", "Lockers", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495911.jpg?k=2d05efc0c85d55bc46117c2fac077f173fc192703ecc6f42a6b1d03f69f2397b&o="
-//         ],
-//         [
-//             "id" => 2,
-//             "name" => "Family Room",
-//             "type" => "Superior Private",
-//             "capacity" => 4,
-//             "price" => "From $33", // Converted from 35,024 ARS
-//             "price_ars" => "AR$ 35,024",
-//             "description" => "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
-//             "amenities" => ["Air Conditioning", "Shared Bathroom", "Bunk Bed", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495898.jpg?k=35f2d062726868da5ba53f68a2d7f964da6e6839de4e4476b483ec6b909ee07c&o="
-//         ],
-//         [
-
-//             "id" => 4,
-//             "name" => "4-Bed Female Dorm",
-//             "type" => "Female Only",
-//             "capacity" => 4,
-//             "price" => "From $17", // Converted from 17,883 ARS
-//             "price_ars" => "AR$ 17,883",
-//             "description" => "A safe and comfortable space exclusively for female travelers.",
-//             "amenities" => ["Lockers", "Shared Bathroom", "Wi-Fi", "Mirror"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495909.jpg?k=83cb891bba2e912e65b133b0a7523947600befddbccdeee68ff26ce30b5e37b3&o="
-//         ],
-//         [
-//             "id" => 5,
-//             "name" => "4-Bed Mixed Dorm",
-//             "type" => "Shared Dormitory",
-//             "capacity" => 4,
-//             "price" => "From $18",
-//             "price_ars" => "",
-//             "description" => "Private room with one double bed and one single bed, great for small families or groups.",
-//             "amenities" => ["Air Conditioning", "Private Bathroom", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495915.jpg?k=96bca737f1985971884b70e028507f92633ac7a28f2a52a37683029a75b158e9&o="
-//         ],
-//         [
-//             "id" => 6,
-//             "name" => "8-Bed Mixed Dorm",
-//             "type" => "Shared Dormitory",
-//             "capacity" => 8,
-//             "price" => "From $15",
-//             "price_ars" => "",
-//             "description" => "Our most economical option, perfect for meeting fellow travelers.",
-//             "amenities" => ["Lockers", "Shared Bathroom", "Wi-Fi"],
-//             "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495893.jpg?k=651b859b6581c92f8fcdfd7b0deb8ebecd90d1aa688208f85ae81e2b3032c466&o="
-//         ]
-//     ];
-// }
 
 // Ensure price_ars is calculated based on price and exchangeRateARS
 foreach ($rooms as &$room) {

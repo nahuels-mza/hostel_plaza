@@ -243,7 +243,7 @@ if (!$currentRoom) {
                         <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('de', this)">DE</button>
                     </div>
 
-                    <a href="book.php?room=<?php echo urlencode($currentRoom['name']); ?>" class="bg-teal text-white px-7 py-3 rounded-full hover:bg-teal-hover transition-all shadow-lg border-none">
+                    <a href="book.php?room_id=<?php echo urlencode($currentRoom['id']); ?>" class="bg-teal text-white px-7 py-3 rounded-full hover:bg-teal-hover transition-all shadow-lg border-none">
                         Book Now
                     </a>
                 </div>
@@ -268,7 +268,7 @@ if (!$currentRoom) {
                 <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('de', this, true)">DE</button>
             </div>
 
-            <a href="book.php?room=<?php echo urlencode($currentRoom['name']); ?>" class="bg-teal text-white w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
+            <a href="book.php?room_id=<?php echo urlencode($currentRoom['id']); ?>" class="bg-teal text-white w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
         </div>
     </nav>
 
@@ -385,7 +385,7 @@ if (!$currentRoom) {
                         </div>
                     </div>
 
-                    <a href="book.php?room=<?php echo urlencode($currentRoom['name']); ?>" class="block text-center w-full py-3.5 bg-[#1c5457] text-white rounded-xl font-bold text-[17px] hover:bg-[#144042] transition-all shadow-md">
+                    <a href="book.php?room_id=<?php echo urlencode($currentRoom['id']); ?>" class="block text-center w-full py-3.5 bg-[#1c5457] text-white rounded-xl font-bold text-[17px] hover:bg-[#144042] transition-all shadow-md">
                         Check Availability
                     </a>
 
