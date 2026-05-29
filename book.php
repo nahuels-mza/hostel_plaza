@@ -127,7 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
             $mail->send();
         } catch (\Exception $e) {
-            $mailError = "SMTP Error: {$mail->ErrorInfo}";
+            $mailError = $e->getMessage() . ($mail->ErrorInfo ? " | Detail: {$mail->ErrorInfo}" : '');
+            error_log("[Hostel Plaza] Mail error for booking {$newReservationId}: {$mailError}");
         }
     } else {
         $mailError = "The 'PHPMailer' folder is missing!";
