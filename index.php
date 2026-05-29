@@ -195,112 +195,12 @@ if (empty($plazaEvents)) {
         @media (min-width: 768px) { .event-card { flex: 0 0 calc(50% - 12px); } }
         @media (min-width: 1024px) { .event-card { flex: 0 0 calc(33.333% - 16px); } }
 
-        /* --- THE ULTIMATE GOOGLE TRANSLATE KILLER CSS --- */
-        #google_translate_element,
-        .goog-te-banner-frame,
-        .skiptranslate,
-        .goog-te-gadget-icon,
-        .goog-tooltip,
-        .goog-tooltip:hover,
-        #goog-gt-tt {
-            display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-        }
-        body {
-            top: 0px !important;
-            position: static !important;
-        }
-        html {
-            height: auto !important;
-            top: 0px !important;
-        }
-        html.translated-ltr, html.translated-rtl {
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-        }
-        .goog-text-highlight {
-            background-color: transparent !important;
-            box-shadow: none !important;
-        }
-
-        .lang-btn {
-            transition: all 0.3s ease;
-        }
-        .lang-btn.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-        .glass .lang-toggle-container {
-            background-color: rgba(0, 0, 0, 0.05);
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-        .glass .lang-btn {
-            color: #64748b;
-        }
-        .glass .lang-btn.active {
-            background-color: #1c5457;
-            color: #fff;
-        }
-
-        /* Dynamic Menu Hovers */
-        #mainNav.bg-transparent .nav-link:hover { color: #5eead4; }
-        #mainNav.glass .nav-link:hover { color: #1c5457; }
+        /* CSS de nav/lang/google translate vive en header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-    <div id="google_translate_element"></div>
-
-   <nav id="mainNav" class="fixed top-0 w-full z-50 transition-all duration-300 bg-transparent py-5">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <a href="/" class="transition-opacity hover:opacity-80 block">
-                <img id="logoTop" src="hostel.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="block">
-                <img id="logoScrolled" src="H.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="hidden">
-            </a>
-
-            <div id="desktopMenu" class="hidden md:flex items-center space-x-6 font-medium text-white transition-colors">
-                <a href="/" class="nav-link transition-colors">Home</a>
-                <a href="about" class="nav-link transition-colors">About Us</a>
-                <a href="rooms" class="nav-link transition-colors">Rooms</a>
-                <a href="tourist-events" class="nav-link transition-colors">Tourist Events</a>
-
-                <div class="notranslate lang-toggle-container flex items-center bg-white/10 backdrop-blur-sm rounded-full p-1 border border-white/20 text-[11px] font-bold tracking-wider ml-2 transition-all">
-                    <button class="lang-btn active px-3 py-1.5 rounded-full" onclick="changeLanguage('en', this)">EN</button>
-                    <button class="lang-btn px-3 py-1.5 rounded-full" onclick="changeLanguage('es', this)">ES</button>
-                    <button class="lang-btn px-3 py-1.5 rounded-full" onclick="changeLanguage('pt', this)">PT</button>
-                    <button class="lang-btn px-3 py-1.5 rounded-full" onclick="changeLanguage('fr', this)">FR</button>
-                    <button class="lang-btn px-3 py-1.5 rounded-full" onclick="changeLanguage('de', this)">DE</button>
-                </div>
-
-                <a href="book" class="bg-teal-400 text-slate-900 font-bold px-6 py-2.5 rounded-full hover:bg-teal-300 transition-all shadow-lg ml-2 border-none">
-                    Book Now
-                </a>
-            </div>
-
-            <button id="mobileMenuBtn" class="md:hidden p-2 text-white transition-colors">
-                <i data-lucide="menu"></i>
-            </button>
-        </div>
-
-        <div id="mobileMenu" class="hidden absolute top-full left-0 w-full glass p-6 flex-col space-y-4 shadow-xl text-slate-900">
-            <a href="index.php" class="text-left text-lg font-medium block hover:text-teal">Home</a>
-            <a href="about" class="text-left text-lg font-medium block hover:text-teal">About Us</a>
-            <a href="rooms.php" class="text-left text-lg font-medium block hover:text-teal">Rooms</a>
-            <a href="tourist-events.php" class="text-left text-lg font-medium block hover:text-teal">Tourist Events</a>
-            <a href="history.php" class="text-left text-lg font-medium block hover:text-teal">History</a>
-
-            <div class="notranslate flex items-center justify-center bg-slate-100 rounded-full p-1 border border-slate-200 text-xs font-bold tracking-wider mt-4">
-                <button class="lang-btn-mob flex-1 active bg-teal text-white px-3 py-2 rounded-full transition-all" onclick="changeLanguage('en', this, true)">EN</button>
-                <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('es', this, true)">ES</button>
-                <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('pt', this, true)">PT</button>
-                <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('fr', this, true)">FR</button>
-                <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('de', this, true)">DE</button>
-            </div>
-
-            <a href="book.php" class="bg-teal-400 text-slate-900 hover:bg-teal-300 transition-all w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
-        </div>
-    </nav>
+    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
 
     <section id="home" class="relative h-screen min-h-[700px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
@@ -690,95 +590,8 @@ if (empty($plazaEvents)) {
             }
         }
 
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('mainNav');
-            const logoTop = document.getElementById('logoTop');
-            const logoScrolled = document.getElementById('logoScrolled');
-            if (window.scrollY > 50) {
-                nav.classList.add('glass', 'py-3'); nav.classList.remove('bg-transparent', 'py-5');
-                logoTop.classList.add('hidden'); logoScrolled.classList.remove('hidden');
-
-                document.querySelectorAll('.nav-link').forEach(el => {
-                    el.classList.remove('text-white');
-                    el.classList.add('text-slate-900');
-                });
-                document.getElementById('mobileMenuBtn').classList.remove('text-white');
-                document.getElementById('mobileMenuBtn').classList.add('text-slate-900');
-
-                // Keep translator text clean on scroll
-                document.querySelectorAll('.lang-toggle-container .lang-btn:not(.active)').forEach(el => {
-                    el.style.color = '#64748b'; // slate-500
-                });
-            } else {
-                nav.classList.add('bg-transparent', 'py-5'); nav.classList.remove('glass', 'py-3');
-                logoTop.classList.remove('hidden'); logoScrolled.classList.add('hidden');
-
-                document.querySelectorAll('.nav-link').forEach(el => {
-                    el.classList.add('text-white');
-                    el.classList.remove('text-slate-900');
-                });
-                document.getElementById('mobileMenuBtn').classList.add('text-white');
-                document.getElementById('mobileMenuBtn').classList.remove('text-slate-900');
-
-                // Keep translator text clean on top
-                document.querySelectorAll('.lang-toggle-container .lang-btn:not(.active)').forEach(el => {
-                    el.style.color = 'white';
-                });
-            }
-        });
-
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('hidden'); menu.classList.toggle('flex');
-        });
-
-        // --- RESTORED LANGUAGE TRANSLATION SCRIPT ---
-        function changeLanguage(langCode, btnElement, isMobile = false) {
-            var selectField = document.querySelector("#google_translate_element select") || document.querySelector(".goog-te-combo");
-            if(selectField) {
-                selectField.value = langCode;
-                selectField.dispatchEvent(new Event('change'));
-            }
-
-            var btnClass = isMobile ? '.lang-btn-mob' : '.lang-btn';
-            document.querySelectorAll(btnClass).forEach(function(btn) {
-                if(isMobile) {
-                    btn.classList.remove('bg-teal', 'text-white');
-                    btn.classList.add('text-slate-500');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            if(isMobile) {
-                btnElement.classList.add('bg-teal', 'text-white');
-                btnElement.classList.remove('text-slate-500');
-            } else {
-                btnElement.classList.add('active');
-            }
-        }
-
-        // Kills the annoying Google Translate top bar
-        setInterval(function() {
-            if (document.body.style.top !== '0px') {
-                document.body.style.top = '0px';
-            }
-            if (document.documentElement.style.top !== '0px') {
-                document.documentElement.style.top = '0px';
-            }
-        }, 50);
+        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en header.php
     </script>
-
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'en,es,fr,de,pt',
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>

@@ -1,0 +1,250 @@
+<?php
+/**
+ * Header / nav compartido de Hostel Plaza.
+ *
+ * Uso:
+ *   <?php
+ *     $hasHero = true;  // página con imagen de hero → nav transparente arriba
+ *     include 'header.php';
+ *   ?>
+ *
+ * `$hasHero = true`  → arranca transparente + texto blanco, pasa a "glass" al scrollear.
+ * `$hasHero = false` → arranca "glass" + texto oscuro desde el primer pixel
+ *                       (para páginas sin hero, como /book, /rooms).
+ *
+ * Incluye:
+ *   - CSS del nav, lang-toggle, y "matadores" de la barra de Google Translate
+ *   - el HTML del nav (desktop + mobile) y mobile menu
+ *   - JS de scroll-to-glass, toggle mobile, language switcher
+ *   - el script de Google Translate
+ *
+ * Requisitos en la página que lo incluye:
+ *   - Tailwind cargado (cdn.tailwindcss.com)
+ *   - Lucide cargado y `lucide.createIcons()` invocado en el script principal
+ *     (este header crea elementos `<i data-lucide>` que necesitan ese render)
+ */
+
+$hasHero = isset($hasHero) ? (bool)$hasHero : false;
+?>
+
+<style>
+    /* Lang toggle */
+    .lang-btn { transition: all 0.3s ease; }
+    .lang-btn.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+    .glass .lang-toggle-container {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+    .glass .lang-btn { color: #64748b; }
+    .glass .lang-btn.active {
+        background-color: #1c5457;
+        color: #fff;
+    }
+    /* Default lang toggle (no glass) */
+    #mainNav:not(.glass) .lang-toggle-container {
+        background-color: rgba(255, 255, 255, 0.10);
+        border-color: rgba(255, 255, 255, 0.20);
+    }
+
+    /* Nav link hovers */
+    #mainNav.bg-transparent .nav-link:hover { color: #5eead4; }
+    #mainNav.glass .nav-link:hover         { color: #1c5457; }
+
+    /* Glass effect */
+    .glass {
+        background-color: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    /* ===== Google Translate killer (la barra arriba + tooltips) ===== */
+    #google_translate_element,
+    .goog-te-banner-frame,
+    .skiptranslate,
+    .goog-te-gadget-icon,
+    .goog-tooltip,
+    .goog-tooltip:hover,
+    #goog-gt-tt {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+    body { top: 0px !important; position: static !important; }
+    html { height: auto !important; top: 0px !important; }
+    html.translated-ltr, html.translated-rtl {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    .goog-text-highlight {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+</style>
+
+<div id="google_translate_element"></div>
+
+<nav id="mainNav"
+     data-has-hero="<?php echo $hasHero ? '1' : '0'; ?>"
+     class="fixed top-0 w-full z-50 transition-all duration-300 <?php echo $hasHero ? 'bg-transparent py-5' : 'glass py-3'; ?>">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+
+        <a href="/" class="transition-opacity hover:opacity-80 block">
+            <img id="logoTop"      src="hostel.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="<?php echo $hasHero ? 'block' : 'hidden'; ?>">
+            <img id="logoScrolled" src="H.png"      alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="<?php echo $hasHero ? 'hidden' : 'block'; ?>">
+        </a>
+
+        <div id="desktopMenu" class="hidden md:flex items-center space-x-6 font-medium <?php echo $hasHero ? 'text-white' : 'text-slate-900'; ?> transition-colors">
+            <a href="/"               class="nav-link transition-colors">Home</a>
+            <a href="about"           class="nav-link transition-colors">About Us</a>
+            <a href="rooms"           class="nav-link transition-colors">Rooms</a>
+            <a href="tourist-events"  class="nav-link transition-colors">Tourist Events</a>
+
+            <div class="notranslate lang-toggle-container flex items-center backdrop-blur-sm rounded-full p-1 border text-[11px] font-bold tracking-wider ml-2 transition-all">
+                <button class="lang-btn active px-3 py-1.5 rounded-full" onclick="changeLanguage('en', this)">EN</button>
+                <button class="lang-btn px-3 py-1.5 rounded-full"        onclick="changeLanguage('es', this)">ES</button>
+                <button class="lang-btn px-3 py-1.5 rounded-full"        onclick="changeLanguage('pt', this)">PT</button>
+                <button class="lang-btn px-3 py-1.5 rounded-full"        onclick="changeLanguage('fr', this)">FR</button>
+                <button class="lang-btn px-3 py-1.5 rounded-full"        onclick="changeLanguage('de', this)">DE</button>
+            </div>
+
+            <a href="book.php" class="bg-teal-400 text-slate-900 font-bold px-6 py-2.5 rounded-full hover:bg-teal-300 transition-all shadow-lg ml-2 border-none">
+                Book Now
+            </a>
+        </div>
+
+        <button id="mobileMenuBtn" class="md:hidden p-2 <?php echo $hasHero ? 'text-white' : 'text-slate-900'; ?> transition-colors">
+            <i data-lucide="menu"></i>
+        </button>
+    </div>
+
+    <div id="mobileMenu" class="hidden absolute top-full left-0 w-full glass p-6 flex-col space-y-4 shadow-xl text-slate-900">
+        <a href="index.php"          class="text-left text-lg font-medium block hover:text-teal">Home</a>
+        <a href="about"              class="text-left text-lg font-medium block hover:text-teal">About Us</a>
+        <a href="rooms.php"          class="text-left text-lg font-medium block hover:text-teal">Rooms</a>
+        <a href="tourist-events.php" class="text-left text-lg font-medium block hover:text-teal">Tourist Events</a>
+        <a href="history.php"        class="text-left text-lg font-medium block hover:text-teal">History</a>
+
+        <div class="notranslate flex items-center justify-center bg-slate-100 rounded-full p-1 border border-slate-200 text-xs font-bold tracking-wider mt-4">
+            <button class="lang-btn-mob flex-1 active bg-teal text-white px-3 py-2 rounded-full transition-all" onclick="changeLanguage('en', this, true)">EN</button>
+            <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all"            onclick="changeLanguage('es', this, true)">ES</button>
+            <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all"            onclick="changeLanguage('pt', this, true)">PT</button>
+            <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all"            onclick="changeLanguage('fr', this, true)">FR</button>
+            <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all"            onclick="changeLanguage('de', this, true)">DE</button>
+        </div>
+
+        <a href="book.php" class="bg-teal-400 text-slate-900 hover:bg-teal-300 transition-all w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
+    </div>
+</nav>
+
+<script>
+(function () {
+    const nav = document.getElementById('mainNav');
+    if (!nav) return;
+    const hasHero      = nav.dataset.hasHero === '1';
+    const logoTop      = document.getElementById('logoTop');
+    const logoScrolled = document.getElementById('logoScrolled');
+    const mobileBtn    = document.getElementById('mobileMenuBtn');
+
+    function toGlass() {
+        nav.classList.add('glass', 'py-3');
+        nav.classList.remove('bg-transparent', 'py-5');
+        if (logoTop)      logoTop.classList.add('hidden');
+        if (logoScrolled) logoScrolled.classList.remove('hidden');
+        nav.querySelectorAll('.nav-link').forEach(el => {
+            el.classList.remove('text-white');
+            el.classList.add('text-slate-900');
+        });
+        if (mobileBtn) {
+            mobileBtn.classList.remove('text-white');
+            mobileBtn.classList.add('text-slate-900');
+        }
+        nav.querySelectorAll('.lang-toggle-container .lang-btn:not(.active)').forEach(el => {
+            el.style.color = '#64748b';
+        });
+    }
+
+    function toTransparent() {
+        nav.classList.add('bg-transparent', 'py-5');
+        nav.classList.remove('glass', 'py-3');
+        if (logoTop)      logoTop.classList.remove('hidden');
+        if (logoScrolled) logoScrolled.classList.add('hidden');
+        nav.querySelectorAll('.nav-link').forEach(el => {
+            el.classList.add('text-white');
+            el.classList.remove('text-slate-900');
+        });
+        if (mobileBtn) {
+            mobileBtn.classList.add('text-white');
+            mobileBtn.classList.remove('text-slate-900');
+        }
+        nav.querySelectorAll('.lang-toggle-container .lang-btn:not(.active)').forEach(el => {
+            el.style.color = 'white';
+        });
+    }
+
+    if (!hasHero) {
+        // Páginas sin hero: nav siempre en estado "glass"
+        toGlass();
+    } else {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) toGlass();
+            else toTransparent();
+        }, { passive: true });
+    }
+
+    // Mobile menu toggle
+    if (mobileBtn) {
+        mobileBtn.addEventListener('click', () => {
+            const menu = document.getElementById('mobileMenu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+                menu.classList.toggle('flex');
+            }
+        });
+    }
+})();
+
+function changeLanguage(langCode, btnElement, isMobile) {
+    isMobile = isMobile || false;
+    var selectField = document.querySelector("#google_translate_element select") || document.querySelector(".goog-te-combo");
+    if (selectField) {
+        selectField.value = langCode;
+        selectField.dispatchEvent(new Event('change'));
+    }
+    var btnClass = isMobile ? '.lang-btn-mob' : '.lang-btn';
+    document.querySelectorAll(btnClass).forEach(function (btn) {
+        if (isMobile) {
+            btn.classList.remove('bg-teal', 'text-white');
+            btn.classList.add('text-slate-500');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    if (isMobile) {
+        btnElement.classList.add('bg-teal', 'text-white');
+        btnElement.classList.remove('text-slate-500');
+    } else {
+        btnElement.classList.add('active');
+    }
+}
+
+// Kill the Google Translate top bar (it tries to shift the document down)
+setInterval(function () {
+    if (document.body.style.top !== '0px') document.body.style.top = '0px';
+    if (document.documentElement.style.top !== '0px') document.documentElement.style.top = '0px';
+}, 50);
+</script>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,es,fr,de,pt',
+        autoDisplay: false
+    }, 'google_translate_element');
+}
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

@@ -63,6 +63,12 @@ $mapPath = __DIR__ . '/room_mapping.json';
 $map = is_file($mapPath) ? json_decode(file_get_contents($mapPath), true) : [];
 if (!is_array($map)) $map = [];
 
+// Tipo de cambio del sitio (config.json) para convertir USD → ARS cuando
+// rooms.json no trae price_ars cargado.
+$siteCfgPath = __DIR__ . '/config.json';
+$siteCfg     = is_file($siteCfgPath) ? (json_decode(file_get_contents($siteCfgPath), true) ?: []) : [];
+$exchangeARS = (float)($siteCfg['exchangeRateARS'] ?? 1370);
+
 $rooms = hp_load_rooms(__DIR__ . '/rooms.json');
 
 // --- consulta única a BananaDesk con el rango entero ---
@@ -94,9 +100,16 @@ foreach ($rooms as $r) {
         $minStay       = (int)$bd['min_stay'];
         $available     = $availability > 0 && ($minStay === 0 || $nights >= $minStay);
     } else {
-        // Sin mapeo o BananaDesk no devolvió este tipo: precio de rooms.json
-        // como fallback, marcar como no-confirmado.
-        $pricePerNight = (float)preg_replace('/[^0-9.]/', '', (string)($r['price_ars'] ?? '0'));
+        // Sin mapeo o BananaDesk no devolvió este tipo. Calcular precio de
+        // fallback: primero usar price_ars de rooms.json si está cargado,
+        // si no, convertir el price USD usando el tipo de cambio del sitio.
+        $rawArs = preg_replace('/[^0-9.]/', '', (string)($r['price_ars'] ?? ''));
+        if ($rawArs !== '' && (float)$rawArs > 0) {
+            $pricePerNight = (float)$rawArs;
+        } else {
+            $rawUsd = (float)preg_replace('/[^0-9.]/', '', (string)($r['price'] ?? '0'));
+            $pricePerNight = $rawUsd * $exchangeARS;
+        }
         $availability  = 0;
         $minStay       = 0;
         $available     = false;

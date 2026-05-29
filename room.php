@@ -198,81 +198,14 @@ if (!$currentRoom) {
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* --- THE ULTIMATE GOOGLE TRANSLATE KILLER CSS --- */
-        #google_translate_element,
-        .goog-te-banner-frame,
-        .skiptranslate,
-        .goog-te-gadget-icon,
-        .goog-tooltip,
-        .goog-tooltip:hover,
-        #goog-gt-tt { display: none !important; opacity: 0 !important; visibility: hidden !important; }
-        body { top: 0px !important; position: static !important; }
-        html { height: auto !important; top: 0px !important; }
-        html.translated-ltr, html.translated-rtl { margin-top: 0 !important; padding-top: 0 !important; }
-        .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
-
-        .lang-btn { transition: all 0.3s ease; }
-        .lang-btn.active { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
-        .lang-toggle-container { background-color: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
+        /* CSS de nav/lang/google translate vive en header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-    <div id="google_translate_element"></div>
+    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
 
-    <nav id="mainNav" class="fixed top-0 w-full z-50 transition-all duration-300 glass py-3">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <a href="/" class="transition-opacity hover:opacity-80 block shrink-0">
-                <img src="hostel.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain; filter: brightness(0) invert(1);" class="block" onerror="this.style.display='none'">
-            </a>
-
-            <div id="desktopMenu" class="hidden lg:flex items-center gap-10 text-sm font-semibold text-white">
-                <nav class="flex items-center gap-8 uppercase tracking-[0.15em] text-[13px] font-bold">
-                    <a href="/" class="hover:text-teal-300 transition-colors">Home</a>
-                    <a href="about" class="hover:text-teal-300 transition-colors">About Us</a>
-                    <a href="rooms" class="hover:text-teal-300 transition-colors">Rooms</a>
-                    <a href="tourist-events" class="hover:text-teal-300 transition-colors">Tourist Events</a>
-                </nav>
-
-                <div class="flex items-center gap-6 pl-4">
-                    <div class="notranslate lang-toggle-container flex items-center backdrop-blur-sm rounded-full p-1 border text-[11px] font-bold tracking-wider transition-all">
-                        <button class="lang-btn active px-3 py-1.5 rounded-full" onclick="changeLanguage('en', this)">EN</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('es', this)">ES</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('pt', this)">PT</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('fr', this)">FR</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('de', this)">DE</button>
-                    </div>
-
-                    <a href="book.php?room_id=<?php echo urlencode($currentRoom['id']); ?>" class="bg-teal text-white px-7 py-3 rounded-full hover:bg-teal-hover transition-all shadow-lg border-none">
-                        Book Now
-                    </a>
-                </div>
-            </div>
-
-            <button id="mobileMenuBtn" class="lg:hidden p-2 text-white transition-colors">
-                <i data-lucide="menu"></i>
-            </button>
-        </div>
-
-        <div id="mobileMenu" class="hidden absolute top-full left-0 w-full glass p-6 flex-col space-y-4 shadow-xl text-white border-t border-white/10">
-            <a href="/" class="text-left text-lg font-medium block hover:text-teal-300">Home</a>
-            <a href="about" class="text-left text-lg font-medium block hover:text-teal-300">About Us</a>
-            <a href="rooms" class="text-left text-lg font-medium block hover:text-teal-300">Rooms</a>
-            <a href="events" class="text-left text-lg font-medium block hover:text-teal-300">Events</a>
-
-            <div class="notranslate flex items-center justify-center bg-slate-800 rounded-full p-1 border border-slate-700 text-xs font-bold tracking-wider mt-4">
-                <button class="lang-btn-mob flex-1 active bg-teal text-white px-3 py-2 rounded-full transition-all" onclick="changeLanguage('en', this, true)">EN</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('es', this, true)">ES</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('pt', this, true)">PT</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('fr', this, true)">FR</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('de', this, true)">DE</button>
-            </div>
-
-            <a href="book.php?room_id=<?php echo urlencode($currentRoom['id']); ?>" class="bg-teal text-white w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
-        </div>
-    </nav>
-
-    <div class="w-full h-[50vh] md:h-[65vh] relative mt-[85px] bg-slate-900">
+    <div class="w-full h-[50vh] md:h-[65vh] relative bg-slate-900">
         <img src="<?php echo htmlspecialchars($currentRoom['image']); ?>" alt="<?php echo htmlspecialchars($currentRoom['name']); ?>" class="w-full h-full object-cover opacity-80">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
 
@@ -400,61 +333,9 @@ if (!$currentRoom) {
 
     <?php include 'footer.php'; ?>
 
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'en,es,fr,de,pt',
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
     <script>
+        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en header.php
         lucide.createIcons();
-
-        // --- GOOGLE TRANSLATE KILLER LOOP ---
-        setInterval(function() {
-            if (document.body.style.top !== '0px') {
-                document.body.style.top = '0px';
-            }
-            if (document.documentElement.style.top !== '0px') {
-                document.documentElement.style.top = '0px';
-            }
-        }, 50);
-
-        function changeLanguage(langCode, btnElement, isMobile = false) {
-            var selectField = document.querySelector("#google_translate_element select");
-            if(selectField) {
-                selectField.value = langCode;
-                selectField.dispatchEvent(new Event('change'));
-            }
-
-            var btnClass = isMobile ? '.lang-btn-mob' : '.lang-btn';
-            document.querySelectorAll(btnClass).forEach(function(btn) {
-                if(isMobile) {
-                    btn.classList.remove('bg-teal', 'text-white');
-                    btn.classList.add('text-slate-400');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            if(isMobile) {
-                btnElement.classList.add('bg-teal', 'text-white');
-                btnElement.classList.remove('text-slate-400');
-            } else {
-                btnElement.classList.add('active');
-            }
-        }
-
-        // --- MOBILE MENU TOGGLE ---
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('hidden');
-            menu.classList.toggle('flex');
-        });
     </script>
 </body>
 </html>

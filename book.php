@@ -141,7 +141,6 @@ $getCheckIn  = trim((string)($_GET['check_in']  ?? $_GET['checkIn']  ?? ''));
 $getCheckOut = trim((string)($_GET['check_out'] ?? $_GET['checkOut'] ?? ''));
 $getRoomId   = trim((string)($_GET['room_id']   ?? ''));
 $getRoomName = trim((string)($_GET['room']      ?? ''));
-$getGuests   = max(1, (int)($_GET['guests'] ?? 1));
 
 // Resolver ?room=NAME (links viejos) → room_id
 if ($getRoomName !== '' && $getRoomId === '') {
@@ -236,26 +235,9 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <!-- ========== NAV (consistente con index.php) ========== -->
-    <nav id="mainNav" class="sticky top-0 w-full z-50 transition-all duration-300 glass border-b border-slate-200 py-3">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <a href="/" class="block">
-                <img src="H.png" alt="Hostel Plaza Logo" style="height: 60px; width: auto; object-fit: contain;" class="block">
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-medium text-slate-900">
-                <a href="/" class="hover:text-teal transition-colors">Home</a>
-                <a href="about" class="hover:text-teal transition-colors">About Us</a>
-                <a href="rooms" class="hover:text-teal transition-colors">Rooms</a>
-                <a href="tourist-events" class="hover:text-teal transition-colors">Tourist Events</a>
-                <a href="https://api.whatsapp.com/send/?phone=549615372767" target="_blank" class="bg-teal-light text-teal font-semibold px-4 py-2 rounded-full hover:bg-teal hover:text-white transition-all text-sm flex items-center gap-2">
-                    <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
-                </a>
-            </div>
-            <a href="/" class="md:hidden p-2 text-slate-900"><i data-lucide="home"></i></a>
-        </div>
-    </nav>
+    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
 
-    <main class="flex-1 py-12 md:py-16">
+    <main class="flex-1 py-12 md:py-16 mt-[80px]">
         <div class="max-w-6xl mx-auto px-6">
 
             <!-- ========== HEADER + STEP INDICATOR ========== -->
@@ -319,15 +301,6 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                                 <input type="text" name="check_out" id="check_out_input" value="<?php echo htmlspecialchars($getCheckOut); ?>" required
                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal font-medium" />
                             </div>
-                        </div>
-
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Guests</label>
-                            <select name="guests" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal font-medium">
-                                <?php for ($g = 1; $g <= 8; $g++): ?>
-                                    <option value="<?php echo $g; ?>" <?php echo $g === $getGuests ? 'selected' : ''; ?>><?php echo $g; ?> guest<?php echo $g > 1 ? 's' : ''; ?></option>
-                                <?php endfor; ?>
-                            </select>
                         </div>
 
                         <?php if ($getRoomId !== ''): ?>
@@ -598,7 +571,6 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
         <?php if ($step === 2): ?>
             const checkIn  = <?php echo json_encode($getCheckIn); ?>;
             const checkOut = <?php echo json_encode($getCheckOut); ?>;
-            const guestsParam = <?php echo (int)$getGuests; ?>;
 
             async function loadAvailability() {
                 const statusEl = document.getElementById('rooms_status');
@@ -619,20 +591,29 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                         const total = card.querySelector('.room-total');
                         const cta   = card.querySelector('.room-cta');
 
+                        const ppn = Number(info.price_per_night_ars || 0);
+                        const tot = Number(info.total_ars || 0);
+
+                        // Mostrar SIEMPRE el precio cuando lo tenemos
+                        // (ya sea desde BananaDesk o desde rooms.json como fallback).
+                        if (ppn > 0) {
+                            price.textContent = 'AR$ ' + ppn.toLocaleString('es-AR');
+                            total.textContent = 'Total ' + data.nights + 'n: AR$ ' + tot.toLocaleString('es-AR');
+                        } else {
+                            price.textContent = '—';
+                            total.textContent = '';
+                        }
+
                         if (info.available) {
                             badge.textContent = 'Available';
                             badge.className = 'room-badge absolute top-3 right-3 bg-teal-light text-teal text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
-                            price.textContent = 'AR$ ' + Number(info.price_per_night_ars).toLocaleString('es-AR');
-                            total.textContent = 'Total ' + data.nights + 'n: AR$ ' + Number(info.total_ars).toLocaleString('es-AR');
                             cta.classList.remove('opacity-50', 'pointer-events-none');
+                            cta.textContent = 'Select';
                             cta.href = `book.php?check_in=${encodeURIComponent(checkIn)}&check_out=${encodeURIComponent(checkOut)}&room_id=${encodeURIComponent(info.id)}`;
                         } else {
-                            badge.textContent = 'Not available';
+                            const minStayMsg = info.min_stay > 1 ? `Min stay ${info.min_stay} nights` : 'Not available';
+                            badge.textContent = minStayMsg;
                             badge.className = 'room-badge absolute top-3 right-3 bg-slate-200 text-slate-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
-                            price.textContent = '—';
-                            total.textContent = info.min_stay > 1
-                                ? `Min stay ${info.min_stay} nights`
-                                : 'No rooms left';
                             cta.classList.add('opacity-50', 'pointer-events-none');
                             cta.textContent = 'Unavailable';
                         }
