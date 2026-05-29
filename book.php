@@ -303,9 +303,9 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                             </div>
                         </div>
 
-                        <?php if ($getRoomId !== ''): ?>
-                            <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($getRoomId); ?>">
-                        <?php endif; ?>
+                        <?php /* room_id NO se preserva acá: queremos que el usuario
+                                  siempre pase por step 2 para ver disponibilidad real,
+                                  incluso si llegó con ?room_id=X desde el index. */ ?>
 
                         <button type="submit"
                                 class="w-full bg-teal text-white font-bold py-4 rounded-2xl hover:bg-teal-hover transition-all shadow-md flex items-center justify-center gap-2 text-base">
@@ -367,6 +367,15 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
 
                     <!-- LEFT: selected room card + guest form -->
                     <div class="lg:col-span-8 space-y-6">
+
+                        <!-- Warning banner cuando la habitación elegida no está disponible -->
+                        <div id="room_unavailable_banner" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 mt-0.5 shrink-0"></i>
+                            <div class="text-sm">
+                                <p class="font-bold text-amber-800">This room is not available for your dates.</p>
+                                <p class="text-amber-700 mt-1" id="room_unavailable_reason">Please pick another room from the list, or change your dates.</p>
+                            </div>
+                        </div>
 
                         <!-- Selected room card -->
                         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
@@ -644,12 +653,51 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                     if (!data.ok) throw new Error(data.error || 'no data');
                     const room = data.rooms.find(x => String(x.id) === String(roomId));
                     if (!room) return;
+
                     const totalARS = Number(room.total_ars || 0);
                     const totalUSD = room.price_usd_from ? (Number(room.price_usd_from) * nights) : 0;
                     document.getElementById('display_total_ars').textContent = 'AR$ ' + totalARS.toLocaleString('es-AR');
                     document.getElementById('display_total_usd').textContent = totalUSD ? '$' + totalUSD.toFixed(2) + ' USD' : '';
                     document.getElementById('hidden_total').value     = totalUSD || 0;
                     document.getElementById('hidden_total_ars').value = totalARS;
+
+                    // ── Si la habitación NO está disponible para esas fechas:
+                    //    - mostrar el banner
+                    //    - cambiar el precio total a gris
+                    //    - deshabilitar el botón "Confirm booking"
+                    //    - bajar la opacidad de la tarjeta de la habitación elegida
+                    if (!room.available) {
+                        const banner = document.getElementById('room_unavailable_banner');
+                        if (banner) banner.classList.remove('hidden');
+
+                        const reason = document.getElementById('room_unavailable_reason');
+                        if (reason) {
+                            if (room.min_stay > 1 && nights < room.min_stay) {
+                                reason.textContent = `Minimum stay is ${room.min_stay} nights for this room — your stay is ${nights}. Extend your dates or pick another room.`;
+                            } else {
+                                reason.textContent = 'No rooms left of this type for those dates. Please pick another room from the list, or change your dates.';
+                            }
+                        }
+
+                        const totalEl = document.getElementById('display_total_ars');
+                        if (totalEl) {
+                            totalEl.className = 'text-2xl font-bold text-slate-400 line-through';
+                        }
+
+                        const btn = document.getElementById('submit_btn');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.classList.add('opacity-50', 'cursor-not-allowed');
+                            btn.classList.remove('hover:bg-teal-hover');
+                            btn.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4"></i> Not available for these dates';
+                        }
+
+                        // Suaviza la card seleccionada para señalar que no aplica
+                        const wrapper = document.querySelector('.lg\\:col-span-8 .bg-white.rounded-3xl.shadow-sm.border.border-slate-200.overflow-hidden');
+                        if (wrapper) wrapper.classList.add('opacity-60', 'grayscale');
+
+                        if (window.lucide) lucide.createIcons();
+                    }
                 } catch (e) { console.warn(e); }
             }
             loadPrice();
