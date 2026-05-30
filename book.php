@@ -81,8 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         require_once $pathPHPMailer;
         require_once $pathSMTP;
 
+        $smtpDebugLog = '';
         try {
             $mail = new PHPMailer(true);
+            $mail->SMTPDebug  = 3;
+            $mail->Debugoutput = function($str, $level) use (&$smtpDebugLog) {
+                $smtpDebugLog .= "[{$level}] " . trim($str) . "\n";
+            };
             $mail->isSMTP();
             $mail->Host       = 'c2721166.ferozo.com';
             $mail->SMTPAuth   = true;
@@ -90,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
             $mail->Password   = 'ThHQ*RW5hG';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port       = 465;
+            $mail->Timeout    = 15;
             $mail->SMTPOptions = [
                 'ssl' => [
                     'verify_peer'       => false,
@@ -100,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
             $mail->setFrom('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
             $mail->addAddress($newBooking['email'], $newBooking['guestName']);
+            $mail->addCC('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
             $mail->addBCC('hostelplazamza@gmail.com');
             $mail->addReplyTo('info@hostelplaza.com.ar', 'Hostel Plaza Info');
 
@@ -126,9 +133,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
             $mail->AltBody = "Booking PIN: {$newReservationId}\nCheck In: {$newBooking['checkIn']}\nCheck Out: {$newBooking['checkOut']}\nTotal: $" . number_format($newBooking['totalPrice'], 2) . " (AR$ {$formattedARS})";
 
             $mail->send();
+            file_put_contents(
+                __DIR__ . '/mail_debug.log',
+                date('c') . " OK booking={$newReservationId} to={$newBooking['email']}\n" . $smtpDebugLog . "\n",
+                FILE_APPEND
+            );
         } catch (\Exception $e) {
-            $mailError = $e->getMessage() . ($mail->ErrorInfo ? " | Detail: {$mail->ErrorInfo}" : '');
-            error_log("[Hostel Plaza] Mail error for booking {$newReservationId}: {$mailError}");
+            $mailError = $e->getMessage() . ($mail->ErrorInfo ? " | {$mail->ErrorInfo}" : '');
+            file_put_contents(
+                __DIR__ . '/mail_debug.log',
+                date('c') . " ERROR booking={$newReservationId} to={$newBooking['email']}\n{$mailError}\n{$smtpDebugLog}\n",
+                FILE_APPEND
+            );
+            error_log("[Hostel Plaza] Mail error {$newReservationId}: {$mailError}");
         }
     } else {
         $mailError = "The 'PHPMailer' folder is missing!";
@@ -527,7 +544,12 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                     </div>
 
                     <?php if ($mailError): ?>
-                        <p class="text-xs text-amber-600 mb-4">Heads-up: we couldn't send the confirmation email. Reach out via WhatsApp and quote your PIN.</p>
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-left">
+                            <p class="text-sm font-bold text-amber-800 mb-1">No se pudo enviar el email de confirmación.</p>
+                            <p class="text-xs text-amber-700 font-mono break-all"><?php echo htmlspecialchars($mailError); ?></p>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-xs text-green-600 mb-4">✓ Email de confirmación enviado a <?php echo htmlspecialchars($newBooking['email']); ?></p>
                     <?php endif; ?>
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
