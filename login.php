@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ==========================================
     // UPDATED USERNAMES AND PASSWORDS
     // ==========================================
-    $adminUser = 'admin';
-    $adminPass = 'admin123';
+    $adminUser = 'hostel';
+    $adminPass = 'H0stelPlaza2026';
 
     $staffUser = 'staff';
     $staffPass = 'staff123';
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <div class="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-8 md:p-10 relative z-10">
-        
+
         <div class="text-center mb-8">
             <div class="inline-block mb-4">
                 <img src="hostel.png" alt="Hostel Plaza Logo" class="h-20 w-auto object-contain mx-auto" onerror="this.style.display='none';">

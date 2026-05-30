@@ -428,7 +428,7 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                         </div>
 
                         <!-- Guest form -->
-                        <form method="POST" action="book.php" id="booking_form" class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-6">
+                        <form method="POST" action="/book" id="booking_form" class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-6">
                             <input type="hidden" name="submit_booking" value="1">
                             <input type="hidden" name="room_id"   value="<?php echo htmlspecialchars($roomLocalId); ?>">
                             <input type="hidden" name="check_in"  value="<?php echo htmlspecialchars($getCheckIn); ?>">
