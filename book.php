@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
                     <tr><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check Out</td><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkOut']}</td></tr>
                     <tr><td style='padding:15px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:bold;'>Total Due at Check-in</td><td style='padding:15px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;color:#1c5457;font-size:20px;'>$" . number_format($newBooking['totalPrice'], 2) . "<br><span style='font-size:13px;color:#94a3b8;'>(AR$ {$formattedARS})</span></td></tr>
                 </table>
-                <p style='font-size:15px;'>Questions? WhatsApp: <strong><a href='https://api.whatsapp.com/send/?phone=549615372767' style='color:#1c5457;text-decoration:none;'>+549615372767</a></strong></p>
+                <p style='font-size:15px;'>Questions? WhatsApp: <strong><a href='https://api.whatsapp.com/send/?phone=5492615372767' style='color:#1c5457;text-decoration:none;'>+549615372767</a></strong></p>
                 <p style='margin-top:40px;font-size:15px;color:#64748b;'>Safe travels,<br><strong style='color:#1c5457;'>The Hostel Plaza Team</strong></p>
             </body></html>";
             $mail->AltBody = "Booking PIN: {$newReservationId}\nCheck In: {$newBooking['checkIn']}\nCheck Out: {$newBooking['checkOut']}\nTotal: $" . number_format($newBooking['totalPrice'], 2) . " (AR$ {$formattedARS})";
@@ -554,7 +554,7 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <a href="/" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all">Back to home</a>
-                        <a href="https://api.whatsapp.com/send/?phone=549615372767" target="_blank" class="px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all flex items-center justify-center gap-2">
+                        <a href="https://api.whatsapp.com/send/?phone=5492615372767" target="_blank" class="px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all flex items-center justify-center gap-2">
                             <i data-lucide="message-circle" class="w-4 h-4"></i> Chat with us
                         </a>
                     </div>

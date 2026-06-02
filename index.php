@@ -104,6 +104,7 @@ if (empty($plazaEvents)) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -225,17 +226,17 @@ if (empty($plazaEvents)) {
             <form id="hero_book_form" action="book.php" method="GET" class="bg-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-end border border-slate-200">
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check In</label>
-                    <input type="date" name="check_in" id="hero_check_in"
-                           min="<?php echo $hero_today; ?>"
-                           required
-                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none" />
+                    <input type="text" name="check_in" id="hero_check_in"
+                           placeholder="Check-in date"
+                           required readonly
+                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check Out</label>
-                    <input type="date" name="check_out" id="hero_check_out"
-                           min="<?php echo $hero_tomorrow; ?>"
-                           required
-                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none" />
+                    <input type="text" name="check_out" id="hero_check_out"
+                           placeholder="Check-out date"
+                           required readonly
+                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
                 </div>
                 <button type="submit" class="bg-teal-400 text-slate-900 h-[50px] rounded-lg font-bold text-lg hover:bg-teal-300 transition-all shadow-md">Book Now</button>
             </form>
@@ -321,6 +322,7 @@ if (empty($plazaEvents)) {
             </div>
             <?php endforeach; ?>
         </div>
+        <div id="rooms-dots" class="flex md:hidden justify-center items-center gap-2 mt-2"></div>
     </section>
 
     <section id="plaza-events" class="py-24 px-6 max-w-7xl mx-auto w-full relative">
@@ -369,6 +371,7 @@ if (empty($plazaEvents)) {
                 </div>
             <?php endforeach; ?>
         </div>
+        <div id="events-dots" class="flex md:hidden justify-center items-center gap-2 mt-2"></div>
     </section>
 
     <section class="relative bg-booking py-24 overflow-hidden">
@@ -448,55 +451,45 @@ if (empty($plazaEvents)) {
 
     <?php include 'footer.php'; ?>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         lucide.createIcons();
 
-        // --- HERO BOOK FORM: prevent past dates + keep check-out after check-in ---
+        // --- HERO BOOK FORM: flatpickr date pickers ---
         (function () {
-            const ci = document.getElementById('hero_check_in');
-            const co = document.getElementById('hero_check_out');
-            if (!ci || !co) return;
-
-            const todayStr = () => {
-                const d = new Date();
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${y}-${m}-${day}`;
-            };
             const addDays = (s, n) => {
                 const d = new Date(s + 'T00:00:00');
                 d.setDate(d.getDate() + n);
                 return d.toISOString().split('T')[0];
             };
 
-            // Refrescar "hoy" desde el cliente (por si la HTML quedó cacheada).
-            const today = todayStr();
-            ci.min = today;
-            co.min = addDays(today, 1);
+            let fpIn, fpOut;
 
-            // Sincronizar check-out cuando cambia check-in
-            ci.addEventListener('change', () => {
-                if (!ci.value) return;
-                if (ci.value < today) { ci.value = today; }
-                const minCo = addDays(ci.value, 1);
-                co.min = minCo;
-                if (!co.value || co.value < minCo) co.value = minCo;
+            fpIn = flatpickr('#hero_check_in', {
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                onChange: function(selectedDates, dateStr) {
+                    if (!dateStr) return;
+                    const minOut = addDays(dateStr, 1);
+                    fpOut.set('minDate', minOut);
+                    if (!fpOut.selectedDates.length || fpOut.selectedDates[0] <= selectedDates[0]) {
+                        fpOut.setDate(minOut, false);
+                    }
+                }
             });
 
-            // Sanity check al submit
-            ci.form.addEventListener('submit', (e) => {
-                const tToday = todayStr();
-                if (ci.value && ci.value < tToday) {
-                    e.preventDefault();
-                    alert("Check-in can't be in the past.");
-                    ci.focus();
-                    return;
-                }
-                if (ci.value && co.value && co.value <= ci.value) {
+            fpOut = flatpickr('#hero_check_out', {
+                dateFormat: 'Y-m-d',
+                minDate: addDays(new Date().toISOString().split('T')[0], 1),
+            });
+
+            document.getElementById('hero_book_form').addEventListener('submit', function(e) {
+                const ci = document.getElementById('hero_check_in');
+                const co = document.getElementById('hero_check_out');
+                if (!ci.value || !co.value) { e.preventDefault(); return; }
+                if (co.value <= ci.value) {
                     e.preventDefault();
                     alert('Check-out must be after check-in.');
-                    co.focus();
                 }
             });
         })();
@@ -554,6 +547,46 @@ if (empty($plazaEvents)) {
 
         setupEndless(eventsCarousel);
         setupEndless(roomsCarousel);
+
+        // --- CAROUSEL DOTS ---
+        function setupDots(carousel, dotsContainer, originalCount) {
+            if (!carousel || !dotsContainer || originalCount === 0) return;
+
+            for (let i = 0; i < originalCount; i++) {
+                const dot = document.createElement('span');
+                dot.style.cssText = 'display:block;height:8px;border-radius:9999px;transition:all .3s;cursor:pointer;';
+                dot.style.width = i === 0 ? '24px' : '8px';
+                dot.style.backgroundColor = i === 0 ? '#1c5457' : '#cbd5e1';
+                dot.addEventListener('click', () => {
+                    const cardWidth = (carousel.children[0]?.offsetWidth ?? 0) + 24;
+                    carousel.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
+                });
+                dotsContainer.appendChild(dot);
+            }
+
+            const dots = Array.from(dotsContainer.children);
+
+            function update() {
+                const cardWidth = (carousel.children[0]?.offsetWidth ?? 1) + 24;
+                const idx = ((Math.round(carousel.scrollLeft / cardWidth) % originalCount) + originalCount) % originalCount;
+                dots.forEach((d, i) => {
+                    if (i === idx) {
+                        d.style.width = '24px';
+                        d.style.backgroundColor = '#1c5457';
+                    } else {
+                        d.style.width = '8px';
+                        d.style.backgroundColor = '#cbd5e1';
+                    }
+                });
+            }
+
+            carousel.addEventListener('scroll', update, { passive: true });
+            window.addEventListener('resize', update);
+            update();
+        }
+
+        setupDots(roomsCarousel,  document.getElementById('rooms-dots'),  <?php echo count($rooms); ?>);
+        setupDots(eventsCarousel, document.getElementById('events-dots'), <?php echo count($plazaEvents); ?>);
 
         function scrollEvents(direction) {
             if(!eventsCarousel) return;

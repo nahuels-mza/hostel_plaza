@@ -1,0 +1,31 @@
+User-agent: *
+Allow: /
+
+# Admin y herramientas internas
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /logout
+Disallow: /checklist
+Disallow: /staff
+Disallow: /guest
+Disallow: /test_mail
+Disallow: /extend
+
+# Archivos de datos sensibles
+Disallow: /bookings.json
+Disallow: /config.json
+Disallow: /rooms.json
+Disallow: /room_mapping.json
+Disallow: /discounts.json
+Disallow: /expenses.json
+Disallow: /logbook.json
+Disallow: /messages.json
+Disallow: /plaza_events.json
+Disallow: /mail_debug.log
+
+# APIs internas
+Disallow: /rooms_for_dates.php
+Disallow: /room_availability.php
+
+Sitemap: https://hostelplaza.com.ar/sitemap.xml
