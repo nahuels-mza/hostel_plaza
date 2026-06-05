@@ -110,27 +110,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
             $mail->addBCC('hostelplazamza@gmail.com');
             $mail->addReplyTo('info@hostelplaza.com.ar', 'Hostel Plaza Info');
 
+            // Look up room name for the email
+            $bookedRoomName = '';
+            foreach ($rooms as $r) {
+                if ((string)$r['id'] === (string)$newBooking['roomId']) {
+                    $bookedRoomName = $r['name'];
+                    break;
+                }
+            }
+
             $mail->isHTML(true);
-            $mail->Subject = 'Booking Request Received - Hostel Plaza';
+            $mail->Subject = 'PreBooking Request Received - Hostel Plaza';
             $mail->Body = "
             <html><body style='font-family: Arial, sans-serif; color: #1e293b; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; background:#fff;'>
                 <div style='text-align:center;padding-bottom:20px;'><h1 style='color:#1c5457;margin:0;font-size:28px;'>Hostel Plaza Mendoza</h1></div>
                 <h2 style='color:#1c5457;margin-top:0;'>Hello {$newBooking['guestName']},</h2>
-                <p style='font-size:16px;'>Your booking request has been sent to Hostel Plaza. We are reviewing your reservation and will confirm it shortly.</p>
-                <div style='background:#f8fafc;padding:25px;border-radius:12px;border:2px dashed #cbd5e1;margin:30px 0;text-align:center;'>
-                    <p style='margin:0 0 10px 0;color:#64748b;font-size:14px;text-transform:uppercase;letter-spacing:1px;font-weight:bold;'>Your Unique PIN</p>
-                    <h1 style='margin:0;color:#1c5457;font-size:36px;letter-spacing:3px;'>{$newReservationId}</h1>
-                    <p style='margin:15px 0 0 0;color:#ef4444;font-size:14px;font-weight:bold;'>⚠️ Please save this PIN. You will need to show it at reception when checking in.</p>
-                </div>
+                <p style='font-size:16px;'>Your prebooking request has been received. We are reviewing your reservation and will confirm it shortly.</p>
+
+                <h3 style='color:#1c5457;margin:30px 0 10px;font-size:18px;'>Reservation Details</h3>
                 <table style='width:100%;border-collapse:collapse;margin-bottom:30px;'>
-                    <tr><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check In</td><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkIn']}</td></tr>
-                    <tr><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check Out</td><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkOut']}</td></tr>
-                    <tr><td style='padding:15px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:bold;'>Total Due at Check-in</td><td style='padding:15px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;color:#1c5457;font-size:20px;'>$" . number_format($newBooking['totalPrice'], 2) . "<br><span style='font-size:13px;color:#94a3b8;'>(AR$ {$formattedARS})</span></td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>Room</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$bookedRoomName}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check In</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkIn']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check Out</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkOut']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Estimated Arrival</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>" . ($newBooking['eta'] ?: '—') . "</td></tr>
+                    <tr><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:bold;'>Total Due at Check-in</td><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;color:#1c5457;font-size:18px;'>$" . number_format($newBooking['totalPrice'], 2) . " <span style='font-size:13px;color:#94a3b8;'>(AR\$ {$formattedARS})</span></td></tr>
                 </table>
+
+                <h3 style='color:#1c5457;margin:30px 0 10px;font-size:18px;'>Guest Information</h3>
+                <table style='width:100%;border-collapse:collapse;margin-bottom:30px;'>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>Full Name</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['guestName']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Email</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['email']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Phone</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['phone']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Nationality</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['nationality']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>ID Type</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['idType']}</td></tr>
+                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>ID Number</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['idNumber']}</td></tr>" .
+                    ($newBooking['notes'] ? "<tr><td style='padding:10px;color:#64748b;vertical-align:top;'>Notes</td><td style='padding:10px;font-weight:bold;text-align:right;'>{$newBooking['notes']}</td></tr>" : "") . "
+                </table>
+
                 <p style='font-size:15px;'>Questions? WhatsApp: <strong><a href='https://api.whatsapp.com/send/?phone=5492615372767' style='color:#1c5457;text-decoration:none;'>+549615372767</a></strong></p>
                 <p style='margin-top:40px;font-size:15px;color:#64748b;'>Safe travels,<br><strong style='color:#1c5457;'>The Hostel Plaza Team</strong></p>
             </body></html>";
-            $mail->AltBody = "Booking PIN: {$newReservationId}\nCheck In: {$newBooking['checkIn']}\nCheck Out: {$newBooking['checkOut']}\nTotal: $" . number_format($newBooking['totalPrice'], 2) . " (AR$ {$formattedARS})";
+            $mail->AltBody = "PreBooking Request Received - Hostel Plaza\n\n"
+                . "RESERVATION DETAILS\n"
+                . "Room: {$bookedRoomName}\n"
+                . "Check In: {$newBooking['checkIn']}\n"
+                . "Check Out: {$newBooking['checkOut']}\n"
+                . "Estimated Arrival: " . ($newBooking['eta'] ?: '—') . "\n"
+                . "Total: $" . number_format($newBooking['totalPrice'], 2) . " (AR$ {$formattedARS})\n\n"
+                . "GUEST INFORMATION\n"
+                . "Name: {$newBooking['guestName']}\n"
+                . "Email: {$newBooking['email']}\n"
+                . "Phone: {$newBooking['phone']}\n"
+                . "Nationality: {$newBooking['nationality']}\n"
+                . "ID Type: {$newBooking['idType']}\n"
+                . "ID Number: {$newBooking['idNumber']}\n"
+                . ($newBooking['notes'] ? "Notes: {$newBooking['notes']}\n" : '');
 
             $mail->send();
             file_put_contents(
@@ -261,14 +295,14 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
             <!-- ========== HEADER + STEP INDICATOR ========== -->
             <div class="text-center mb-10">
                 <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
-                    <?php if ($step === 'success'): ?>You're All Set!
+                    <?php if ($step === 'success'): ?>Your PreBooking is Set!
                     <?php elseif ($step === 1):   ?>When are you coming?
                     <?php elseif ($step === 2):   ?>Choose Your Room
                     <?php else:                   ?>Last Step — Your Details
                     <?php endif; ?>
                 </h1>
                 <p class="text-slate-500 text-lg">
-                    <?php if ($step === 'success'): ?>We've sent a confirmation email with your reservation PIN.
+                    <?php if ($step === 'success'): ?>We've sent a confirmation email with your details.
                     <?php elseif ($step === 1):   ?>Pick your check-in &amp; check-out dates to see live availability.
                     <?php elseif ($step === 2):   ?>Real-time availability for <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?> · <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?>
                     <?php else:                   ?>You're booking <strong class="text-teal"><?php echo htmlspecialchars($selectedRoom['name'] ?? ''); ?></strong>.
@@ -492,7 +526,7 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                                 <p class="text-xs text-slate-500">Payment is collected upon arrival in Mendoza.</p>
                                 <button type="submit" id="submit_btn"
                                         class="w-full sm:w-auto bg-teal text-white font-bold px-8 py-4 rounded-2xl hover:bg-teal-hover transition-all shadow-md flex items-center justify-center gap-2">
-                                    Confirm booking <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    Confirm Prebooking <i data-lucide="check-circle" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </form>
@@ -534,14 +568,8 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                     <div class="w-16 h-16 mx-auto bg-teal-light text-teal rounded-full flex items-center justify-center mb-6">
                         <i data-lucide="check" class="w-8 h-8"></i>
                     </div>
-                    <h2 class="text-3xl font-bold text-slate-900 mb-3">Reservation Submitted</h2>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-3">PreBooking Submitted</h2>
                     <p class="text-slate-500 mb-8">We're reviewing your request and will confirm it shortly. A copy of your details has been emailed to you.</p>
-
-                    <div class="bg-teal-light/40 border-2 border-dashed border-teal/30 rounded-2xl p-6 mb-8">
-                        <p class="text-xs text-teal uppercase tracking-widest font-bold mb-2">Your reservation PIN</p>
-                        <p class="text-3xl font-bold text-teal tracking-widest"><?php echo htmlspecialchars($newReservationId); ?></p>
-                        <p class="text-xs text-slate-500 mt-3">Save this PIN — you'll need it at reception.</p>
-                    </div>
 
                     <?php if ($mailError): ?>
                         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-left">
