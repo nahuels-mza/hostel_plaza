@@ -13,16 +13,10 @@ use PHPMailer\PHPMailer\Exception;
 
 // --- 0. Config + rooms ---
 $config         = is_file('config.json') ? json_decode(file_get_contents('config.json'), true) : [];
-$exchangeRateARS = $config['exchangeRateARS'] ?? 1370;
+$exchangeRateARS = $config['exchangeRateARS'] ?? 1370; // fallback para total en email si BananaDesk no responde
 
 $roomsFile = 'rooms.json';
 $rooms = is_file($roomsFile) ? (json_decode(file_get_contents($roomsFile), true) ?: []) : [];
-
-foreach ($rooms as &$room) {
-    $raw_price = (float) preg_replace('/[^0-9.]/', '', $room['price']);
-    $room['price_ars_num'] = $raw_price * $exchangeRateARS;
-}
-unset($room);
 
 $mapPath    = __DIR__ . '/room_mapping.json';
 $roomMap    = is_file($mapPath) ? (json_decode(file_get_contents($mapPath), true) ?: []) : [];

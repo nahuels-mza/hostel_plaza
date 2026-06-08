@@ -1,22 +1,14 @@
 <?php
-// --- LOAD CONFIGURATION ---
-$config = json_decode(file_get_contents('config.json'), true);
-$exchangeRateARS = $config['exchangeRateARS'] ?? 1370;
-
-// --- LOAD ROOMS DATABASE (SYNCED WITH ADMIN PANEL) ---
+// --- LOAD ROOMS DATABASE ---
 $roomsFile = 'rooms.json';
 $rooms = [];
 if (file_exists($roomsFile)) {
     $rooms = json_decode(file_get_contents($roomsFile), true) ?: [];
 }
 
-
-// Ensure price_ars is calculated based on price and exchangeRateARS
-foreach ($rooms as &$room) {
-    $raw_price = (float) preg_replace('/[^0-9.]/', '', $room['price']);
-    $room['price_ars'] = "AR$ " . number_format($raw_price * $exchangeRateARS, 0, ',', '.');
-}
-unset($room);
+// --- PRECIOS HOY DESDE BANANADESK (cacheados por día) ---
+require_once __DIR__ . '/whatsapp/prices_cache.php';
+$todayPrices = hp_today_prices(__DIR__);
 
 // --- LOAD PLAZA EVENTS FOR THE HOMEPAGE ---
 $plazaEventsFile = 'plaza_events.json';
@@ -285,16 +277,15 @@ if (empty($plazaEvents)) {
                         <?php echo htmlspecialchars($room['type']); ?>
                     </div>
 
-                    <div class="absolute bottom-5 left-5 flex items-center gap-2">
-                        <div class="bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-xl text-white font-bold shadow-lg border border-white/10 flex flex-col justify-center h-full">
-                            <span class="text-lg leading-none"><?php echo htmlspecialchars($room['price']); ?></span>
+                    <?php $ars = hp_format_price($todayPrices, $room['id']); ?>
+                    <?php if ($ars): ?>
+                    <div class="absolute bottom-5 left-5">
+                        <div class="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl text-teal-800 font-bold shadow-lg border border-white/50 flex items-baseline gap-1">
+                            <span class="text-base"><?php echo $ars; ?></span>
+                            <span class="text-xs font-normal text-slate-500">/noche</span>
                         </div>
-                        <?php if(!empty($room['price_ars'])): ?>
-                            <div class="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-xl text-teal-800 font-bold shadow-lg border border-white/50 text-sm flex items-center h-full">
-                                <?php echo htmlspecialchars($room['price_ars']); ?>
-                            </div>
-                        <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="p-8 flex-1 flex flex-col bg-white z-10">

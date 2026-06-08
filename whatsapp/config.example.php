@@ -28,9 +28,9 @@ return [
 
     // --- Notificaciones al administrador ---
     'admin' => [
-        // Tu número personal de WhatsApp con código de país, sin '+' ni espacios.
-        // Ejemplo Argentina: 5491155555555
-        'phone'    => '5491100000000',
+        // Número del hostel en formato E.164 sin '+'.
+        // Ejemplo: +54 9 2615 37-2767 → 5492615372767
+        'phone'    => '5492615372767',
         // true => recibís un WhatsApp con cada consulta entrante
         'forward'  => true,
     ],

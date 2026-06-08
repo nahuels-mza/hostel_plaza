@@ -1,7 +1,7 @@
 <?php
-// --- LOAD CONFIGURATION ---
-$config = json_decode(file_get_contents('config.json'), true);
-$exchangeRateARS = $config['exchangeRateARS'] ?? 1370;
+// --- PRECIOS HOY DESDE BANANADESK (cacheados por día) ---
+require_once __DIR__ . '/whatsapp/prices_cache.php';
+$todayPrices = hp_today_prices(__DIR__);
 
 // --- SLUG GENERATOR HELPER ---
 function createSlug($string) {
@@ -101,12 +101,6 @@ if (empty($rooms)) {
     ];
 }
 
-// Ensure price_ars is calculated based on price and exchangeRateARS
-foreach ($rooms as &$room) {
-    $raw_price = (float) preg_replace('/[^0-9.]/', '', $room['price']);
-    $room['price_ars'] = "AR$ " . number_format($raw_price * $exchangeRateARS, 0, ',', '.');
-}
-unset($room);
 
 // Find the requested room
 $currentRoom = null;
@@ -295,17 +289,18 @@ if (!$currentRoom) {
 
             <div class="lg:col-span-1">
                 <div class="sticky top-32 bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-                    <div class="mb-6 flex items-baseline gap-1.5">
-                        <span class="text-4xl font-bold text-[#0f172a]"><?php echo htmlspecialchars($currentRoom['price']); ?></span>
-                        <span class="text-[#64748b] text-base"> / night</span>
+                    <?php $ars = hp_format_price($todayPrices, $currentRoom['id']); ?>
+                    <div class="mb-8">
+                        <?php if ($ars): ?>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-4xl font-bold text-[#1c5457]"><?php echo $ars; ?></span>
+                                <span class="text-[#64748b] text-base">/noche</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Precio de hoy · puede variar según fechas</p>
+                        <?php else: ?>
+                            <p class="text-slate-500 text-sm">Seleccioná fechas para ver el precio</p>
+                        <?php endif; ?>
                     </div>
-
-                    <?php if(!empty($currentRoom['price_ars'])): ?>
-                        <div class="bg-[#f8fafc] border border-slate-100 rounded-xl p-4 mb-8 text-sm text-[#475569] flex items-center justify-between">
-                            <span>Argentine Pesos</span>
-                            <span class="font-bold text-[#1c5457] tracking-wide"><?php echo htmlspecialchars($currentRoom['price_ars']); ?></span>
-                        </div>
-                    <?php endif; ?>
 
                     <div class="space-y-4 mb-8 text-[13px] text-[#475569] leading-relaxed">
                         <div class="flex items-start gap-3">

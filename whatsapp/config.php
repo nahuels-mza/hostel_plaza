@@ -18,7 +18,8 @@ return [
         'max_tokens' => 1024,
     ],
     'admin' => [
-        'phone'    => '5491100000000',
+        // Número del hostel (+54 9 2615 37-2767) en formato E.164 sin '+'
+        'phone'    => '5492615372767',
         'forward'  => true,
     ],
     'bananadesk' => [
