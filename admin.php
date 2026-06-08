@@ -1,6 +1,11 @@
 <?php
 error_reporting(0); // Prevents HTTP 500 errors from crashing the UI
 
+// Secrets desde fuera del webroot
+$_secretsFile = dirname(__DIR__) . '/storagedir/secrets.php';
+$_secrets     = is_file($_secretsFile) ? (require $_secretsFile) : [];
+$smtpPassword = $_secrets['smtp_password'] ?? '';
+
 // --- 1. DIRECT ICAL OTA SYNC ENGINE (Booking.com & Hostelworld) ---
 $icalFeeds = [
     'Booking.com' => '', // PASTE BOOKING.COM .ICS LINK HERE
@@ -430,7 +435,7 @@ if (isset($_POST['delete_room'])) { $rId = $_POST['room_id']; $rooms = array_val
                             $year = date('Y');
                             $highEndEmail = "<div style='font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);'><div style='background-color: #0f172a; padding: 40px 20px; text-align: center;'><h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: 1px;'>HOSTEL PLAZA</h1><p style='color: #10b981; margin: 5px 0 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;'>Mendoza, Argentina</p></div><div style='padding: 40px 30px;'><h2 style='color: #0f172a; font-size: 22px; margin-top: 0;'>Your stay is confirmed.</h2><p style='color: #475569; font-size: 16px; line-height: 1.6;'>Hello " . htmlspecialchars($b['guestName']) . ",<br><br>We are thrilled to officially confirm your reservation for <strong>" . $b['checkIn'] . "</strong>. Our team is getting everything ready for your arrival.</p><div style='margin-top: 30px;'><h3 style='color: #0f172a; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;'>Location & Directions</h3><p style='color: #475569; font-size: 14px; line-height: 1.5;'>We are located in the vibrant heart of Godoy Cruz, Mendoza. Click below for GPS directions straight to our door.</p><a href='https://www.google.com/maps/search/?api=1&query=Godoy+Cruz,+Mendoza,+Argentina' style='display: inline-block; color: #10b981; font-weight: 500; text-decoration: none; font-size: 14px; margin-top: 5px;'>📍 View on Google Maps</a></div></div><div style='background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;'><p style='color: #94a3b8; font-size: 12px; margin: 0;'>© $year Hostel Plaza Mendoza. All rights reserved.</p></div></div>";
 
-                            sendHostelEmail($gEmail, "Booking Confirmed - Hostel Plaza Mendoza", $highEndEmail, "confirmation@hostelplaza.com.ar", "ThHQ*RW5hG");
+                            sendHostelEmail($gEmail, "Booking Confirmed - Hostel Plaza Mendoza", $highEndEmail, "confirmation@hostelplaza.com.ar", $smtpPassword);
                         }
                     }
 
@@ -476,7 +481,7 @@ if (isset($_POST['delete_room'])) { $rId = $_POST['room_id']; $rooms = array_val
                 $htmlBody = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;'><div style='background-color: #205b5a; padding: 30px; text-align: center;'><h1 style='color: #ffffff; margin: 0; font-size: 28px; font-family: Georgia, serif; letter-spacing: 1px;'>Hostel Plaza</h1></div><div style='padding: 40px;'><h2 style='margin-top: 0; font-size: 18px; color: #111827;'>Dear " . $gName . ",</h2><p style='color: #4b5563; line-height: 1.6; font-size: 15px;'>We noticed you've stayed with us multiple times, and we want to take a moment to say <strong>thank you</strong>. Guests like you are the heartbeat of Hostel Plaza.</p><p style='color: #4b5563; line-height: 1.6; font-size: 15px;'>As a token of our deepest appreciation for your loyalty, we would love to offer you an exclusive discount on your next visit to Mendoza.</p><div style='background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0;'><p style='font-size: 11px; font-weight: bold; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin: 0 0 15px 0;'>Your Exclusive Promo Code</p><p style='font-size: 36px; font-weight: bold; color: #205b5a; margin: 0 0 15px 0; letter-spacing: 2px;'>" . $promoCode . "</p><p style='font-size: 16px; font-weight: bold; color: #10b981; margin: 0;'>" . $discText . " OFF your next stay!</p></div><ul style='color: #64748b; font-size: 13px; line-height: 1.5; padding-left: 20px; margin-bottom: 30px;'><li>Valid exclusively for bookings made with this email address (<a href='mailto:" . $gEmail . "' style='color: #3b82f6;'>" . $gEmail . "</a>).</li><li>Expires on: " . $expDate . " (6 months from today).</li></ul><p style='color: #4b5563; font-size: 15px; margin-bottom: 20px;'>We can't wait to welcome you back home.</p><p style='color: #111827; font-size: 15px; font-weight: bold; margin: 0;'>Warm regards,<br>The Hostel Plaza Team</p></div></div>";
 
                 // FIXED: Used the valid password for the confirmation account (since discount@ doesn't exist natively on your server)
-                sendHostelEmail($targetGuest['email'], "Your VIP Loyalty Discount - Hostel Plaza", $htmlBody, "confirmation@hostelplaza.com.ar", "ThHQ*RW5hG");
+                sendHostelEmail($targetGuest['email'], "Your VIP Loyalty Discount - Hostel Plaza", $htmlBody, "confirmation@hostelplaza.com.ar", $smtpPassword);
             }
             safeRedirect("?tab=".$_POST['tab_redirect']);
         }

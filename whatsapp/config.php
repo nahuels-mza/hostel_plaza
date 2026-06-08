@@ -1,26 +1,29 @@
 <?php
 /**
- * ⚠️  Archivo de configuración real con credenciales.
- *     NO subir a git. Reemplazá los placeholders con tus valores reales.
- *
- *     Cómo obtener cada valor está explicado en whatsapp/README.md
+ * Configuración del bot de WhatsApp.
+ * Los secrets se leen desde /storagedir/secrets.php (fuera de public_html, nunca en Git).
+ * Copiar secrets.example.php → /storagedir/secrets.php y completar los valores.
  */
+
+$_secretsFile = dirname(dirname(__DIR__)) . '/storagedir/secrets.php';
+$_s = is_file($_secretsFile) ? (require $_secretsFile) : [];
+
 return [
     'whatsapp' => [
-        'phone_number_id' => '5492615372767',
-        'access_token'    => 'EABAKAOZAig0YBRkQjuGZB4sZBlprTkk7DZBMlJ8W7KbVP3rxYMvW7kq4VUJ3mozoRCiPlQKah6NwrRCJDMZAc9IPX3QVCgOfddiMXtoK17KVIdf5BVSUw9VdpkAQ4ENTl2Bz86kVyl5FwnX3EeZAU4GxLIFvlQRqIsvDesAZCSkgnAiDebcmZCg7ekZCcUAF7OwZDZD',
-        'verify_token'    => 'H0sT3lPl4z4V3r1fyT0k3n',
+        'phone_number_id' => $_s['wa_phone_number_id'] ?? '',
+        'access_token'    => $_s['wa_access_token']    ?? '',
+        'verify_token'    => $_s['wa_verify_token']    ?? '',
         'graph_version'   => 'v21.0',
     ],
     'claude' => [
-        'api_key'    => 'sk-ant-YOUR_KEY',
+        'api_key'    => $_s['claude_api_key'] ?? '',
         'model'      => 'claude-sonnet-4-5',
         'max_tokens' => 1024,
     ],
     'admin' => [
         // Número del hostel (+54 9 2615 37-2767) en formato E.164 sin '+'
-        'phone'    => '5492615372767',
-        'forward'  => true,
+        'phone'   => '5492615372767',
+        'forward' => true,
     ],
     'bananadesk' => [
         'base_url'    => 'https://bananadesk.com',
@@ -36,12 +39,12 @@ return [
         'cache'         => __DIR__ . '/cache',
     ],
     'hostel' => [
-        'name'         => 'Hostel Plaza',
-        'website'      => 'https://hostelplaza.com.ar',
-        'booking_url'  => 'https://hostelplaza.com.ar/book.php',
-        'check_in'     => '14:00',
-        'check_out'    => '11:00',
-        'breakfast'    => '07:30 - 10:00',
+        'name'        => 'Hostel Plaza',
+        'website'     => 'https://hostelplaza.com.ar',
+        'booking_url' => 'https://hostelplaza.com.ar/book.php',
+        'check_in'    => '14:00',
+        'check_out'   => '11:00',
+        'breakfast'   => '07:30 - 10:00',
     ],
     'agent' => [
         'history_turns'     => 8,

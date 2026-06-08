@@ -1,0 +1,13 @@
+.DS_Store
+
+# Secrets — nunca subir al repo
+secrets.php
+mail_debug.log
+test_mail.php
+whatsapp/diag.php
+
+# Datos de producción (se generan en el server)
+bookings.json
+conversations.json
+whatsapp/logs/*.log
+whatsapp/cache/

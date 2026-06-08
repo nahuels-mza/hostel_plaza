@@ -20,7 +20,7 @@ function sendHostelEmail($toEmail, $subject, $htmlBody, $fromEmail, $password = 
     $headers .= "From: Hostel Plaza <" . $fromEmail . ">\r\n";
     $headers .= "Reply-To: " . $fromEmail . "\r\n";
     $headers .= "X-Mailer: PHP/" . phpversion();
-    
+
     if (!empty($password)) {
         $smtpHost = "mail.hostelplaza.com.ar"; $smtpPort = 587;
         $socket = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 5);
@@ -31,11 +31,11 @@ function sendHostelEmail($toEmail, $subject, $htmlBody, $fromEmail, $password = 
             fputs($socket, base64_encode($fromEmail) . "\r\n"); fgets($socket, 515);
             fputs($socket, base64_encode($password) . "\r\n"); $auth = fgets($socket, 515);
             if (strpos($auth, '235') !== false) {
-                fputs($socket, "MAIL FROM: <$fromEmail>\r\n"); fgets($socket, 515); 
-                fputs($socket, "RCPT TO: <$toEmail>\r\n"); fgets($socket, 515); 
+                fputs($socket, "MAIL FROM: <$fromEmail>\r\n"); fgets($socket, 515);
+                fputs($socket, "RCPT TO: <$toEmail>\r\n"); fgets($socket, 515);
                 fputs($socket, "DATA\r\n"); fgets($socket, 515);
-                fputs($socket, "To: <$toEmail>\r\nSubject: $subject\r\n" . $headers . "\r\n\r\n" . $htmlBody . "\r\n.\r\n"); 
-                fgets($socket, 515); fputs($socket, "QUIT\r\n"); fclose($socket); 
+                fputs($socket, "To: <$toEmail>\r\nSubject: $subject\r\n" . $headers . "\r\n\r\n" . $htmlBody . "\r\n.\r\n");
+                fgets($socket, 515); fputs($socket, "QUIT\r\n"); fclose($socket);
                 return true;
             }
             fclose($socket);
@@ -75,13 +75,13 @@ foreach ($icalFeeds as $sourceName => $icalUrl) {
                 preg_match('/DTEND(?:;.*?)?:([0-9]{8})/', $event, $dtend);
 
                 if (isset($uid[1]) && isset($dtstart[1]) && isset($dtend[1])) {
-                    $eventId = 'ical_' . md5(trim($uid[1])); 
+                    $eventId = 'ical_' . md5(trim($uid[1]));
                     if (!in_array($eventId, $existingIds)) {
                         $rawName = isset($summary[1]) ? trim(str_replace(["\r", "\n", "\\"], "", $summary[1])) : 'OTA Guest';
                         $guestName = str_replace('CLOSED - ', '', $rawName);
                         $ci = date('Y-m-d', strtotime($dtstart[1]));
                         $co = date('Y-m-d', strtotime($dtend[1]));
-                        
+
                         $bookings[] = [
                             'id' => $eventId, 'guestName' => $guestName, 'email' => '', 'phone' => '', 'passport' => '',
                             'checkIn' => $ci, 'checkOut' => $co, 'roomId' => 'unassigned', 'status' => 'Confirmed',
@@ -124,7 +124,7 @@ foreach ($bookings as &$b) {
         if ($isPastCheckoutTime) {
             $currentStatus = strtolower($b['status'] ?? '');
             if (in_array($currentStatus, ['confirmed', 'checked in', 'checked-in'])) {
-                $b['status'] = 'Checked Out'; 
+                $b['status'] = 'Checked Out';
                 $needsSave = true;
                 if(!empty($b['email'])) { sendCheckoutEmail($b['email'], $b['guestName']); }
             }
@@ -146,11 +146,11 @@ foreach ($bookings as &$b) {
     $b['stayCount'] = count($guestHistory[$em]);
     $b['pastStays'] = array_values(array_diff($guestHistory[$em], [$b['checkIn'] . ' to ' . $b['checkOut']]));
 }
-unset($b); 
+unset($b);
 
 // --- 2. HANDLE ALL FORM SUBMISSIONS ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
+
     // A. Add New Guest Walk-In
     if (isset($_POST['add_guest'])) {
         $newBooking = [
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "totalPrice" => round((float)$_POST['total_price'] / $exchangeRateARS, 2),
             "amountPaid" => round((float)($_POST['amount_paid'] ?? 0) / $exchangeRateARS, 2),
             "paymentMethod" => htmlspecialchars($_POST['payment_method'] ?? ''),
-            "status" => "confirmed" 
+            "status" => "confirmed"
         ];
         array_unshift($bookings, $newBooking);
         file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT));
@@ -187,11 +187,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($bookings as &$b) {
             if ($b['id'] === $bId) {
                 $oldSt = strtolower($b['status'] ?? '');
-                
+
                 if (!empty($_POST['edit_check_out'])) {
                     $b['checkOut'] = date('Y-m-d', strtotime($_POST['edit_check_out']));
                 }
-                
+
                 // Allow staff to update payment details (Convert ARS to USD)
                 if (isset($_POST['edit_total_price'])) {
                     $b['totalPrice'] = round((float)$_POST['edit_total_price'] / $exchangeRateARS, 2);
@@ -202,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($_POST['edit_payment_method'])) {
                     $b['paymentMethod'] = htmlspecialchars($_POST['edit_payment_method']);
                 }
-                
+
                 // Allow staff to update passport / ID details
                 if (!empty($_POST['edit_id_type'])) {
                     $b['idType'] = htmlspecialchars($_POST['edit_id_type']);
@@ -210,11 +210,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($_POST['edit_id_number'])) {
                     $b['idNumber'] = htmlspecialchars($_POST['edit_id_number']);
                 }
-                
+
                 if(isset($_POST['edit_status'])) {
                     $newSt = strtolower($_POST['edit_status']);
                     $b['status'] = htmlspecialchars($_POST['edit_status']);
-                    
+
                     if ($oldSt !== 'checked out' && ($newSt === 'checked out' || $newSt === 'checked-out')) {
                         if (!empty($b['email'])) { sendCheckoutEmail($b['email'], $b['guestName']); }
                     }
@@ -227,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ?tab=" . urlencode($returnTab));
         exit;
     }
-    
+
     // C. Quick Update Booking Status (Confirm via Action Buttons)
     elseif (isset($_POST['update_status'])) {
         $bId = $_POST['booking_id'];
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($_POST['day_delta']) && (int)$_POST['day_delta'] !== 0) {
                     $delta = (int)$_POST['day_delta'];
                     $ci = new DateTime($b['checkIn']); $co = new DateTime($b['checkOut']);
-                    if ($delta > 0) { $ci->modify("+$delta days"); $co->modify("+$delta days"); } 
+                    if ($delta > 0) { $ci->modify("+$delta days"); $co->modify("+$delta days"); }
                     else { $ci->modify("$delta days"); $co->modify("$delta days"); }
                     $b['checkIn'] = $ci->format('Y-m-d'); $b['checkOut'] = $co->format('Y-m-d');
                 } else {
@@ -272,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT));
-        if (isset($_POST['ajax'])) { echo "ok"; exit; } 
+        if (isset($_POST['ajax'])) { echo "ok"; exit; }
     }
 }
 
@@ -313,7 +313,7 @@ for ($i = 0; $i < 14; $i++) {
     $next14Days[] = $date;
 }
 
-// CALCULATE DAILY AVAILABILITY 
+// CALCULATE DAILY AVAILABILITY
 $roomAvailability = [];
 foreach ($rooms as $room) {
     $roomAvailability[$room['id']] = [];
@@ -363,7 +363,7 @@ function getStatusClass($status) {
 
 function getSourceBadge($source) {
     $s = strtolower(trim($source));
-    if ($s === '' || $s === 'direct') return ''; 
+    if ($s === '' || $s === 'direct') return '';
     if (strpos($s, 'booking') !== false) return '<span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-200 text-[8px] font-bold uppercase tracking-widest shadow-sm whitespace-nowrap">Booking.com</span>';
     if (strpos($s, 'hostelworld') !== false) return '<span class="px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 border border-orange-200 text-[8px] font-bold uppercase tracking-widest shadow-sm whitespace-nowrap">Hostelworld.com</span>';
     return '<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200 text-[8px] font-bold uppercase tracking-widest shadow-sm whitespace-nowrap">' . htmlspecialchars($source) . '</span>';
@@ -408,13 +408,13 @@ ob_start();
             </div>
         </div>
 
-        <?php 
+        <?php
         $totalDays = 14;
         $startDate = $next14Days[0];
         $endDatePlusOne = clone $next14Days[13]; $endDatePlusOne->modify('+1 day');
-        
+
         $calendarRooms = array_merge([['id' => 'unassigned', 'name' => '⚠️ UNASSIGNED (Drag to Room)']], $rooms);
-        foreach($calendarRooms as $rIndex => $room): 
+        foreach($calendarRooms as $rIndex => $room):
             $rColor = $room['id'] === 'unassigned' ? 'bg-amber-50 text-amber-700 border-b border-amber-200' : $roomBgColors[$rIndex % count($roomBgColors)];
         ?>
             <div class="flex relative border-b border-slate-100 min-h-[180px] hover:bg-slate-50/50 transition-colors">
@@ -422,9 +422,9 @@ ob_start();
                     <span class="truncate"><?php echo htmlspecialchars($room['name']); ?></span>
                 </div>
                 <div class="flex-1 relative bg-white calendar-drop-zone" data-room-id="<?php echo $room['id']; ?>">
-                    
+
                     <div class="absolute inset-0 grid grid-cols-[repeat(14,_1fr)] z-10 pointer-events-none">
-                        <?php if($room['id'] !== 'unassigned'): for($i=0; $i<14; $i++): 
+                        <?php if($room['id'] !== 'unassigned'): for($i=0; $i<14; $i++):
                             $avail = $roomAvailability[$room['id']][$i];
                             $availText = $avail > 0 ? $avail . ' left' : 'Full';
                             $availClass = $avail > 0 ? 'text-teal/50' : 'text-red-400/70';
@@ -439,9 +439,9 @@ ob_start();
                     </div>
 
                     <div class="relative z-20 grid grid-cols-[repeat(14,_1fr)] gap-y-1 p-1.5 pt-8 pb-2 pointer-events-none w-full h-full">
-                        <?php 
+                        <?php
                         $roomBookings = [];
-                        
+
                         foreach($bookings as $res) {
                             if($res['roomId'] != $room['id'] || strtolower($res['status']??'') === 'cancelled') continue;
                             $ci = new DateTime($res['checkIn']); $co = new DateTime($res['checkOut']);
@@ -451,29 +451,29 @@ ob_start();
                         }
                         usort($roomBookings, function($a, $b) { return strtotime($a['checkIn']) - strtotime($b['checkIn']); });
                         $lanes = [];
-                        
-                        foreach($roomBookings as $booking): 
+
+                        foreach($roomBookings as $booking):
                             $ci = strtotime($booking['checkIn']); $assignedLane = -1;
                             foreach ($lanes as $laneIndex => $laneEnd) { if ($ci >= $laneEnd) { $assignedLane = $laneIndex; break; } }
                             if ($assignedLane === -1) { $assignedLane = count($lanes); }
                             $booking['lane'] = $assignedLane; $lanes[$assignedLane] = strtotime($booking['checkOut']);
-                            
-                            $ciDateStr = $booking['checkIn']; 
+
+                            $ciDateStr = $booking['checkIn'];
                             $coDateStr = $booking['checkOut'];
-                            
+
                             $startOffset = (strtotime($ciDateStr) - strtotime($startDate->format('Y-m-d'))) / 86400;
                             $endOffset = (strtotime($coDateStr) - strtotime($startDate->format('Y-m-d'))) / 86400;
-                            
+
                             // Visual Split-Cell Shift for realistic check-in/out times
-                            $startOffset += 0.5; 
-                            $endOffset += 0.5;   
-                            
+                            $startOffset += 0.5;
+                            $endOffset += 0.5;
+
                             $clampedStart = max(0, $startOffset);
                             $clampedEnd = min($totalDays, $endOffset);
-                            
+
                             $width = $clampedEnd - $clampedStart;
-                            if ($width <= 0) $width = 0.2; 
-                            
+                            if ($width <= 0) $width = 0.2;
+
                             $leftPct = ($clampedStart / $totalDays) * 100;
                             $widthPct = ($width / $totalDays) * 100;
 
@@ -485,13 +485,13 @@ ob_start();
                             $pillColor = getGuestColorClass($booking['status'] ?? 'pending');
                         ?>
                                 <div id="pill_<?php echo $booking['id']; ?>"
-                                     data-booking-id="<?php echo $booking['id']; ?>" 
-                                     draggable="true" 
-                                     ondragstart="drag(event, '<?php echo $booking['id']; ?>')" 
+                                     data-booking-id="<?php echo $booking['id']; ?>"
+                                     draggable="true"
+                                     ondragstart="drag(event, '<?php echo $booking['id']; ?>')"
                                      ondragend="dragEnd(event)"
                                      onclick="openBookingSidebar('<?php echo $booking['id']; ?>'); switchSidebarTab('guest');"
-                                     title="<?php echo htmlspecialchars($tooltip); ?>" 
-                                     class="booking-pill h-8 rounded-md shadow-[0_2px_4px_rgba(0,0,0,0.1)] flex items-center px-3 cursor-pointer pointer-events-auto bg-gradient-to-r <?php echo $pillColor; ?> text-white font-medium text-[11px] hover:shadow-md hover:scale-[1.02] hover:z-50 transition-all active:scale-95" 
+                                     title="<?php echo htmlspecialchars($tooltip); ?>"
+                                     class="booking-pill h-8 rounded-md shadow-[0_2px_4px_rgba(0,0,0,0.1)] flex items-center px-3 cursor-pointer pointer-events-auto bg-gradient-to-r <?php echo $pillColor; ?> text-white font-medium text-[11px] hover:shadow-md hover:scale-[1.02] hover:z-50 transition-all active:scale-95"
                                      style="left: <?php echo $leftPct; ?>%; top: <?php echo $topPx; ?>px; width: <?php echo $widthPct; ?>%;">
                                     <span class="whitespace-nowrap pointer-events-none drop-shadow-md z-10"><?php echo htmlspecialchars($booking['guestName']); ?></span>
                                 </div>
@@ -513,11 +513,11 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Desk | Hostel Plaza</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -538,7 +538,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
         .cal-scroll::-webkit-scrollbar { height: 8px; }
         .cal-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .cal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        
+
         .booking-pill { position: absolute; z-index: 20; }
         .is-dragging-body * { cursor: grabbing !important; }
 
@@ -572,23 +572,23 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
         </div>
         <nav class="flex-1 py-6 px-4 space-y-2 overflow-y-auto custom-scrollbar" id="sidebarNav">
             <button onclick="switchTab('overview')" class="nav-btn <?php echo $activeTab === 'overview' ? 'active bg-gradient-to-r from-teal to-teal-hover shadow-md text-white font-bold' : 'hover:bg-slate-800 hover:text-white text-slate-300'; ?> w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all" data-target="overview"><i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0 flex-none"></i> <span class="nav-label notranslate text-[15px] whitespace-nowrap truncate" data-en="Overview" data-es="Resumen">Overview</span></button>
-            
+
             <button onclick="switchTab('schedule')" class="nav-btn <?php echo $activeTab === 'schedule' ? 'active bg-gradient-to-r from-teal to-teal-hover shadow-md text-white font-bold' : 'hover:bg-slate-800 hover:text-white text-slate-300'; ?> w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all" data-target="schedule"><i data-lucide="clock-4" class="w-5 h-5 shrink-0 flex-none"></i> <span class="nav-label notranslate text-[15px] whitespace-nowrap truncate" data-en="Staff Schedule" data-es="Horarios">Staff Schedule</span></button>
-            
+
             <button onclick="switchTab('calendar')" class="nav-btn <?php echo $activeTab === 'calendar' ? 'active bg-gradient-to-r from-teal to-teal-hover shadow-md text-white font-bold' : 'hover:bg-slate-800 hover:text-white text-slate-300'; ?> w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all" data-target="calendar"><i data-lucide="calendar" class="w-5 h-5 shrink-0 flex-none"></i> <span class="nav-label notranslate text-[15px] whitespace-nowrap truncate" data-en="Booking Calendar" data-es="Calendario">Booking Calendar</span></button>
-            
+
             <button onclick="switchTab('reservations')" class="nav-btn <?php echo $activeTab === 'reservations' ? 'active bg-gradient-to-r from-teal to-teal-hover shadow-md text-white font-bold' : 'hover:bg-slate-800 hover:text-white text-slate-300'; ?> w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all" data-target="reservations">
                 <div class="flex items-center gap-3 overflow-hidden"><i data-lucide="calendar-days" class="w-5 h-5 shrink-0 flex-none"></i> <span class="nav-label notranslate text-[15px] whitespace-nowrap truncate" data-en="Reservations" data-es="Reservas">Reservations</span></div>
                 <?php if($pendingCount > 0): ?>
                     <span class="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm shrink-0 flex-none"><?php echo $pendingCount; ?></span>
                 <?php endif; ?>
             </button>
-            
+
             <button onclick="switchTab('guests')" class="nav-btn <?php echo $activeTab === 'guests' ? 'active bg-gradient-to-r from-teal to-teal-hover shadow-md text-white font-bold' : 'hover:bg-slate-800 hover:text-white text-slate-300'; ?> w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all" data-target="guests">
                 <div class="flex items-center gap-3 overflow-hidden"><i data-lucide="users" class="w-5 h-5 shrink-0 flex-none"></i> <span class="nav-label notranslate text-[15px] whitespace-nowrap truncate" data-en="Guests" data-es="Huéspedes">Guests</span></div>
             </button>
         </nav>
-        
+
         <div class="px-4 pb-2 flex gap-1 notranslate border-t border-slate-700/50 pt-4 shrink-0">
             <button class="lang-btn flex-1 py-2 rounded-lg bg-slate-800 text-xs shadow-inner text-slate-400 hover:text-white transition-colors" onclick="changeAdminLanguage('en', this)">EN</button>
             <button class="lang-btn flex-1 py-2 rounded-lg bg-gradient-to-r from-teal to-[#144042] text-white text-xs font-bold shadow-md transition-colors" onclick="changeAdminLanguage('es', this)">ES</button>
@@ -605,7 +605,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     </aside>
 
     <main class="flex-1 md:ml-64 p-6 md:p-10 overflow-y-auto h-screen relative w-full md:max-w-[calc(100%-16rem)]">
-        
+
         <div id="overview" class="tab-content <?php echo $activeTab === 'overview' ? 'active' : ''; ?>">
             <div class="flex items-center gap-3 mb-8">
                 <div class="w-10 h-10 bg-teal/10 rounded-xl flex items-center justify-center text-teal shadow-sm shrink-0 flex-none"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
@@ -614,7 +614,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     <p class="text-sm text-slate-500 mt-1 nav-label notranslate" data-en="Welcome to your shift. Here is what is happening at Hostel Plaza today." data-es="Bienvenido a tu turno. Esto es lo que sucede hoy.">Welcome to your shift. Here is what is happening at Hostel Plaza today.</p>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 mb-10">
                 <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-5 border border-emerald-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-center">
                     <div class="absolute -right-3 -top-3 opacity-10 text-emerald-600"><i data-lucide="banknote" class="w-20 h-20"></i></div>
@@ -706,7 +706,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                                                 </div>
                                             </div>
                                         </td>
-                                        <?php foreach($daysOfWeek as $day): 
+                                        <?php foreach($daysOfWeek as $day):
                                             $shift = $staff['schedule'][$day] ?? 'OFF';
                                             $isOff = ($shift === 'OFF');
                                             $bgClass = $isOff ? "bg-slate-50 text-red-400 border-slate-100" : "bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm";
@@ -741,7 +741,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     <button type="button" onclick="moveCalendar(7)" class="p-2 hover:bg-slate-50 text-slate-600 rounded-xl transition-all"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                 </div>
             </div>
-            
+
             <div class="bg-white rounded-3xl border border-slate-200/60 p-4 md:p-8 shadow-sm mb-10 overflow-hidden">
                 <div id="calendar_container_ajax">
                     <?php echo $calendarHTML; ?>
@@ -758,10 +758,10 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                          <p class="text-sm text-slate-500 mt-1 nav-label notranslate" data-en="Manage all bookings and walk-ins." data-es="Gestionar todas las reservas y las visitas sin cita previa.">Manage all bookings and walk-ins.</p>
                      </div>
                  </div>
-                 
+
                  <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
                      <div class="relative w-full sm:w-64 shrink-0"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="search" class="h-4 w-4 text-slate-400"></i></div><input type="text" id="reservationSearchInput" onkeyup="filterReservations()" placeholder="Search names..." class="w-full bg-white border border-slate-200/80 rounded-xl pl-10 p-3 text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal shadow-sm transition-all shadow-inner"></div>
-                     
+
                      <button onclick="toggleModal('guestModal')" class="w-full sm:w-auto bg-gradient-to-r from-teal to-[#144042] text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all whitespace-nowrap shrink-0">
                          <i data-lucide="plus" class="w-5 h-5"></i> <span class="nav-label notranslate" data-en="Add Walk-in" data-es="Añadir Reserva">Add Walk-in</span>
                      </button>
@@ -780,23 +780,23 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                              </tr>
                          </thead>
                          <tbody id="reservationsTableBody" class="divide-y divide-slate-100">
-                             <?php foreach($bookings as $booking): 
+                             <?php foreach($bookings as $booking):
                                  $statusCheck = strtolower(trim($booking['status'] ?? ''));
                                  if ($statusCheck === 'checked out' || $statusCheck === 'cancelled') continue;
-                                 $badge = getStatusClass($booking['status']); 
-                                 
+                                 $badge = getStatusClass($booking['status']);
+
                                  $lFee = isset($booking['luggage']) ? (float)$booking['luggage']['fee'] : 0;
                                  $dFee = 0; if (!empty($booking['damages'])) { foreach($booking['damages'] as $dam) { $dFee += (float)$dam['fee']; } }
                                  $tP = (float)($booking['totalPrice'] ?? 0) + $lFee + $dFee;
                                  $bal = ($tP - (float)($booking['amountPaid'] ?? 0)) * $exchangeRateARS;
-                                 
+
                                  $totalArs = $tP * $exchangeRateARS;
                                  $roomName = 'Unassigned'; foreach($rooms as $rm) { if($rm['id'] == $booking['roomId']) { $roomName = $rm['name']; break; } }
-                                 $booking['roomName'] = $roomName; 
-                                 
+                                 $booking['roomName'] = $roomName;
+
                                  $currentStatus = strtolower($booking['status'] ?? 'pending');
                                  if($currentStatus === 'unconfirmed' || $currentStatus === 'un-confirmed') $currentStatus = 'pending';
-                                 
+
                                  $init = getInitials($booking['guestName']);
                              ?>
                              <tr class="hover:bg-slate-50/50 transition-colors">
@@ -888,15 +888,15 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                              </tr>
                          </thead>
                          <tbody id="guestsTableBody" class="divide-y divide-slate-100">
-                             <?php foreach($bookings as $b): 
+                             <?php foreach($bookings as $b):
                                  $lFee = isset($b['luggage']) ? (float)$b['luggage']['fee'] : 0;
                                  $dFee = 0; if (!empty($b['damages'])) { foreach($b['damages'] as $dam) { $dFee += (float)$dam['fee']; } }
                                  $tPrice = (float)($b['totalPrice'] ?? 0) + $lFee + $dFee;
                                  $bal = ($tPrice - (float)($b['amountPaid'] ?? 0)) * $exchangeRateARS;
                                  $rName = 'Unassigned'; foreach($rooms as $rm) { if($rm['id'] == $b['roomId']) { $rName = $rm['name']; break; } }
-                                 
+
                                  $colorClass = $avatarColors[strlen($b['guestName']) % 5];
-                                 
+
                                  $stCheck = strtolower(trim($b['status'] ?? ''));
                                  $statusBorder = '';
                                  if ($stCheck === 'confirmed') $statusBorder = 'border-l-4 border-emerald-400';
@@ -956,7 +956,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             <button type="button" onclick="switchSidebarTab('operations')" id="btn_sb_ops" class="sidebar-tab flex items-center gap-2 px-4 py-4 text-sm font-medium sidebar-tab-active transition-all">Operations</button>
             <button type="button" onclick="switchSidebarTab('guest')" id="btn_sb_guest" class="sidebar-tab flex items-center gap-2 px-4 py-4 text-sm font-medium border-transparent text-slate-400 hover:text-slate-600 transition-all">Guest Profile</button>
         </div>
-        
+
         <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
             <div id="view_sb_operations" class="sidebar-tab-view space-y-5">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
@@ -977,7 +977,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 </div>
                 <div id="sb_luggage_container"></div>
                 <div id="sb_damages_container"></div>
-                
+
                 <div class="pt-2 space-y-3">
                     <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Quick Actions</h4>
                     <div class="grid grid-cols-1 gap-3">
@@ -985,7 +985,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     </div>
                 </div>
             </div>
-            
+
             <div id="view_sb_guest" class="sidebar-tab-view space-y-5 hidden">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 text-center">
                     <div class="w-16 h-16 min-w-[64px] min-h-[64px] flex-none rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-medium mx-auto mb-3 shadow-inner notranslate" translate="no" id="sb_initials">G</div>
@@ -1024,7 +1024,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 <div class="w-24 h-24 min-w-[96px] min-h-[96px] flex-none rounded-[1.5rem] bg-teal-100 text-teal-700 flex items-center justify-center text-4xl font-serif font-bold mb-4 shadow-inner notranslate" translate="no" id="gh_initial">G</div>
                 <h2 class="text-2xl font-bold text-slate-900 leading-tight" id="gh_name">Guest Name</h2>
                 <div id="gh_vip_badge" class="mt-3 px-3 py-1.5 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[10px] font-bold uppercase tracking-widest hidden flex items-center gap-1.5 shadow-sm"><i data-lucide="crown" class="w-3.5 h-3.5"></i> VIP Guest</div>
-                
+
                 <div class="w-full mt-8 space-y-5 text-left">
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</p><p class="text-sm font-semibold text-slate-800 break-all" id="gh_email"></p></div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Phone</p><p class="text-sm font-semibold text-slate-800" id="gh_phone"></p></div>
@@ -1197,7 +1197,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 <input type="hidden" name="update_guest" value="1">
                 <input type="hidden" name="booking_id" id="pay_booking_id">
                 <input type="hidden" name="return_tab" id="pay_return_tab">
-                
+
                 <div class="grid grid-cols-2 gap-4 mb-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <div class="min-w-0">
                         <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider nav-label notranslate" data-en="Guest Name" data-es="Nombre">Guest Name</p>
@@ -1230,7 +1230,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                         <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1 nav-label notranslate" data-en="Amount Paid (ARS)" data-es="Monto Pagado (ARS)">Amount Paid (ARS)</label>
                         <input type="number" step="0.01" name="edit_amount_paid" id="pay_amount_paid" class="w-full border border-slate-300 bg-white rounded-lg p-3 outline-none font-bold text-emerald-600 text-base focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner" />
                     </div>
-                    
+
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1 nav-label notranslate" data-en="Payment Method" data-es="Método de Pago">Payment Method</label>
                         <select name="edit_payment_method" id="pay_payment_method" class="w-full border border-slate-300 bg-white rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner">
@@ -1269,20 +1269,20 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     </div>
 
     <script>
-        function openModal(id) { 
-            const m = document.getElementById(id); 
-            if (m) { 
-                m.classList.remove('hidden'); 
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.remove('hidden');
                 m.classList.add('flex');
                 setTimeout(() => { m.classList.remove('opacity-0'); }, 10);
-            } 
+            }
         }
-        function closeModal(id) { 
-            const m = document.getElementById(id); 
-            if (m) { 
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
                 m.classList.add('opacity-0');
                 setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
-            } 
+            }
         }
     </script>
 
@@ -1291,87 +1291,87 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
         const bData = <?php echo json_encode($bookings); ?>;
         const roomsData = <?php echo json_encode($rooms); ?>;
         const exchangeRate = <?php echo $exchangeRateARS; ?>;
-        
+
         window.isDragging = false;
         let currentBookingId = null;
 
         function safeSetVal(id, val) { const el = document.getElementById(id); if(el) el.value = val; }
         function safeSetText(id, text) { const el = document.getElementById(id); if(el) el.innerText = text; }
 
-        function allowDrop(ev) { 
-            ev.preventDefault(); 
+        function allowDrop(ev) {
+            ev.preventDefault();
             ev.dataTransfer.dropEffect = "move";
         }
-        
-        function drag(ev, id) { 
+
+        function drag(ev, id) {
             window.isDragging = true;
-            ev.dataTransfer.setData("text/plain", id); 
-            ev.dataTransfer.setData("startX", ev.clientX); 
+            ev.dataTransfer.setData("text/plain", id);
+            ev.dataTransfer.setData("startX", ev.clientX);
             document.body.classList.add('is-dragging-body');
         }
-        
+
         function dragLeave(ev) {}
 
         function drop(ev, roomId, date) {
-            ev.preventDefault(); 
+            ev.preventDefault();
             document.body.classList.remove('is-dragging-body');
             const bookingId = ev.dataTransfer.getData("text/plain");
-            const startX = parseFloat(ev.dataTransfer.getData("startX")); 
+            const startX = parseFloat(ev.dataTransfer.getData("startX"));
             let rowContainer = ev.target.closest('.relative.flex-1'); if (!rowContainer) return;
-            let rect = rowContainer.getBoundingClientRect(); 
-            let totalDays = 14; 
-            let colWidth = rect.width / totalDays; 
+            let rect = rowContainer.getBoundingClientRect();
+            let totalDays = 14;
+            let colWidth = rect.width / totalDays;
             let dayDelta = Math.round((ev.clientX - startX) / colWidth);
-            
+
             if (bookingId) {
                 let pill = document.getElementById('pill_' + bookingId);
-                if (pill) { 
-                    rowContainer.appendChild(pill); 
+                if (pill) {
+                    rowContainer.appendChild(pill);
                     let currentLeft = parseFloat(pill.style.left) || 0;
                     let newLeftPct = currentLeft + (dayDelta / totalDays) * 100;
-                    if (newLeftPct < 0) newLeftPct = 0; 
-                    pill.style.left = newLeftPct + '%'; 
+                    if (newLeftPct < 0) newLeftPct = 0;
+                    pill.style.left = newLeftPct + '%';
                     pill.style.top = '14px';
                 }
 
-                const formData = new FormData(); 
-                formData.append('drag_drop_update', '1'); 
-                formData.append('booking_id', bookingId); 
-                formData.append('new_room_id', roomId); 
-                formData.append('day_delta', dayDelta); 
-                formData.append('ajax', '1'); 
-                
+                const formData = new FormData();
+                formData.append('drag_drop_update', '1');
+                formData.append('booking_id', bookingId);
+                formData.append('new_room_id', roomId);
+                formData.append('day_delta', dayDelta);
+                formData.append('ajax', '1');
+
                 fetch(window.location.href, { method: 'POST', body: formData });
             }
             setTimeout(() => { window.isDragging = false; }, 100);
         }
-        
+
         function dragEnd(ev) {
             document.body.classList.remove('is-dragging-body');
             setTimeout(() => { window.isDragging = false; }, 100);
         }
 
-        async function moveCalendar(delta) { 
-            const url = new URL(window.location); 
+        async function moveCalendar(delta) {
+            const url = new URL(window.location);
             const curStart = url.searchParams.get('start_date') || '<?php echo $viewStart; ?>';
-            const curDate = new Date(curStart); 
+            const curDate = new Date(curStart);
             curDate.setDate(curDate.getDate() + delta);
-            url.searchParams.set('start_date', curDate.toISOString().split('T')[0]); 
+            url.searchParams.set('start_date', curDate.toISOString().split('T')[0]);
             url.searchParams.set('tab', 'calendar');
-            
+
             try {
                 const response = await fetch(url.href);
                 const html = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                
+
                 document.querySelector('.cal-scroll').innerHTML = doc.querySelector('.cal-scroll').innerHTML;
                 document.getElementById('calendar_date_range').innerText = doc.getElementById('calendar_date_range').innerText;
-                
+
                 window.history.pushState({}, '', url.href);
                 lucide.createIcons();
             } catch(e) {
-                window.location.href = url.href; 
+                window.location.href = url.href;
             }
         }
 
@@ -1379,7 +1379,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             if (window.isDragging) return;
             const b = bData.find(x => x.id === id); if(!b) return;
             currentBookingId = id;
-            
+
             const lFee = b.luggage ? parseFloat(b.luggage.fee) || 0 : 0;
             let dFee = 0; let dHtml = '';
             if (b.damages && b.damages.length > 0) {
@@ -1388,24 +1388,24 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     dHtml += `<div class="flex justify-between items-center text-sm mt-2"><span class="text-rose-600 font-medium text-xs"><i data-lucide="alert-triangle" class="w-3 h-3 inline"></i> ${d.desc}</span><span class="font-bold text-rose-600 text-xs">AR$ ${Math.round(f * exchangeRate).toLocaleString()}</span></div>`;
                 });
             }
-            
-            const tPrice = (parseFloat(b.totalPrice) || 0) + lFee + dFee; 
+
+            const tPrice = (parseFloat(b.totalPrice) || 0) + lFee + dFee;
             const aPaid = parseFloat(b.amountPaid) || 0;
             const bal = (tPrice - aPaid) * exchangeRate;
-            
+
             safeSetText('sb_guest_name', b.guestName); safeSetText('sb_guest_name_p', b.guestName);
             safeSetText('sb_reservation_id', 'ID: ' + b.id);
             safeSetText('sb_ci', b.checkIn); safeSetText('sb_co', b.checkOut);
             safeSetText('sb_total', 'ARS ' + Math.round(tPrice * exchangeRate).toLocaleString());
             safeSetText('sb_balance', 'ARS ' + Math.max(0, Math.round(bal)).toLocaleString());
-            
+
             let docId = b.passport || 'Pending'; safeSetText('sb_passport', docId);
             safeSetText('sb_nat', b.nationality || 'Global'); safeSetText('sb_phone', b.phone || 'Pending');
             safeSetText('sb_pay_method', b.paymentMethod || 'None');
-            
+
             const sCount = b.stayCount || 1; let suffix = sCount === 1 ? 'st' : (sCount === 2 ? 'nd' : (sCount === 3 ? 'rd' : 'th'));
             safeSetText('sb_stay_count', sCount + suffix + ' Stay');
-            
+
             let initials = "G";
             if(b.guestName) {
                 let parts = b.guestName.split(" ");
@@ -1417,15 +1417,15 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             if(displayStatus.toLowerCase() === 'un-confirmed' || displayStatus.toLowerCase() === 'unconfirmed') displayStatus = 'Pending';
             safeSetText('sb_status_label', displayStatus);
 
-            const s = (b.status || '').toLowerCase(); 
+            const s = (b.status || '').toLowerCase();
             const statusDot = document.getElementById('sb_status_dot');
             if(statusDot) statusDot.className = 'w-3.5 h-3.5 rounded-full shadow-sm ' + (s==='confirmed'?'bg-emerald-500':s==='checked in'?'bg-purple-500':s==='checked out'?'bg-pink-500':'bg-sky-400');
 
             const source = (b.source || 'Direct').toLowerCase();
             const sbBadgeContainer = document.getElementById('sb_source_badge_container');
             if (sbBadgeContainer) {
-                if (source.includes('booking')) { sbBadgeContainer.innerHTML = '<span class="px-2 py-1 rounded-md bg-blue-50 text-blue-600 border border-blue-200 text-[9px] font-bold uppercase tracking-widest shadow-sm">Booking.com</span>'; } 
-                else if (source.includes('hostelworld')) { sbBadgeContainer.innerHTML = '<span class="px-2 py-1 rounded-md bg-orange-50 text-orange-600 border border-orange-200 text-[9px] font-bold uppercase tracking-widest shadow-sm">Hostelworld.com</span>'; } 
+                if (source.includes('booking')) { sbBadgeContainer.innerHTML = '<span class="px-2 py-1 rounded-md bg-blue-50 text-blue-600 border border-blue-200 text-[9px] font-bold uppercase tracking-widest shadow-sm">Booking.com</span>'; }
+                else if (source.includes('hostelworld')) { sbBadgeContainer.innerHTML = '<span class="px-2 py-1 rounded-md bg-orange-50 text-orange-600 border border-orange-200 text-[9px] font-bold uppercase tracking-widest shadow-sm">Hostelworld.com</span>'; }
                 else if (source !== 'direct' && source !== '') { sbBadgeContainer.innerHTML = `<span class="px-2 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200 text-[9px] font-bold uppercase tracking-widest shadow-sm">${source}</span>`; }
                 else { sbBadgeContainer.innerHTML = ''; }
             }
@@ -1439,10 +1439,10 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     lugContainer.innerHTML = `<div class="p-4 bg-purple-50 border border-purple-200 rounded-2xl flex items-center justify-between shadow-sm"><div class="flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4 text-purple-600"></i><span class="text-sm font-medium text-purple-700">Luggage Storage</span></div><span class="text-sm font-bold text-purple-700">${b.luggage.days} Days (AR$ ${Math.round(b.luggage.fee * exchangeRate).toLocaleString()})</span></div>`;
                 } else { lugContainer.innerHTML = ''; }
             }
-            
+
             let damContainer = document.getElementById('sb_damages_container');
             if (damContainer) {
-                if (dHtml !== '') { damContainer.innerHTML = `<div class="space-y-3 mt-3">${dHtml}</div>`; } 
+                if (dHtml !== '') { damContainer.innerHTML = `<div class="space-y-3 mt-3">${dHtml}</div>`; }
                 else { damContainer.innerHTML = ''; }
             }
 
@@ -1455,25 +1455,25 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             lucide.createIcons();
         }
 
-        function closeBookingSidebar() { 
-            document.getElementById('bookingSidebar').classList.add('translate-x-full'); 
+        function closeBookingSidebar() {
+            document.getElementById('bookingSidebar').classList.add('translate-x-full');
             document.getElementById('sbOverlay').classList.add('opacity-0');
             setTimeout(() => { document.getElementById('sbOverlay').classList.add('hidden'); }, 300);
         }
 
-        function switchSidebarTab(tab) { 
-            document.querySelectorAll('.sidebar-tab-view').forEach(v => v.classList.add('hidden')); 
-            const viewTab = document.getElementById('view_sb_' + tab); if(viewTab) viewTab.classList.remove('hidden'); 
-            
-            document.querySelectorAll('.sidebar-tab').forEach(b => { 
-                b.classList.remove('text-slate-900', 'border-teal', 'sidebar-tab-active'); 
-                b.classList.add('text-slate-400', 'border-transparent'); 
-            }); 
-            
+        function switchSidebarTab(tab) {
+            document.querySelectorAll('.sidebar-tab-view').forEach(v => v.classList.add('hidden'));
+            const viewTab = document.getElementById('view_sb_' + tab); if(viewTab) viewTab.classList.remove('hidden');
+
+            document.querySelectorAll('.sidebar-tab').forEach(b => {
+                b.classList.remove('text-slate-900', 'border-teal', 'sidebar-tab-active');
+                b.classList.add('text-slate-400', 'border-transparent');
+            });
+
             const btnTab = document.getElementById('btn_sb_'+tab);
-            if(btnTab) { 
-                btnTab.classList.add('text-slate-900', 'border-teal', 'sidebar-tab-active'); 
-                btnTab.classList.remove('text-slate-400', 'border-transparent'); 
+            if(btnTab) {
+                btnTab.classList.add('text-slate-900', 'border-teal', 'sidebar-tab-active');
+                btnTab.classList.remove('text-slate-400', 'border-transparent');
             }
         }
 
@@ -1481,7 +1481,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             const tabEl = document.getElementById(tabId);
             if (tabEl) tabEl.classList.add('active');
-            
+
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.className = 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white text-slate-300';
             });
@@ -1496,7 +1496,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             const url = new URL(window.location);
             url.searchParams.set('tab', tabId);
             window.history.pushState({}, '', url);
-            
+
             if(window.innerWidth < 768) { toggleMobileMenu(); }
         }
 
@@ -1511,30 +1511,30 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 overlay.classList.add('hidden');
             }
         }
-        
+
         function toggleModal(modalId) {
             const m = document.getElementById(modalId);
             const content = m.querySelector('.modal-content');
             if (m.classList.contains('hidden')) {
-                m.classList.remove('hidden'); 
+                m.classList.remove('hidden');
                 m.classList.add('flex');
-                setTimeout(() => { 
-                    m.classList.remove('opacity-0'); 
-                    content.classList.remove('scale-95'); 
+                setTimeout(() => {
+                    m.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
                 }, 10);
             } else {
-                m.classList.add('opacity-0'); 
+                m.classList.add('opacity-0');
                 content.classList.add('scale-95');
-                setTimeout(() => { 
-                    m.classList.add('hidden'); 
-                    m.classList.remove('flex'); 
+                setTimeout(() => {
+                    m.classList.add('hidden');
+                    m.classList.remove('flex');
                 }, 300);
             }
         }
 
-        function toggleActionMenu(id) { 
+        function toggleActionMenu(id) {
             document.querySelectorAll('.action-menu').forEach(m => { if(m.id !== id) m.classList.add('hidden'); });
-            const menu = document.getElementById(id); if (menu) menu.classList.toggle('hidden'); 
+            const menu = document.getElementById(id); if (menu) menu.classList.toggle('hidden');
         }
 
         function toggleAccordion(id) {
@@ -1557,23 +1557,23 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             if (booking) {
                 document.getElementById('pay_booking_id').value = booking.id;
                 document.getElementById('pay_return_tab').value = returnTab;
-                
+
                 document.getElementById('pay_guest_name').innerText = booking.guestName || 'Unknown';
-                
+
                 // POPULATE ARS VALUES INSTANTLY FOR THE STAFF
                 document.getElementById('pay_total_price').value = Math.round((booking.totalPrice || 0) * exchangeRate);
                 document.getElementById('pay_check_out').value = booking.checkOut;
-                
+
                 document.getElementById('pay_amount_paid').value = Math.round((booking.amountPaid || 0) * exchangeRate);
                 document.getElementById('pay_payment_method').value = booking.paymentMethod || '';
-                
+
                 document.getElementById('pay_id_type').value = booking.idType || '';
                 document.getElementById('pay_id_number').value = booking.idNumber || '';
-                
+
                 let stat = booking.status ? booking.status.toLowerCase() : 'pending';
                 if(stat === 'unconfirmed' || stat === 'un-confirmed') stat = 'pending';
                 document.getElementById('pay_status').value = stat;
-                
+
                 if(!document.getElementById('bookingSidebar').classList.contains('translate-x-full')){
                     closeBookingSidebar();
                 }
@@ -1582,20 +1582,20 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             }
         }
 
-        function searchGuests() { 
-            let input = document.getElementById('guestSearchInput').value.toLowerCase(); 
-            
-            let rows = document.querySelectorAll('.guest-row'); 
-            rows.forEach(row => { 
-                let name = row.getAttribute('data-name').toLowerCase(); 
+        function searchGuests() {
+            let input = document.getElementById('guestSearchInput').value.toLowerCase();
+
+            let rows = document.querySelectorAll('.guest-row');
+            rows.forEach(row => {
+                let name = row.getAttribute('data-name').toLowerCase();
                 let email = row.getAttribute('data-email').toLowerCase();
-                row.style.display = (name.includes(input) || email.includes(input)) ? '' : 'none'; 
-            }); 
-            
+                row.style.display = (name.includes(input) || email.includes(input)) ? '' : 'none';
+            });
+
             let dropdown = document.getElementById('guestSearchDropdown');
             if(!dropdown) return;
             if (input.length < 2) { dropdown.classList.add('hidden'); return; }
-            
+
             let uniqueGuests = [];
             let seenNames = new Set();
             bData.forEach(b => {
@@ -1606,7 +1606,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             });
 
             let matches = uniqueGuests.filter(n => n.guestName.toLowerCase().includes(input) || (n.email && n.email.toLowerCase().includes(input)));
-            
+
             if (matches.length > 0) {
                 dropdown.innerHTML = matches.map(m => {
                     return `<div onclick="openGuestHistory('${m.guestName.replace(/'/g, "\\'")}')" class="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 flex items-center gap-3"><div class="w-8 h-8 min-w-[32px] min-h-[32px] flex-none rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold notranslate" translate="no"><i data-lucide="search" class="w-4 h-4 shrink-0 flex-none"></i></div><div><p class="text-sm font-bold text-slate-800">${m.guestName}</p><p class="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">View Stay History</p></div></div>`;
@@ -1617,31 +1617,31 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 dropdown.classList.add('hidden');
             }
         }
-        
+
         function openGuestHistory(guestName) {
             document.getElementById('guestSearchDropdown').classList.add('hidden');
-            
+
             let stays = bData.filter(b => b.guestName.toLowerCase() === guestName.toLowerCase());
             stays.sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn));
-            
+
             if(stays.length === 0) return;
-            
+
             let guest = stays[0];
-            
+
             let totalSpent = 0;
             stays.forEach(b => {
                 let lFee = b.luggage ? parseFloat(b.luggage.fee) : 0;
                 let dFee = 0; if (b.damages && b.damages.length > 0) { b.damages.forEach(d => dFee += parseFloat(d.fee)); }
                 totalSpent += (parseFloat(b.totalPrice) + lFee + dFee) * exchangeRate;
             });
-            
+
             safeSetText('gh_name', guest.guestName);
             safeSetText('gh_initial', guest.guestName.charAt(0).toUpperCase());
             safeSetText('gh_email', guest.email || 'No Email on file');
             safeSetText('gh_phone', guest.phone || 'No Phone on file');
             safeSetText('gh_stay_count', stays.length + " Stays");
             safeSetText('gh_total_spent', "AR$ " + Math.round(totalSpent).toLocaleString());
-            
+
             const badge = document.getElementById('gh_vip_badge');
             if(stays.length > 2) { badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
 
@@ -1649,7 +1649,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 let rName = 'Unassigned';
                 let rm = roomsData.find(r => r.id === s.roomId);
                 if(rm) rName = rm.name;
-                
+
                 let lFee = s.luggage ? parseFloat(s.luggage.fee) : 0;
                 let dFee = 0; let dHtml = '';
                 if (s.damages && s.damages.length > 0) {
@@ -1658,18 +1658,18 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                         dHtml += `<div class="flex justify-between text-sm"><span class="text-rose-600 font-medium"><i data-lucide="alert-triangle" class="w-3 h-3 inline"></i> ${d.desc}</span><span class="font-bold text-rose-600">AR$ ${Math.round(f * exchangeRate).toLocaleString()}</span></div>`;
                     });
                 }
-                
+
                 let tP = parseFloat(s.totalPrice) + lFee + dFee;
                 let bal = (tP - parseFloat(s.amountPaid)) * exchangeRate;
-                
+
                 let sSt = s.status ? s.status.toLowerCase() : 'pending';
                 if(sSt === 'unconfirmed' || sSt === 'un-confirmed') sSt = 'pending';
-                
+
                 let statusCol = sSt === 'confirmed' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : (sSt === 'checked in' ? 'text-purple-600 bg-purple-50 border-purple-200' : (sSt === 'checked out' ? 'text-pink-600 bg-pink-50 border-pink-200' : 'text-slate-600 bg-slate-50 border-slate-200'));
-                
+
                 let displayStatus = s.status || 'Pending';
                 if(displayStatus.toLowerCase() === 'un-confirmed' || displayStatus.toLowerCase() === 'unconfirmed') displayStatus = 'Pending';
-                
+
                 let lugHtml = s.luggage && s.luggage.days > 0 ? `<div class="flex justify-between text-sm"><span class="text-slate-600 font-medium text-purple-600"><i data-lucide="briefcase" class="w-3 h-3 inline"></i> Luggage (${s.luggage.days} days)</span><span class="font-bold text-slate-900">AR$ ${Math.round(lFee * exchangeRate).toLocaleString()}</span></div>` : '';
 
                 return `
@@ -1712,7 +1712,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     </div>
                 </div>`;
             }).join('');
-            
+
             document.getElementById('gh_stays_container').innerHTML = staysHtml;
             toggleModal('guestHistoryModal');
             lucide.createIcons();
@@ -1726,7 +1726,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                     row.style.display = "";
                     continue;
                 }
-                let nameCell = row.cells[0]; 
+                let nameCell = row.cells[0];
                 let exactName = nameCell ? nameCell.textContent.toLowerCase().trim() : "";
                 if (exactName.includes(f)) {
                     row.style.display = "";
@@ -1743,7 +1743,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
                 selectField.value = langCode;
                 selectField.dispatchEvent(new Event('change'));
             }
-            
+
             document.querySelectorAll('.nav-label').forEach(label => {
                 label.innerText = label.getAttribute('data-' + langCode) || label.getAttribute('data-en');
             });
@@ -1754,7 +1754,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             });
             btnElement.classList.add('bg-gradient-to-r', 'from-teal', 'to-[#144042]', 'text-white', 'shadow-md', 'font-bold');
             btnElement.classList.remove('text-slate-400');
-            
+
             localStorage.setItem('admin_lang', langCode);
         }
 
@@ -1774,7 +1774,7 @@ $daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
             if (document.documentElement.style.top !== '0px') document.documentElement.style.top = '0px';
         }, 50);
     </script>
-    
+
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,es', autoDisplay: false}, 'google_translate_element');
