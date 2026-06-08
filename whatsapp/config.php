@@ -7,9 +7,9 @@
  */
 return [
     'whatsapp' => [
-        'phone_number_id' => 'YOUR_PHONE_NUMBER_ID',
-        'access_token'    => 'YOUR_PERMANENT_ACCESS_TOKEN',
-        'verify_token'    => 'cambia_esto_por_algo_secreto',
+        'phone_number_id' => '5492615372767',
+        'access_token'    => 'EABAKAOZAig0YBRkQjuGZB4sZBlprTkk7DZBMlJ8W7KbVP3rxYMvW7kq4VUJ3mozoRCiPlQKah6NwrRCJDMZAc9IPX3QVCgOfddiMXtoK17KVIdf5BVSUw9VdpkAQ4ENTl2Bz86kVyl5FwnX3EeZAU4GxLIFvlQRqIsvDesAZCSkgnAiDebcmZCg7ekZCcUAF7OwZDZD',
+        'verify_token'    => 'H0sT3lPl4z4V3r1fyT0k3n',
         'graph_version'   => 'v21.0',
     ],
     'claude' => [
