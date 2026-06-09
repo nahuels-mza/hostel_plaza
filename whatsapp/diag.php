@@ -10,12 +10,26 @@ $cfg = require __DIR__ . '/config.php';
 echo "<pre style='font-family:monospace;font-size:13px;line-height:1.6;'>";
 echo "=== WhatsApp Bot Diagnostic ===\n\n";
 
+// ─── 0. Secrets file ─────────────────────────────────────────
+echo "── 0. Archivo de secrets ──\n";
+$secretsPath = dirname(dirname(__DIR__)) . '/storagedir/secrets.php';
+echo "Ruta buscada : " . $secretsPath . "\n";
+echo "¿Existe?     : " . (is_file($secretsPath) ? "✓ sí" : "✗ NO ENCONTRADO") . "\n";
+if (is_file($secretsPath)) {
+    $s = require $secretsPath;
+    $keys = ['smtp_password', 'claude_api_key', 'wa_phone_number_id', 'wa_access_token', 'wa_verify_token'];
+    foreach ($keys as $k) {
+        $val = $s[$k] ?? null;
+        echo "  $k : " . ($val === null ? "✗ falta la clave" : (trim($val) === '' ? "⚠ vacío" : "✓ tiene valor")) . "\n";
+    }
+}
+
 // ─── 1. Config ───────────────────────────────────────────────
-echo "── 1. Configuración ──\n";
+echo "\n── 1. Configuración ──\n";
 $wa = $cfg['whatsapp'];
-echo "phone_number_id : " . ($wa['phone_number_id'] === 'YOUR_PHONE_NUMBER_ID' ? "✗ SIN CONFIGURAR" : "✓ " . substr($wa['phone_number_id'], 0, 8) . "...") . "\n";
-echo "access_token    : " . ($wa['access_token']    === 'YOUR_PERMANENT_ACCESS_TOKEN' ? "✗ SIN CONFIGURAR" : "✓ " . substr($wa['access_token'], 0, 12) . "...") . "\n";
-echo "verify_token    : " . ($wa['verify_token']    === 'cambia_esto_por_algo_secreto' ? "⚠ es el valor por defecto" : "✓ configurado") . "\n";
+echo "phone_number_id : " . (trim($wa['phone_number_id']) === '' ? "✗ vacío (falta en secrets)" : "✓ " . substr($wa['phone_number_id'], 0, 8) . "...") . "\n";
+echo "access_token    : " . (trim($wa['access_token'])    === '' ? "✗ vacío (falta en secrets)" : "✓ " . substr($wa['access_token'], 0, 12) . "...") . "\n";
+echo "verify_token    : " . (trim($wa['verify_token'])    === '' ? "✗ vacío (falta en secrets)" : "✓ configurado") . "\n";
 echo "graph_version   : " . $wa['graph_version'] . "\n";
 
 $webhookUrl = 'https://hostelplaza.com.ar/whatsapp/webhook.php';
