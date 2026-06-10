@@ -5,7 +5,7 @@
         "month": "sep",
         "title": "Sunset, DJ & Vino",
         "subtitle": "PRIMAVERA EN PLAZA",
-        "image": "https://images.unsplash.com/photo-1504609774528-6d4b83740ed1?q=80&w=1000&auto=format&fit=crop"
+        "image": "/event-img?f=sunset-vino.jpg"
     },
     {
         "id": "pevt_69c87e336b4ab",
@@ -13,7 +13,7 @@
         "month": "jul",
         "title": "Degustaciones & Cafe Rave",
         "subtitle": "INVIERNO EN PLAZA",
-        "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=1000&auto=format&fit=crop"
+        "image": "/event-img?f=cafe-rave.jpg"
     },
     {
         "id": "pevt_69c87ea9d4f07",
@@ -21,27 +21,27 @@
         "month": "abr",
         "title": "Peñas Folklóricas",
         "subtitle": "OTOÑO EN PLAZA",
-        "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=1000&auto=format&fit=crop"
+        "image": "/event-img?f=penas-folkloricas.jpg"
     },
     {
         "id": "pe_69ec9ce122556",
         "name": "Dias de Nieve",
         "date": "20 AGO",
-        "image": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop",
+        "image": "/event-img?f=dias-nieve.jpg",
         "description": "INVIERNO EN PLAZA"
     },
     {
         "id": "pe_69ec9e2c0e455",
         "name": "Fiestas Patrias",
         "date": "20 ABR",
-        "image": "https://images.unsplash.com/photo-1508361001413-7a9dca21d08a?q=80&w=1000&auto=format&fit=crop",
+        "image": "/event-img?f=fiestas-patrias.jpg",
         "description": "OTOÑO EN PLAZA"
     },
     {
         "id": "pe_69ec9f2a7beb6",
         "name": "Mostra tu Marca",
         "date": "18 DIC",
-        "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop",
+        "image": "/event-img?f=mostra-marca.jpg",
         "description": "Eventos En Plaza"
     }
 ]

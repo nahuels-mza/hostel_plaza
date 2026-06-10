@@ -11,74 +11,20 @@ if (file_exists($eventsFile)) {
     }
 }
 
-// THE ULTIMATE FALLBACK: YOUR EXACT CREATED EVENTS
-if (empty($adminEvents)) {
-    $adminEvents = [
-        [
-            "id" => "evt_69c93d52d5d7a",
-            "title" => "Wine Tour",
-            "season" => "Monday to Saturday | 2 PM - 8 PM Explore Maipú wine region! Visit 3 wineries and an olive oil factory, learn the wine-making secrets, and taste loads of wines, organic products, jams, and oils. Includes: Visits + Tastings + Transfer + Tour Guide Bring: Water, extra cash.",
-            "image" => "https://dynamic-media.tacdn.com/media/photo-o/2f/bb/a0/e2/caption.jpg?w=1100&h=800&s=1",
-            "price" => "AR$48.000",
-            "days" => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-        ],
-        [
-            "id" => "evt_69c93d083fe07",
-            "title" => "Bike Rental on Wine Region",
-            "season" => "Monday to Saturday | 10 AM - 6 PM Pedal your way to Mendoza's wineries! An affordable and fun adventure for wine lovers. Pay only for the services you want at the wineries, visit, tastes, food or alltogether! Includes: Bike + Map Bring: Comfortable clothes, water, snacks, sunscreen, hat.",
-            "image" => "https://www.wineandride.com.ar/imgs/actividades1.jpg",
-            "price" => "AR$14,000",
-            "days" => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-        ],
-        [
-            "id" => "evt_69c93c99dc345",
-            "title" => "Sunset Horseride + BBQ & Wine",
-            "season" => "Tuesday, Thursday, Saturday and Sunday | 4 PM - 10 PM Live like a gaucho! Ride through the countryside, feast on an Argentine BBQ with loads of wine and dive into the pool (summer). Includes: Horse ride, Transfer, Asado, Wine. Bring: Water, long pants, sunscreen, hat.",
-            "image" => "https://dynamic-media.tacdn.com/media/photo-o/2f/11/61/52/caption.jpg?w=1100&h=800&s=1",
-            "price" => "AR$125,000",
-            "days" => ["Tue", "Thu", "Sat", "Sun"]
-        ],
-        [
-            "id" => "evt_69c93c45b4adc",
-            "title" => "Paragliding",
-            "season" => "Everyday | 9 AM - 1 PM & 3 PM - 6 PM Fly over Mendoza from Cerro Arco! Pure thrill and panoramic beauty. Fly for about 25min enjoying amazing views of the Andes mountains and Mendoza City, videos and photos included! Includes: Transfer, Guide, Photos & Videos Bring: Water, sunscreen.",
-            "image" => "https://dynamic-media.tacdn.com/media/photo-o/2f/06/0d/85/caption.jpg?w=1100&h=800&s=1",
-            "price" => "AR$119.000",
-            "days" => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        ],
-        [
-            "id" => "evt_69c93bf67c643",
-            "title" => "Rafting on the Mendoza River",
-            "season" => "Everyday | 9 AM - 5 PM Conquer the Mendoza River rapids! Feel the adrenaline paddling 12km through thrilling waters. Rafting takes aproximately 1,30hs in the water and you have a few spare hours to have lunch or do other activities such as treking, rappeling or zipline (not included) Includes: Transfer, Guide, Equipment. Bring: Extra clothes, towel, sunscreen, money for lunch.",
-            "image" => "https://dynamic-media.tacdn.com/media/photo-o/2f/15/74/a8/caption.jpg?w=1100&h=800&s=1",
-            "price" => "AR$91,000",
-            "days" => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        ],
-        [
-            "id" => "evt_69c93b8d9e45f",
-            "title" => "High Andes Tour",
-            "season" => "Everyday | 7 AM - 7 PM Reach 3600m, travel through three mountain ranges to the Aconcagua, the highest peak in America! Includes stops at Potrerillos Lake, Uspallata Valley, Puente de Inca, Aconcagua Park and Las cuevas Village. Unbelievable landscapes await! Includes: Transportation + Guide Bring: Water, meals, money, warm clothes, windbreaker.",
-            "image" => "https://dynamic-media.tacdn.com/media/photo-o/2f/0f/3c/62/caption.jpg?w=1400&h=1000&s=1",
-            "price" => "AR$86.000",
-            "days" => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        ]
-    ];
-    file_put_contents($eventsFile, json_encode($adminEvents, JSON_PRETTY_PRINT));
-}
 
 // --- DYNAMIC CHECKBOX SCHEDULE LOOP (14 DAYS) ---
 $events = [];
-$daysToShowWindow = 14; 
+$daysToShowWindow = 14;
 
 for ($dayOffset = 0; $dayOffset < $daysToShowWindow; $dayOffset++) {
     $targetDate = strtotime("+$dayOffset days");
     $dayStr = date('d', $targetDate);
     $monthStr = strtoupper(date('M', $targetDate));
-    $dayOfWeek = date('D', $targetDate); 
-    
+    $dayOfWeek = date('D', $targetDate);
+
     foreach ($adminEvents as $adminEvent) {
-        $eventDays = $adminEvent['days'] ?? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]; 
-        
+        $eventDays = $adminEvent['days'] ?? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
         if (in_array($dayOfWeek, $eventDays)) {
             $displayEvent = $adminEvent;
             $displayEvent['day'] = $dayStr;
@@ -94,11 +40,11 @@ for ($dayOffset = 0; $dayOffset < $daysToShowWindow; $dayOffset++) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events | Hostel Plaza</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -185,7 +131,7 @@ for ($dayOffset = 0; $dayOffset < $daysToShowWindow; $dayOffset++) {
     <main class="flex-1 w-full bg-slate-900">
         <section class="py-20 overflow-hidden relative">
             <div class="max-w-7xl mx-auto px-6">
-                
+
                 <div class="flex justify-end mb-6">
                     <div class="hidden md:flex items-center gap-3">
                         <button onclick="scrollCarousel(-1)" class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center hover:bg-teal hover:border-teal transition-all text-white">
@@ -207,14 +153,14 @@ for ($dayOffset = 0; $dayOffset < $daysToShowWindow; $dayOffset++) {
                     <div class="relative -mx-6 px-6">
                         <div id="eventsCarousel" class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-12 pt-4 hide-scrollbar scroll-smooth">
                             <?php foreach ($events as $event): ?>
-                            
+
                             <div class="w-[85vw] md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)] flex-none snap-start">
-                                
+
                                 <div class="event-card w-full h-[500px] md:h-[550px] rounded-[1.5rem] shadow-2xl border border-white/10 cursor-pointer bg-slate-800">
-                                    
+
                                     <img src="<?php echo htmlspecialchars($event['image']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105 z-0">
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-slate-900/10 z-10 pointer-events-none"></div>
-                                    
+
                                     <div class="absolute top-4 left-4 bg-[#2a5d5a]/95 backdrop-blur-sm px-3 py-2 rounded-xl text-center shadow-lg z-20 min-w-[3.5rem]">
                                         <span class="block text-[9px] font-bold tracking-widest text-white uppercase mb-0.5"><?php echo htmlspecialchars($event['month']); ?></span>
                                         <span class="block text-xl font-bold text-white leading-none"><?php echo htmlspecialchars($event['day']); ?></span>
@@ -238,9 +184,21 @@ for ($dayOffset = 0; $dayOffset < $daysToShowWindow; $dayOffset++) {
                                                 <h3 class="text-3xl font-serif font-bold leading-tight text-slate-900 mb-4">
                                                     <?php echo html_entity_decode(htmlspecialchars($event['title'])); ?>
                                                 </h3>
-                                                <p class="text-slate-700 font-medium text-sm leading-relaxed mb-0">
+                                                <p class="text-slate-700 font-medium text-sm leading-relaxed mb-6">
                                                     <?php echo html_entity_decode(htmlspecialchars($event['season'])); ?>
                                                 </p>
+                                                <?php
+                                                    $waMsg = urlencode('Hola! Me interesa la actividad "' . $event['title'] . '". ¿Pueden darme más información y disponibilidad?');
+                                                ?>
+                                                <a href="https://api.whatsapp.com/send/?phone=5492615372767&text=<?php echo $waMsg; ?>"
+                                                   target="_blank" rel="noopener"
+                                                   class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold text-sm px-5 py-3 rounded-xl transition-colors shadow-md">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                                                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.543 5.878L.057 23.515a.75.75 0 0 0 .928.928l5.637-1.486A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.715 9.715 0 0 1-4.964-1.364l-.356-.213-3.684.97.986-3.598-.233-.37A9.716 9.716 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/>
+                                                    </svg>
+                                                    Ask on WhatsApp
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
