@@ -3,45 +3,45 @@
         "id": "pevt_69c87ded5185e",
         "day": "21",
         "month": "sep",
-        "title": "Sunset, DJ; Vino",
+        "title": "Sunset, DJ & Vino",
         "subtitle": "PRIMAVERA EN PLAZA",
-        "image": "https:\/\/hostelplaza.com.ar\/static\/media\/patioColonial.976cef6026beb20d26eb.jpg"
+        "image": "https://images.unsplash.com/photo-1504609774528-6d4b83740ed1?q=80&w=1000&auto=format&fit=crop"
     },
     {
         "id": "pevt_69c87e336b4ab",
         "day": "16",
         "month": "jul",
-        "title": "Degustaciones; Cafe Rave",
+        "title": "Degustaciones & Cafe Rave",
         "subtitle": "INVIERNO EN PLAZA",
-        "image": "https:\/\/hostelplaza.com.ar\/static\/media\/patio4.f0d3acefce54a9af2066.jpg"
+        "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=1000&auto=format&fit=crop"
     },
     {
         "id": "pevt_69c87ea9d4f07",
         "day": "20",
         "month": "abr",
-        "title": "Pe\u00f1as Folkloricas",
-        "subtitle": "OTO\u00d1O EN PLAZA",
-        "image": "https:\/\/hostelplaza.com.ar\/static\/media\/home1.282f16cf96c653531c0c.jpg"
+        "title": "Peñas Folklóricas",
+        "subtitle": "OTOÑO EN PLAZA",
+        "image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=1000&auto=format&fit=crop"
     },
     {
         "id": "pe_69ec9ce122556",
         "name": "Dias de Nieve",
         "date": "20 AGO",
-        "image": "https:\/\/hostelplaza.com.ar\/static\/media\/patio.99259a55c9f6006eafb5.jpg",
+        "image": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop",
         "description": "INVIERNO EN PLAZA"
     },
     {
         "id": "pe_69ec9e2c0e455",
         "name": "Fiestas Patrias",
         "date": "20 ABR",
-        "image": "https:\/\/hostelplaza.com.ar\/static\/media\/eventos1.c8cabba589cbcd164d77.jpg",
-        "description": "OTO\u00d1O EN PLAZA"
+        "image": "https://images.unsplash.com/photo-1508361001413-7a9dca21d08a?q=80&w=1000&auto=format&fit=crop",
+        "description": "OTOÑO EN PLAZA"
     },
     {
         "id": "pe_69ec9f2a7beb6",
-        "name": "Mostra tu marca",
+        "name": "Mostra tu Marca",
         "date": "18 DIC",
-        "image": "https:\/\/hostelplaza.com.ar\/static\/media\/eventos2.56fa616de944110407c7.jpg",
+        "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop",
         "description": "Eventos En Plaza"
     }
 ]

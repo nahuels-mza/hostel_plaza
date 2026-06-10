@@ -197,7 +197,7 @@ if (empty($plazaEvents)) {
 
     <section id="home" class="relative h-screen min-h-[700px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('https://hostelplaza.com.ar/static/media/home2.44870ef3b7a6358c6e4f.jpg');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/1337158401.jpg?k=b28097b21b7c0273&o=');"></div>
             <div class="absolute inset-0 hero-gradient"></div>
         </div>
 
@@ -210,34 +210,34 @@ if (empty($plazaEvents)) {
             </p>
         </div>
 
-        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-6 z-20">
+        <div class="absolute bottom-0 inset-x-0 translate-y-1/2 max-w-5xl mx-auto px-4 md:px-6 z-20">
             <?php
                 $hero_today    = date('Y-m-d');
                 $hero_tomorrow = date('Y-m-d', strtotime('+1 day'));
             ?>
-            <form id="hero_book_form" action="book.php" method="GET" class="bg-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-end border border-slate-200">
-                <div class="space-y-2">
+            <form id="hero_book_form" action="book.php" method="GET" class="bg-[#E5E7EB] rounded-2xl p-5 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-end border border-slate-200 overflow-hidden">
+                <div class="space-y-2 min-w-0">
                     <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check In</label>
                     <input type="text" name="check_in" id="hero_check_in"
                            placeholder="Check-in date"
                            required readonly
-                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
+                           class="w-full min-w-0 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2 min-w-0">
                     <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check Out</label>
                     <input type="text" name="check_out" id="hero_check_out"
                            placeholder="Check-out date"
                            required readonly
-                           class="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
+                           class="w-full min-w-0 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
                 </div>
                 <button type="submit" class="bg-teal-400 text-slate-900 h-[50px] rounded-lg font-bold text-lg hover:bg-teal-300 transition-all shadow-md">Book Now</button>
             </form>
         </div>
     </section>
 
-    <div class="h-48 md:h-24"></div>
+    <div class="h-40 md:h-20"></div>
 
-    <section id="about" class="py-24 px-6 max-w-7xl mx-auto w-full">
+    <section id="about" class="py-16 px-6 max-w-7xl mx-auto w-full">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div class="relative animate-float">
                 <div class="rounded-3xl overflow-hidden shadow-2xl aspect-square">
@@ -253,7 +253,7 @@ if (empty($plazaEvents)) {
         </div>
     </section>
 
-    <section id="rooms" class="py-24 px-6 max-w-7xl mx-auto w-full bg-slate-50">
+    <section id="rooms" class="py-16 px-6 max-w-7xl mx-auto w-full bg-slate-50">
         <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <div class="text-left">
                 <span class="text-teal font-bold tracking-widest uppercase text-sm mb-4 block">Rest & Recharge</span>
@@ -277,15 +277,6 @@ if (empty($plazaEvents)) {
                         <?php echo htmlspecialchars($room['type']); ?>
                     </div>
 
-                    <?php $ars = hp_format_price($todayPrices, $room['id']); ?>
-                    <?php if ($ars): ?>
-                    <div class="absolute bottom-5 left-5">
-                        <div class="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl text-teal-800 font-bold shadow-lg border border-white/50 flex items-baseline gap-1">
-                            <span class="text-base"><?php echo $ars; ?></span>
-                            <span class="text-xs font-normal text-slate-500">/noche</span>
-                        </div>
-                    </div>
-                    <?php endif; ?>
                 </div>
 
                 <div class="p-8 flex-1 flex flex-col bg-white z-10">
@@ -316,7 +307,7 @@ if (empty($plazaEvents)) {
         <div id="rooms-dots" class="flex md:hidden justify-center items-center gap-2 mt-2"></div>
     </section>
 
-    <section id="plaza-events" class="py-24 px-6 max-w-7xl mx-auto w-full relative">
+    <section id="plaza-events" class="py-16 px-6 max-w-7xl mx-auto w-full relative">
         <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
             <div class="text-left">
                 <span class="text-teal font-bold tracking-widest uppercase text-sm mb-4 block">What's Happening</span>
@@ -347,7 +338,7 @@ if (empty($plazaEvents)) {
                 <div class="event-card snap-start shrink-0 bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden group relative flex flex-col h-[400px]">
 
                     <div class="relative h-[300px] w-full overflow-hidden">
-                        <img src="<?php echo htmlspecialchars($pevent['image'] ?? ''); ?>" alt="Event" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <img src="<?php echo htmlspecialchars($pevent['image'] ?? ''); ?>" alt="Event" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1504609774528-6d4b83740ed1?q=80&w=800&auto=format&fit=crop'">
 
                         <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-slate-900 flex flex-col items-center justify-center w-14 h-16 rounded-xl shadow-lg border border-slate-100/50 z-10">
                             <span class="font-serif font-bold text-2xl leading-none mt-1 text-teal"><?php echo htmlspecialchars($day); ?></span>

@@ -672,6 +672,18 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
                             cta.textContent = 'Unavailable';
                         }
                     });
+                    // Sort: available cards first, then unavailable
+                    const grid = document.getElementById('rooms_grid');
+                    const cards = Array.from(grid.querySelectorAll('.room-card'));
+                    cards.sort((a, b) => {
+                        const infoA = data.rooms.find(x => String(x.id) === String(a.getAttribute('data-room-id')));
+                        const infoB = data.rooms.find(x => String(x.id) === String(b.getAttribute('data-room-id')));
+                        const availA = infoA?.available ? 0 : 1;
+                        const availB = infoB?.available ? 0 : 1;
+                        return availA - availB;
+                    });
+                    cards.forEach(c => grid.appendChild(c));
+
                     lucide.createIcons();
                 } catch (e) {
                     statusEl.textContent = 'Could not load live availability. Please try again.';
