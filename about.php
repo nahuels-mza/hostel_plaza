@@ -1,9 +1,31 @@
+<?php
+$seo = [
+    'title'       => 'About Us | Hostel Plaza Mendoza — Our Story',
+    'description' => 'Hostel Plaza is a boutique hostel in a historic building in the heart of Mendoza. Learn about our story, our team, and what makes us the best base for exploring Mendoza.',
+    'url'         => 'https://hostelplaza.com.ar/about',
+    'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+    'schema'      => [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'AboutPage',
+        'name'        => 'About Hostel Plaza Mendoza',
+        'url'         => 'https://hostelplaza.com.ar/about',
+        'description' => 'Boutique hostel in a historic building in the heart of Mendoza, Argentina.',
+        'publisher'   => [
+            '@type'     => 'Organization',
+            'name'      => 'Hostel Plaza Mendoza',
+            'url'       => 'https://hostelplaza.com.ar',
+            'telephone' => '+5492615372767',
+            'email'     => 'reservas@hostelplaza.com.ar',
+        ],
+    ],
+];
+?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us | Hostel Plaza</title>
+    <?php include '_seo.php'; ?>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -226,28 +248,28 @@
 
         <div class="relative w-full overflow-hidden mb-8">
             <div class="marquee-wrapper marquee-left">
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/vpkap6lznc68qeuwhxb6.jpg" alt="Gallery 1"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/h86dbtrmqn2wcyzoqa4a.jpg" alt="Gallery 2"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/ljouglftlorl2ctxdrrm.jpg" alt="Gallery 3"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/wd6ibppmjuawq400wesh.jpg" alt="Gallery 4"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/epjzxjrgtsltlug1ayzs.jpg" alt="Gallery 5"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/vpkap6lznc68qeuwhxb6.jpg" alt="Gallery 1"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/h86dbtrmqn2wcyzoqa4a.jpg" alt="Gallery 2"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/ljouglftlorl2ctxdrrm.jpg" alt="Gallery 3"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/wd6ibppmjuawq400wesh.jpg" alt="Gallery 4"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/epjzxjrgtsltlug1ayzs.jpg" alt="Gallery 5"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/vpkap6lznc68qeuwhxb6.jpg" alt="Hostel Plaza Mendoza — colonial courtyard and common area"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/h86dbtrmqn2wcyzoqa4a.jpg" alt="Hostel Plaza Mendoza — shared lounge and social space"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/ljouglftlorl2ctxdrrm.jpg" alt="Hostel Plaza Mendoza — guest bedroom interior"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/wd6ibppmjuawq400wesh.jpg" alt="Hostel Plaza Mendoza — kitchen and dining area"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/epjzxjrgtsltlug1ayzs.jpg" alt="Hostel Plaza Mendoza — patio and outdoor seating"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/vpkap6lznc68qeuwhxb6.jpg" alt="Hostel Plaza Mendoza — colonial courtyard and common area"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/h86dbtrmqn2wcyzoqa4a.jpg" alt="Hostel Plaza Mendoza — shared lounge and social space"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/ljouglftlorl2ctxdrrm.jpg" alt="Hostel Plaza Mendoza — guest bedroom interior"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/wd6ibppmjuawq400wesh.jpg" alt="Hostel Plaza Mendoza — kitchen and dining area"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/epjzxjrgtsltlug1ayzs.jpg" alt="Hostel Plaza Mendoza — patio and outdoor seating"></div>
             </div>
         </div>
 
         <div class="relative w-full overflow-hidden">
             <div class="marquee-wrapper marquee-right">
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/yteclttkdzbmeeg1wm3z.jpg" alt="Gallery 6"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/kee5luywhspvy47ezcxy.jpg" alt="Gallery 7"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/iwuku4ivnru1tdctzg2w.jpg" alt="Gallery 8"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/qahgejvhql6hydpotjob.jpg" alt="Gallery 9"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/fw84qo7amtxdt3x44jfd.jpg" alt="Gallery 10"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/yteclttkdzbmeeg1wm3z.jpg" alt="Gallery 6"></div>
-                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/kee5luywhspvy47ezcxy.jpg" alt="Gallery 7"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/yteclttkdzbmeeg1wm3z.jpg" alt="Hostel Plaza Mendoza — rooftop or terrace area"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/kee5luywhspvy47ezcxy.jpg" alt="Hostel Plaza Mendoza — dormitory bunk beds with lockers"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/iwuku4ivnru1tdctzg2w.jpg" alt="Hostel Plaza Mendoza — reception and entrance hall"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/qahgejvhql6hydpotjob.jpg" alt="Hostel Plaza Mendoza — private room with natural light"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/fw84qo7amtxdt3x44jfd.jpg" alt="Hostel Plaza Mendoza — heritage building facade in Mendoza"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/yteclttkdzbmeeg1wm3z.jpg" alt="Hostel Plaza Mendoza — rooftop or terrace area"></div>
+                <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/kee5luywhspvy47ezcxy.jpg" alt="Hostel Plaza Mendoza — dormitory bunk beds with lockers"></div>
                 <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/iwuku4ivnru1tdctzg2w.jpg" alt="Gallery 8"></div>
                 <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/qahgejvhql6hydpotjob.jpg" alt="Gallery 9"></div>
                 <div class="marquee-item"><img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/fw84qo7amtxdt3x44jfd.jpg" alt="Gallery 10"></div>

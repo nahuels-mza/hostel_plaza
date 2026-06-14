@@ -132,6 +132,31 @@ if (!$currentRoom) {
     exit;
 }
 
+// --- SEO ---
+$_roomSlugSeo = createSlug($currentRoom['name']);
+$seo = [
+    'title'       => htmlspecialchars($currentRoom['name']) . ' | Hostel Plaza Mendoza',
+    'description' => mb_strimwidth(strip_tags($currentRoom['description'] ?? ''), 0, 155, '…') . ' Book at Hostel Plaza Mendoza.',
+    'url'         => 'https://hostelplaza.com.ar/room/' . $_roomSlugSeo,
+    'image'       => $currentRoom['image'] ?? 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+    'schema'      => [
+        '@context'   => 'https://schema.org',
+        '@type'      => 'HotelRoom',
+        'name'       => $currentRoom['name'] ?? '',
+        'description'=> $currentRoom['description'] ?? '',
+        'image'      => $currentRoom['image'] ?? '',
+        'occupancy'  => [
+            '@type'    => 'QuantitativeValue',
+            'maxValue' => (int)($currentRoom['capacity'] ?? 1),
+        ],
+        'containedInPlace' => [
+            '@type' => 'Hostel',
+            'name'  => 'Hostel Plaza Mendoza',
+            'url'   => 'https://hostelplaza.com.ar',
+        ],
+    ],
+];
+
 // --- FORCE OVERRIDE AMENITIES based on user request (Bypasses the JSON file for amenities only) ---
 // if ($currentRoom['id'] == 1) {
 //     $currentRoom['amenities'] = ["Double Bed.", "WiFi", "Air Accondinated", "Share Bathroom", "Smooking is prohibited", "Lockers", "Big windows with views to the city", "All our beds has fresh clean clothes", "Enjoy Breakfast from 7:30am. to 10am."];
@@ -151,7 +176,7 @@ if (!$currentRoom) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($currentRoom['name']); ?> | Hostel Plaza</title>
+    <?php include '_seo.php'; ?>
 
     <base href="/">
 

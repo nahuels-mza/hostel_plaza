@@ -1,12 +1,17 @@
 <?php
-// faq.php
+$seo = [
+    'title'       => 'FAQ | Hostel Plaza Mendoza — Everything You Need to Know',
+    'description' => 'Frequently asked questions about Hostel Plaza Mendoza: check-in times, amenities, location, breakfast, booking, cancellation policy and more.',
+    'url'         => 'https://hostelplaza.com.ar/faq',
+    'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+];
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frequently Asked Questions | Hostel Plaza</title>
+    <?php include '_seo.php'; ?>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>

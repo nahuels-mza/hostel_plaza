@@ -232,13 +232,21 @@ if (valid_date($getCheckIn) && valid_date($getCheckOut)) {
 
 // Datos del huésped que vienen prellenados (en caso de cambiar de habitación con sessionStorage)
 function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] ?? $default)); }
+
+// --- SEO ---
+$seo = [
+    'title'       => 'Book Your Stay | Hostel Plaza Mendoza',
+    'description' => 'Reserve your room at Hostel Plaza Mendoza. Fast and easy prebooking — no payment required upfront. Pay at check-in. Private rooms and shared dorms available.',
+    'url'         => 'https://hostelplaza.com.ar/book',
+    'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservation · Hostel Plaza</title>
+    <?php include '_seo.php'; ?>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>

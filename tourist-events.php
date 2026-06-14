@@ -33,13 +33,32 @@ for ($dayOffset = 0; $dayOffset < $daysToShowWindow; $dayOffset++) {
         }
     }
 }
+$seo = [
+    'title'       => 'Linkup Events & Tours in Mendoza | Hostel Plaza',
+    'description' => 'Wine tours, paragliding, rafting, horse rides and more. Hostel Plaza connects guests with the best activities and day trips in Mendoza, Argentina.',
+    'url'         => 'https://hostelplaza.com.ar/tourist-events',
+    'image'       => 'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?q=80&w=1200&auto=format&fit=crop',
+    'schema'      => [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'TouristInformationCenter',
+        'name'        => 'Hostel Plaza Mendoza — Linkup Events',
+        'url'         => 'https://hostelplaza.com.ar/tourist-events',
+        'description' => 'Wine tours, paragliding, rafting, and local experiences organized by Hostel Plaza Mendoza.',
+        'address'     => [
+            '@type'           => 'PostalAddress',
+            'addressLocality' => 'Mendoza',
+            'addressRegion'   => 'Mendoza',
+            'addressCountry'  => 'AR',
+        ],
+    ],
+];
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Events | Hostel Plaza</title>
+    <?php include '_seo.php'; ?>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

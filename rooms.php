@@ -10,13 +10,38 @@ if (file_exists($roomsFile)) {
 // --- PRECIOS HOY DESDE BANANADESK (cacheados por día) ---
 require_once __DIR__ . '/whatsapp/prices_cache.php';
 $todayPrices = hp_today_prices(__DIR__);
+
+// --- SEO ---
+$_roomItems = [];
+foreach ($rooms as $_i => $_r) {
+    $_roomItems[] = [
+        '@type'    => 'ListItem',
+        'position' => $_i + 1,
+        'url'      => 'https://hostelplaza.com.ar/rooms',
+        'name'     => $_r['name'] ?? '',
+    ];
+}
+$seo = [
+    'title'       => 'Rooms & Rates | Hostel Plaza Mendoza',
+    'description' => 'Private rooms and shared dorms in the center of Mendoza, Argentina. Real-time availability and prices. Choose from single, double, female-only dorms and mixed dorms.',
+    'url'         => 'https://hostelplaza.com.ar/rooms',
+    'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495898.jpg?k=35f2d062726868da5ba53f68a2d7f964da6e6839de4e4476b483ec6b909ee07c&o=',
+    'schema'      => [
+        '@context'        => 'https://schema.org',
+        '@type'           => 'ItemList',
+        'name'            => 'Hostel Plaza Mendoza — Rooms & Dorms',
+        'description'     => 'All rooms and dorms available at Hostel Plaza Mendoza',
+        'numberOfItems'   => count($rooms),
+        'itemListElement' => $_roomItems,
+    ],
+];
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Rooms | Hostel Plaza</title>
+    <?php include '_seo.php'; ?>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

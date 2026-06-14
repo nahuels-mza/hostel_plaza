@@ -10,6 +10,56 @@ if (file_exists($roomsFile)) {
 require_once __DIR__ . '/whatsapp/prices_cache.php';
 $todayPrices = hp_today_prices(__DIR__);
 
+// --- SEO ---
+$seo = [
+    'title'       => 'Hostel Plaza Mendoza | Boutique Hostel in the City Center',
+    'description' => 'Boutique hostel in a colonial heritage house in the heart of Mendoza, Argentina. Private & shared rooms, courtyard, wine tours and Andes adventures. Book direct.',
+    'url'         => 'https://hostelplaza.com.ar/',
+    'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+    'schema'      => [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'Hostel',
+        'name'        => 'Hostel Plaza Mendoza',
+        'url'         => 'https://hostelplaza.com.ar',
+        'telephone'   => '+5492615372767',
+        'email'       => 'reservas@hostelplaza.com.ar',
+        'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+        'description' => 'Boutique hostel in a beautifully preserved heritage house in the heart of Mendoza, Argentina. Private rooms and shared dorms, colonial courtyard, wine tours, and Andes adventures.',
+        'address'     => [
+            '@type'           => 'PostalAddress',
+            'addressLocality' => 'Mendoza',
+            'addressRegion'   => 'Mendoza',
+            'addressCountry'  => 'AR',
+        ],
+        'geo' => [
+            '@type'     => 'GeoCoordinates',
+            'latitude'  => -32.8908,
+            'longitude' => -68.8272,
+        ],
+        'priceRange'       => '$$',
+        'checkinTime'      => '14:00',
+        'checkoutTime'     => '11:00',
+        'aggregateRating'  => [
+            '@type'       => 'AggregateRating',
+            'ratingValue' => '9.0',
+            'reviewCount' => '276',
+            'bestRating'  => '10',
+            'worstRating' => '1',
+        ],
+        'amenityFeature' => [
+            ['@type' => 'LocationFeatureSpecification', 'name' => 'Free WiFi',         'value' => true],
+            ['@type' => 'LocationFeatureSpecification', 'name' => 'Shared Kitchen',    'value' => true],
+            ['@type' => 'LocationFeatureSpecification', 'name' => 'Air Conditioning',  'value' => true],
+            ['@type' => 'LocationFeatureSpecification', 'name' => 'Luggage Storage',   'value' => true],
+            ['@type' => 'LocationFeatureSpecification', 'name' => 'Colonial Courtyard','value' => true],
+            ['@type' => 'LocationFeatureSpecification', 'name' => 'Breakfast',         'value' => true],
+        ],
+        'sameAs' => [
+            'https://www.booking.com/hotel/ar/hostel-plaza-capital.html',
+        ],
+    ],
+];
+
 // --- LOAD PLAZA EVENTS FOR THE HOMEPAGE ---
 $plazaEventsFile = 'plaza_events.json';
 $plazaEvents = [];
@@ -17,81 +67,13 @@ if (file_exists($plazaEventsFile)) {
     $plazaEvents = json_decode(file_get_contents($plazaEventsFile), true) ?: [];
 }
 
-// Fallback just in case JSON is empty or missing
-if (empty($plazaEvents)) {
-    $plazaEvents = [
-        // ==========================================
-        // 🎯 EVENT TEMPLATES (EDIT THESE BELOW)
-        // ==========================================
-
-        // Template 1
-        [
-            "id" => "pevt_template_1",
-            "day" => "21",
-            "month" => "SEP",
-            "title" => "Sunset, DJ & Vino",
-            "subtitle" => "PRIMAVERA EN PLAZA",
-            "image" => "https://images.unsplash.com/photo-1504609774528-6d4b83740ed1?q=80&w=1000&auto=format&fit=crop"
-        ],
-
-        // Template 2
-        [
-            "id" => "pevt_template_2",
-            "day" => "31",
-            "month" => "OCT",
-            "title" => "Halloween Party",
-            "subtitle" => "COSTUME CONTEST",
-            "image" => "https://images.unsplash.com/photo-1508361001413-7a9dca21d08a?q=80&w=1000&auto=format&fit=crop"
-        ],
-
-        // Template 3
-        [
-            "id" => "pevt_template_3",
-            "day" => "12",
-            "month" => "NOV",
-            "title" => "Hostel Asado Night",
-            "subtitle" => "TRADITIONAL ARGENTINE BBQ",
-            "image" => "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop"
-        ],
-
-        // Template 4
-        [
-            "id" => "pevt_template_4",
-            "day" => "15",
-            "month" => "JAN",
-            "title" => "Wine Tasting Masterclass",
-            "subtitle" => "LOCAL VINEYARDS",
-            "image" => "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=1000&auto=format&fit=crop"
-        ],
-
-        // Template 5
-        [
-            "id" => "pevt_template_5",
-            "day" => "05",
-            "month" => "FEB",
-            "title" => "Mountain Trekking",
-            "subtitle" => "ANDES ADVENTURE",
-            "image" => "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop"
-        ],
-
-        // Template 6
-        [
-            "id" => "pevt_template_6",
-            "day" => "18",
-            "month" => "MAR",
-            "title" => "Empanada Cooking Class",
-            "subtitle" => "LEARN TO COOK LIKE A LOCAL",
-            "image" => "https://images.unsplash.com/photo-1628191137573-dee64e727614?q=80&w=1000&auto=format&fit=crop"
-        ]
-    ];
-}
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth overflow-x-hidden">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hostel Plaza | Mendoza, Argentina</title>
+    <?php include '_seo.php'; ?>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
