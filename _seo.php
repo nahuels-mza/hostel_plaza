@@ -22,6 +22,10 @@ $_h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 <title><?php echo $_h($_t); ?></title>
 <meta name="description" content="<?php echo $_h($_d); ?>">
 <link rel="canonical" href="<?php echo $_h($_u); ?>">
+<link rel="icon" type="image/png" sizes="192x192" href="/image.png">
+<link rel="icon" type="image/png" sizes="32x32"   href="/image.png">
+<link rel="apple-touch-icon" sizes="180x180"       href="/image.png">
+<meta name="robots" content="max-snippet:160, max-image-preview:large, max-video-preview:-1">
 
 <!-- Open Graph -->
 <meta property="og:type"        content="<?php echo $_h($_p); ?>">

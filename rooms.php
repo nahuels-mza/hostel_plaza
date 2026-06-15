@@ -76,6 +76,23 @@ $seo = [
         .room-card-image-container { overflow: hidden; }
         .room-card-image-container img { transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
         .group:hover .room-card-image-container img { transform: scale(1.05); }
+        /* Mobile carousel */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media (max-width: 767px) {
+            #rooms-list {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                gap: 20px;
+                padding-bottom: 24px;
+                scroll-behavior: smooth;
+            }
+            #rooms-list > div {
+                flex: 0 0 85vw;
+                scroll-snap-align: start;
+            }
+        }
         /* CSS de nav/lang/google translate vive en header.php */
     </style>
 </head>
@@ -94,7 +111,7 @@ $seo = [
     <main class="flex-1 w-full py-20 bg-[#FDFBF7]">
         <div class="max-w-7xl mx-auto px-6">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div id="rooms-list" class="hide-scrollbar md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-10">
                 <?php foreach ($rooms as $room): ?>
                 <div class="group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col relative">
 
@@ -141,14 +158,48 @@ $seo = [
                 <?php endforeach; ?>
             </div>
 
+            <!-- Mobile carousel dots -->
+            <div id="rooms-dots" class="flex md:hidden justify-center items-center gap-2 mt-3"></div>
+
         </div>
     </main>
 
     <?php include 'footer.php'; ?>
 
     <script>
-        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en header.php
         lucide.createIcons();
+
+        // Mobile-only carousel dots
+        (function () {
+            const list = document.getElementById('rooms-list');
+            const dotsEl = document.getElementById('rooms-dots');
+            const total = <?php echo count($rooms); ?>;
+            if (!list || !dotsEl || total === 0) return;
+
+            for (let i = 0; i < total; i++) {
+                const dot = document.createElement('span');
+                dot.style.cssText = 'display:block;height:8px;border-radius:9999px;transition:all .3s;cursor:pointer;';
+                dot.style.width = i === 0 ? '24px' : '8px';
+                dot.style.backgroundColor = i === 0 ? '#1c5457' : '#cbd5e1';
+                dot.addEventListener('click', () => {
+                    const card = list.children[i];
+                    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                });
+                dotsEl.appendChild(dot);
+            }
+
+            const dots = Array.from(dotsEl.children);
+            function update() {
+                const w = (list.children[0]?.offsetWidth ?? 1) + 20;
+                const idx = Math.min(total - 1, Math.round(list.scrollLeft / w));
+                dots.forEach((d, i) => {
+                    d.style.width = i === idx ? '24px' : '8px';
+                    d.style.backgroundColor = i === idx ? '#1c5457' : '#cbd5e1';
+                });
+            }
+            list.addEventListener('scroll', update, { passive: true });
+            window.addEventListener('resize', update);
+        })();
     </script>
 </body>
 </html>

@@ -13,7 +13,7 @@ $todayPrices = hp_today_prices(__DIR__);
 // --- SEO ---
 $seo = [
     'title'       => 'Hostel Plaza Mendoza | Boutique Hostel in the City Center',
-    'description' => 'Boutique hostel in a colonial heritage house in the heart of Mendoza, Argentina. Private & shared rooms, courtyard, wine tours and Andes adventures. Book direct.',
+    'description' => 'Located in a beautifully preserved heritage house, we offer a unique blend of historical charm and modern comfort in the true spirit of Mendoza. Book direct.',
     'url'         => 'https://hostelplaza.com.ar/',
     'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
     'schema'      => [
@@ -179,7 +179,7 @@ if (file_exists($plazaEventsFile)) {
 
     <section id="home" class="relative h-screen min-h-[700px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/1337158401.jpg?k=b28097b21b7c0273&o=');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('/hero-img');"></div>
             <div class="absolute inset-0 hero-gradient"></div>
         </div>
 
@@ -462,10 +462,11 @@ if (file_exists($plazaEventsFile)) {
         const eventsCarousel = document.getElementById('events-carousel');
         const roomsCarousel = document.getElementById('rooms-carousel');
 
+        // Returns a { scrollBy } controller so button handlers can suppress the
+        // teleport while a button-initiated smooth scroll is in flight.
         function setupEndless(carousel) {
-            if (!carousel) return;
+            if (!carousel) return null;
 
-            // Duplicamos el contenido para crear el efecto loop.
             const children = Array.from(carousel.children);
             children.forEach(child => {
                 const clone = child.cloneNode(true);
@@ -473,15 +474,14 @@ if (file_exists($plazaEventsFile)) {
                 carousel.appendChild(clone);
             });
 
-            // Flag para evitar reentradas mientras estamos teletransportando.
-            let teleporting = false;
+            let teleporting  = false;
+            let btnScrolling = false; // true while a button scroll is animating
 
             carousel.addEventListener('scroll', () => {
-                if (teleporting) return;
+                if (teleporting || btnScrolling) return;
 
                 const scrollLeft = carousel.scrollLeft;
                 const halfWidth  = carousel.scrollWidth / 2;
-                // Margen mínimo para evitar wraps por sub-píxeles de los bordes.
                 const edge = 2;
 
                 let target = null;
@@ -492,25 +492,28 @@ if (file_exists($plazaEventsFile)) {
                 }
                 if (target === null) return;
 
-                // CLAVE: el contenedor tiene CSS `scroll-behavior: smooth`
-                // (clase scroll-smooth). Si solo asignamos scrollLeft, el
-                // navegador ANIMA el salto y se ve como un "rewind" desde
-                // el final hasta el principio. Lo forzamos a instantáneo.
                 teleporting = true;
                 const prevBehavior = carousel.style.scrollBehavior;
                 carousel.style.scrollBehavior = 'auto';
                 carousel.scrollLeft = target;
-                // Restauramos en el siguiente frame para que el scroll
-                // disparado por las flechas siga siendo suave.
                 requestAnimationFrame(() => {
                     carousel.style.scrollBehavior = prevBehavior;
                     teleporting = false;
                 });
             }, { passive: true });
+
+            return {
+                scrollBy: function (delta) {
+                    btnScrolling = true;
+                    carousel.scrollBy({ left: delta, behavior: 'smooth' });
+                    // 500 ms covers a typical smooth-scroll animation
+                    setTimeout(() => { btnScrolling = false; }, 500);
+                }
+            };
         }
 
-        setupEndless(eventsCarousel);
-        setupEndless(roomsCarousel);
+        const eventsCtrl = setupEndless(eventsCarousel);
+        const roomsCtrl  = setupEndless(roomsCarousel);
 
         // --- CAROUSEL DOTS ---
         function setupDots(carousel, dotsContainer, originalCount) {
@@ -553,17 +556,17 @@ if (file_exists($plazaEventsFile)) {
         setupDots(eventsCarousel, document.getElementById('events-dots'), <?php echo count($plazaEvents); ?>);
 
         function scrollEvents(direction) {
-            if(!eventsCarousel) return;
+            if (!eventsCarousel || !eventsCtrl) return;
             const firstCard = eventsCarousel.querySelector('.event-card');
             const scrollStep = firstCard ? firstCard.offsetWidth + 24 : eventsCarousel.clientWidth / 2;
-            eventsCarousel.scrollBy({ left: direction * scrollStep, behavior: 'smooth' });
+            eventsCtrl.scrollBy(direction * scrollStep);
         }
 
         function scrollRooms(direction) {
-            if(!roomsCarousel) return;
+            if (!roomsCarousel || !roomsCtrl) return;
             const firstCard = roomsCarousel.querySelector('.group');
             const scrollStep = firstCard ? firstCard.offsetWidth + 24 : roomsCarousel.clientWidth / 2;
-            roomsCarousel.scrollBy({ left: direction * scrollStep, behavior: 'smooth' });
+            roomsCtrl.scrollBy(direction * scrollStep);
         }
 
         // Review Randomizer Script
