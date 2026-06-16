@@ -179,7 +179,7 @@ if (file_exists($plazaEventsFile)) {
 
     <section id="home" class="relative h-screen min-h-[700px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('/hero-img');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('/hero-img?p=index');"></div>
             <div class="absolute inset-0 hero-gradient"></div>
         </div>
 

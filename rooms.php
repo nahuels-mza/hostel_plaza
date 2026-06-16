@@ -100,8 +100,10 @@ $seo = [
 
     <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
 
-    <header class="pt-32 pb-16 bg-slate-900 text-center border-b border-white/10">
-        <div class="max-w-3xl mx-auto px-6">
+    <header class="pt-32 pb-16 text-center border-b border-white/10 relative overflow-hidden" style="background:#0f172a;">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/hero-img?p=rooms');"></div>
+        <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(15,23,42,.75),rgba(15,23,42,.55));"></div>
+        <div class="max-w-3xl mx-auto px-6 relative z-10">
             <span class="text-teal-300 font-bold tracking-widest uppercase text-xs mb-3 block">Rest & Relax</span>
             <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4 text-white">Our Rooms & Dorms</h1>
             <p class="text-lg text-white/60">Find the perfect space for your stay in Mendoza. All rates are tax-exempt for foreign guests presenting a valid passport.</p>

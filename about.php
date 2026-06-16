@@ -205,7 +205,7 @@ $seo = [
 
     <section class="relative h-[60vh] min-h-[450px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img src="https://a.hwstatic.com/image/upload/f_auto,q_auto,w_1024,c_limit,e_sharpen,e_improve,e_vibrance:60/propertyimages/3/326554/fw84qo7amtxdt3x44jfd.jpg" alt="Hostel Plaza Front" class="w-full h-full object-cover">
+            <img src="/hero-img?p=about" alt="Hostel Plaza Front" class="w-full h-full object-cover">
             <div class="absolute inset-0 hero-gradient"></div>
         </div>
 

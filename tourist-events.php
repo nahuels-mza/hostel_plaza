@@ -136,7 +136,7 @@ $seo = [
 
     <section class="relative h-[60vh] min-h-[450px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?q=80&w=2000&auto=format&fit=crop" alt="Paragliding in Mendoza" class="w-full h-full object-cover">
+            <img src="/hero-img?p=tourist" alt="Paragliding in Mendoza" class="w-full h-full object-cover">
             <div class="absolute inset-0 hero-gradient"></div>
         </div>
 
