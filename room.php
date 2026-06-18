@@ -157,19 +157,6 @@ $seo = [
     ],
 ];
 
-// --- FORCE OVERRIDE AMENITIES based on user request (Bypasses the JSON file for amenities only) ---
-// if ($currentRoom['id'] == 1) {
-//     $currentRoom['amenities'] = ["Double Bed.", "WiFi", "Air Accondinated", "Share Bathroom", "Smooking is prohibited", "Lockers", "Big windows with views to the city", "All our beds has fresh clean clothes", "Enjoy Breakfast from 7:30am. to 10am."];
-// } elseif ($currentRoom['id'] == 2) {
-//     $currentRoom['amenities'] = ["Double Bed.", "Bunk Bed", "Balcony with street view", "WiFi", "Fan", "Air Accondinated", "Share Bathroom", "Stove", "All our beds has fresh clean clothes", "Enjoy Breakfast from 7:30am. to 10am."];
-// } elseif ($currentRoom['id'] == 4) {
-//     $currentRoom['amenities'] = ["Bunk Bed", "WiFi", "Air Accondinated", "Share Bathroom", "Smooking is prohibited", "Fan", "Plug near the bed", "Lockers", "Big windows with views to the city", "All our beds has fresh clean clothes", "Enjoy Breakfast from 7:30am. to 10am."];
-// } elseif ($currentRoom['id'] == 5) {
-//     $currentRoom['amenities'] = ["Bunk Bed", "WiFi", "Air Accondinated", "Share Bathroom", "Smooking is prohibited", "Fan", "Plug near the bed", "Lockers", "Window to the patio.", "All our beds has fresh clean clothes", "Enjoy Breakfast from 7:30am. to 10am."];
-// } elseif ($currentRoom['id'] == 6) {
-//     $currentRoom['amenities'] = ["Bunk Bed", "WiFi", "Air Accondinated", "Share Bathroom", "Smooking is prohibited", "Fan", "Plug near the bed", "Lockers", "Window to the patio.", "All our beds has fresh clean clothes", "Enjoy Breakfast from 7:30am. to 10am."];
-// }
-
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">

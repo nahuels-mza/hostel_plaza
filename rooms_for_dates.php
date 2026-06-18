@@ -95,7 +95,8 @@ foreach ($rooms as $r) {
     $bd         = ($typeId && isset($bananaByType[(int)$typeId])) ? $bananaByType[(int)$typeId] : null;
 
     if ($bd) {
-        $pricePerNight = (float)$bd['price'];
+        // BananaDesk devuelve el precio TOTAL del stay (no por noche), dividimos.
+        $pricePerNight = $nights > 0 ? (float)$bd['price'] / $nights : (float)$bd['price'];
         $availability  = (int)$bd['availability'];
         $minStay       = (int)$bd['min_stay'];
         $available     = $availability > 0 && ($minStay === 0 || $nights >= $minStay);
