@@ -179,6 +179,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         $mailError = "The 'PHPMailer' folder is missing!";
     }
 
+    // --- Auto-crear reserva en BananaDesk ---
+    require_once __DIR__ . '/bananadesk_reserve.php';
+    $bdRoomTypeId = (int)($roomMap[$newBooking['roomId']] ?? 0);
+    if ($bdRoomTypeId > 0) {
+        $bdResult = hp_bananadesk_reserve(
+            $newBooking['checkIn'],
+            $newBooking['checkOut'],
+            $bdRoomTypeId,
+            $newBooking['guestName'],
+            $newBooking['email'],
+            $newBooking['phone']
+        );
+
+        // Guardar el resultado en bookings.json para trazabilidad
+        $bookingsNow = json_decode(file_get_contents($bookingsFile), true) ?: [];
+        foreach ($bookingsNow as &$b) {
+            if ($b['id'] === $newReservationId) {
+                $b['bananadesk'] = $bdResult['ok']
+                    ? ['synced' => true,  'response' => $bdResult['response']]
+                    : ['synced' => false, 'error'    => $bdResult['error']];
+                break;
+            }
+        }
+        unset($b);
+        file_put_contents($bookingsFile, json_encode($bookingsNow, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        $bdLog = date('c') . " BANANADESK booking={$newReservationId} room_type={$bdRoomTypeId} ok=" . ($bdResult['ok'] ? '1' : '0');
+        if (!$bdResult['ok']) $bdLog .= " | " . ($bdResult['error'] ?? 'unknown error');
+        file_put_contents(__DIR__ . '/mail_debug.log', $bdLog . "\n", FILE_APPEND);
+    }
+
     $bookingSuccess = true;
 }
 
