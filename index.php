@@ -338,6 +338,66 @@ if (file_exists($plazaEventsFile)) {
         <div id="events-dots" class="flex md:hidden justify-center items-center gap-2 mt-2"></div>
     </section>
 
+    <section id="location" class="py-16 px-6 bg-slate-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-left mb-12">
+                <span class="text-teal font-bold tracking-widest uppercase text-sm mb-4 block">How to find us</span>
+                <h2 class="text-4xl md:text-5xl font-serif">Our Location</h2>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+
+                <div class="flex flex-col justify-center gap-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-teal/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-teal"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 mb-1">Address</p>
+                            <p class="text-slate-500 leading-relaxed">Av. Bartolomé Mitre 1237<br>Capital, Mendoza, Argentina</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-teal/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="phone" class="w-5 h-5 text-teal"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 mb-1">WhatsApp</p>
+                            <a href="https://api.whatsapp.com/send/?phone=5492615372767" class="text-slate-500 hover:text-teal transition-colors">+54 9 2615 37-2767</a>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-teal/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="mail" class="w-5 h-5 text-teal"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 mb-1">Email</p>
+                            <a href="mailto:reservas@hostelplaza.com.ar" class="text-slate-500 hover:text-teal transition-colors">reservas@hostelplaza.com.ar</a>
+                        </div>
+                    </div>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=-32.8882652,-68.8438826"
+                       target="_blank"
+                       class="inline-flex items-center justify-center gap-2 py-4 px-6 bg-teal text-white rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-hover w-fit">
+                        <i data-lucide="navigation" class="w-4 h-4"></i> Get Directions
+                    </a>
+                </div>
+
+                <div class="lg:col-span-2 rounded-3xl overflow-hidden shadow-xl border border-slate-200 min-h-[380px]">
+                    <iframe
+                        src="https://maps.google.com/maps?q=-32.8882652,-68.8438826&z=16&output=embed"
+                        width="100%"
+                        height="100%"
+                        style="min-height:380px; border:0; display:block;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Hostel Plaza location">
+                    </iframe>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <section class="relative bg-booking py-24 overflow-hidden">
         <div class="absolute inset-0 z-0 opacity-20">
             <img src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/1337158401.jpg?k=b28097b21b7c0273&o=" alt="Hostel Plaza" class="w-full h-full object-cover">
