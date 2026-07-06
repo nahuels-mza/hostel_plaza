@@ -52,44 +52,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Dynamic Menu Hovers */
-        #mainNav.bg-transparent .nav-link:hover { color: #5eead4; }
-        #mainNav.glass .nav-link:hover { color: #1c5457; }
+        /* CSS de nav/lang/google translate vive en header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-   <nav id="mainNav" class="fixed top-0 w-full z-50 transition-all duration-300 bg-transparent py-5">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <a href="index.php" class="transition-opacity hover:opacity-80 block">
-                <img id="logoTop" src="hostel.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="block">
-                <img id="logoScrolled" src="H.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="hidden">
-            </a>
-            
-            <div id="desktopMenu" class="hidden md:flex items-center space-x-8 font-medium text-white transition-colors">
-                <a href="/" class="nav-link transition-colors">Home</a>
-                <a href="index.php#about" class="nav-link transition-colors">About Us</a>
-                <a href="index.php#rooms" class="nav-link transition-colors">Rooms</a>
-                <a href="tourist-events" class="nav-link transition-colors">Tourist Events</a>
-                <a href="book.php" class="bg-teal-400 text-slate-900 font-bold px-6 py-2.5 rounded-full hover:bg-teal-300 transition-all shadow-lg ml-2 border-none">
-                    Book Now
-                </a>
-            </div>
-
-            <button id="mobileMenuBtn" class="md:hidden p-2 text-white transition-colors">
-                <i data-lucide="menu"></i>
-            </button>
-        </div>
-
-        <div id="mobileMenu" class="hidden absolute top-full left-0 w-full glass p-6 flex-col space-y-4 shadow-xl text-slate-900">
-            <a href="/" class="text-left text-lg font-medium block hover:text-teal">Home</a>
-            <a href="about" class="text-left text-lg font-medium block hover:text-teal">About Us</a>
-            <a href="rooms" class="text-left text-lg font-medium block hover:text-teal">Rooms</a>
-            <a href="tourist-events" class="text-left text-lg font-medium block hover:text-teal">Tourist Events</a>
-            <a href="history.php" class="text-left text-lg font-medium block hover:text-teal">History</a>
-            <a href="book.php" class="bg-teal-400 text-slate-900 hover:bg-teal-300 transition-all w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
-        </div>
-    </nav>
+    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
 
     <section class="relative h-[40vh] min-h-[350px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
@@ -164,60 +132,6 @@
 
     <script>
         lucide.createIcons();
-
-        // Handle Scroll Effect for Navbar
-        const nav = document.getElementById('mainNav');
-        const menuBtn = document.getElementById('mobileMenuBtn');
-        const desktopMenu = document.getElementById('desktopMenu');
-        const logoTop = document.getElementById('logoTop');
-        const logoScrolled = document.getElementById('logoScrolled');
-
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                nav.classList.add('glass', 'py-3');
-                nav.classList.remove('bg-transparent', 'py-5');
-                
-                document.querySelectorAll('.nav-link').forEach(el => {
-                    el.classList.remove('text-white');
-                    el.classList.add('text-slate-900');
-                });
-                
-                menuBtn.classList.add('text-slate-900');
-                menuBtn.classList.remove('text-white');
-                
-                if(logoTop && logoScrolled) {
-                    logoTop.classList.add('hidden');
-                    logoTop.classList.remove('block');
-                    logoScrolled.classList.add('block');
-                    logoScrolled.classList.remove('hidden');
-                }
-            } else {
-                nav.classList.add('bg-transparent', 'py-5');
-                nav.classList.remove('glass', 'py-3');
-                
-                document.querySelectorAll('.nav-link').forEach(el => {
-                    el.classList.add('text-white');
-                    el.classList.remove('text-slate-900');
-                });
-                
-                menuBtn.classList.add('text-white');
-                menuBtn.classList.remove('text-slate-900');
-                
-                if(logoTop && logoScrolled) {
-                    logoTop.classList.add('block');
-                    logoTop.classList.remove('hidden');
-                    logoScrolled.classList.add('hidden');
-                    logoScrolled.classList.remove('block');
-                }
-            }
-        });
-
-        // Mobile menu
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('hidden');
-            menu.classList.toggle('flex');
-        });
     </script>
 </body>
 </html>

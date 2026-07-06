@@ -229,7 +229,35 @@ function changeLanguage(langCode, btnElement, isMobile) {
     } else {
         btnElement.classList.add('active');
     }
+    // Persist selection in localStorage so it survives page navigation
+    try { localStorage.setItem('hp_lang', langCode); } catch(e) {}
 }
+
+// On load: sync button state from localStorage (survives across pages)
+(function () {
+    var lang = '';
+    try { lang = localStorage.getItem('hp_lang') || ''; } catch(e) {}
+    // Fallback: read googtrans cookie set by Google Translate
+    if (!lang) {
+        var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]*)/);
+        if (match) {
+            var parts = decodeURIComponent(match[1]).split('/');
+            lang = parts[parts.length - 1] || '';
+        }
+    }
+    if (!lang || lang === 'en') return;
+    // Desktop
+    document.querySelectorAll('.lang-btn').forEach(function (btn) { btn.classList.remove('active'); });
+    var d = document.querySelector('.lang-btn[onclick*="\'' + lang + '\'"]');
+    if (d) d.classList.add('active');
+    // Mobile
+    document.querySelectorAll('.lang-btn-mob').forEach(function (btn) {
+        btn.classList.remove('bg-teal', 'text-white');
+        btn.classList.add('text-slate-500');
+    });
+    var m = document.querySelector('.lang-btn-mob[onclick*="\'' + lang + '\'"]');
+    if (m) { m.classList.remove('text-slate-500'); m.classList.add('bg-teal', 'text-white'); }
+})();
 
 // Kill the Google Translate top bar (it tries to shift the document down)
 setInterval(function () {

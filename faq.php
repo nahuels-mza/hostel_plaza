@@ -50,52 +50,12 @@ $seo = [
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        /* Hide Default Google Translate Widget */
-        #google_translate_element, .goog-te-banner-frame, .skiptranslate, .goog-tooltip, #goog-gt-tt { display: none !important; opacity: 0 !important; visibility: hidden !important; }
-        body { top: 0px !important; position: static !important; }
-        html { height: auto !important; top: 0px !important; }
-        html.translated-ltr, html.translated-rtl { margin-top: 0 !important; padding-top: 0 !important; }
-        .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
-        .lang-btn { transition: all 0.3s ease; }
+        /* CSS de nav/lang/google translate vive en header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col selection:bg-teal selection:text-white">
 
-    <div id="google_translate_element"></div>
-
-    <header class="w-full bg-[#0f172a] border-b border-white/10 relative z-50">
-        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-            
-            <a href="/" class="flex items-center text-white shrink-0">
-                <img src="hostel.png" alt="Hostel Plaza Logo" style="height: 70px; width: auto; object-fit: contain;" class="block">
-            </a>
-            
-            <div class="hidden lg:flex items-center gap-10">
-                
-                <nav class="flex items-center gap-8 text-[13px] font-bold text-white uppercase tracking-[0.15em]">
-                    <a href="/" class="hover:text-teal-400 transition-colors">Home</a>
-                    <a href="about" class="hover:text-teal-400 transition-colors">About Us</a>
-                    <a href="rooms" class="hover:text-teal-400 transition-colors">Rooms</a>
-                    <a href="events" class="hover:text-teal-400 transition-colors">Events</a>
-                </nav>
-                
-                <div class="flex items-center gap-6 pl-4">
-                    <div class="flex bg-white/5 p-1 rounded-full border border-white/10">
-                        <button class="lang-btn bg-white/20 text-white rounded-full px-3 py-1.5 text-xs font-bold transition-all" onclick="changeLanguage('en', this)">EN</button>
-                        <button class="lang-btn text-white/70 hover:text-white rounded-full px-3 py-1.5 text-xs font-bold transition-all" onclick="changeLanguage('es', this)">ES</button>
-                        <button class="lang-btn text-white/70 hover:text-white rounded-full px-3 py-1.5 text-xs font-bold transition-all" onclick="changeLanguage('pt', this)">PT</button>
-                        <button class="lang-btn text-white/70 hover:text-white rounded-full px-3 py-1.5 text-xs font-bold transition-all" onclick="changeLanguage('fr', this)">FR</button>
-                        <button class="lang-btn text-white/70 hover:text-white rounded-full px-3 py-1.5 text-xs font-bold transition-all" onclick="changeLanguage('de', this)">DE</button>
-                    </div>
-                    <a href="book" class="bg-teal-400 hover:bg-teal-300 text-slate-900 px-7 py-3 rounded-full text-sm font-bold shadow-lg transition-all">Book Now</a>
-                </div>
-            </div>
-
-            <button class="lg:hidden text-white p-2">
-                <i data-lucide="menu" class="w-7 h-7"></i>
-            </button>
-        </div>
-    </header>
+    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
 
     <div class="bg-[#0f172a] pt-20 pb-24 px-6 text-center border-b border-white/5">
         <h4 class="text-teal-400 font-bold tracking-widest uppercase text-xs mb-4 flex items-center justify-center gap-2"><i data-lucide="help-circle" class="w-4 h-4"></i> Support & Information</h4>
@@ -287,58 +247,7 @@ $seo = [
             item.classList.add('active');
         }
 
-        // Cleaned up language function - completely relies on Google Translate for text replacement
-        function changeLanguage(langCode, btnElement) {
-            var selectField = document.querySelector("#google_translate_element select") || document.querySelector(".goog-te-combo");
-            if(selectField) {
-                selectField.value = langCode;
-                selectField.dispatchEvent(new Event('change'));
-            }
-
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('bg-white/20', 'text-white');
-                btn.classList.add('text-white/70');
-            });
-            btnElement.classList.add('bg-white/20', 'text-white');
-            btnElement.classList.remove('text-white/70');
-            
-            localStorage.setItem('site_lang', langCode);
-        }
-
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                let savedLang = localStorage.getItem('site_lang') || 'en';
-                let btns = document.querySelectorAll('.lang-btn');
-                
-                let targetBtn = null;
-                if(savedLang === 'en') targetBtn = btns[0];
-                if(savedLang === 'es') targetBtn = btns[1];
-                if(savedLang === 'pt') targetBtn = btns[2];
-                if(savedLang === 'fr') targetBtn = btns[3];
-                if(savedLang === 'de') targetBtn = btns[4];
-
-                if(targetBtn && savedLang !== 'en') {
-                    changeLanguage(savedLang, targetBtn);
-                } else if (targetBtn && savedLang === 'en') {
-                    targetBtn.classList.add('bg-white/20', 'text-white');
-                    targetBtn.classList.remove('text-white/70');
-                }
-            }, 1000);
-        });
-
-        // Hide Google Translate Top Bar
-        setInterval(function() {
-            if (document.body.style.top !== '0px') document.body.style.top = '0px';
-            if (document.documentElement.style.top !== '0px') document.documentElement.style.top = '0px';
-        }, 50);
     </script>
-    
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,es,pt,fr,de', autoDisplay: false}, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 </html>

@@ -63,7 +63,7 @@
 
             <div class="flex items-center gap-2 group cursor-default">
                 <span>Designed by</span>
-                <span class="text-[#2dd4bf] font-bold italic tracking-tight group-hover:text-white transition-colors">Syntax Design</span>
+                <span class="text-[#2dd4bf] font-bold italic tracking-tight group-hover:text-white transition-colors">Hostel Plaza</span>
             </div>
         </div>
     </div>
