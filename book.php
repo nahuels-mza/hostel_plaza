@@ -21,6 +21,8 @@ $rooms = is_file($roomsFile) ? (json_decode(file_get_contents($roomsFile), true)
 $mapPath    = __DIR__ . '/room_mapping.json';
 $roomMap    = is_file($mapPath) ? (json_decode(file_get_contents($mapPath), true) ?: []) : [];
 
+$countries  = is_file(__DIR__ . '/countries.php') ? require __DIR__ . '/countries.php' : [];
+
 // --- 1. POST handler (mantiene exactamente la lógica vieja) ---
 $bookingSuccess   = false;
 $newReservationId = '';
@@ -113,52 +115,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
                 }
             }
 
+            // Calcular noches para el template de mail
+            $mailNights = max(1, (int)round(
+                (strtotime($newBooking['checkOut']) - strtotime($newBooking['checkIn'])) / 86400
+            ));
+
+            // Elegir template según nacionalidad
+            $isArgentino = strtolower(trim($newBooking['nationality'])) === 'argentina';
             $mail->isHTML(true);
-            $mail->Subject = 'PreBooking Request Received - Hostel Plaza';
-            $mail->Body = "
-            <html><body style='font-family: Arial, sans-serif; color: #1e293b; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; background:#fff;'>
-                <div style='text-align:center;padding-bottom:20px;'><h1 style='color:#1c5457;margin:0;font-size:28px;'>Hostel Plaza Mendoza</h1></div>
-                <h2 style='color:#1c5457;margin-top:0;'>Hello {$newBooking['guestName']},</h2>
-                <p style='font-size:16px;'>Your prebooking request has been received. We are reviewing your reservation and will confirm it shortly.</p>
-
-                <h3 style='color:#1c5457;margin:30px 0 10px;font-size:18px;'>Reservation Details</h3>
-                <table style='width:100%;border-collapse:collapse;margin-bottom:30px;'>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>Room</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$bookedRoomName}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check In</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkIn']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check Out</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['checkOut']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Estimated Arrival</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>" . ($newBooking['eta'] ?: '—') . "</td></tr>
-                    <tr><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;font-weight:bold;'>Total Due at Check-in</td><td style='padding:12px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;color:#1c5457;font-size:18px;'>$" . number_format($newBooking['totalPrice'], 2) . " <span style='font-size:13px;color:#94a3b8;'>(AR\$ {$formattedARS})</span></td></tr>
-                </table>
-
-                <h3 style='color:#1c5457;margin:30px 0 10px;font-size:18px;'>Guest Information</h3>
-                <table style='width:100%;border-collapse:collapse;margin-bottom:30px;'>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>Full Name</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['guestName']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Email</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['email']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Phone</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['phone']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Nationality</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['nationality']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>ID Type</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['idType']}</td></tr>
-                    <tr><td style='padding:10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>ID Number</td><td style='padding:10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$newBooking['idNumber']}</td></tr>" .
-                    ($newBooking['notes'] ? "<tr><td style='padding:10px;color:#64748b;vertical-align:top;'>Notes</td><td style='padding:10px;font-weight:bold;text-align:right;'>{$newBooking['notes']}</td></tr>" : "") . "
-                </table>
-
-                <p style='font-size:15px;'>Questions? WhatsApp: <strong><a href='https://api.whatsapp.com/send/?phone=5492615372767' style='color:#1c5457;text-decoration:none;'>+549615372767</a></strong></p>
-                <p style='margin-top:40px;font-size:15px;color:#64748b;'>Safe travels,<br><strong style='color:#1c5457;'>The Hostel Plaza Team</strong></p>
-            </body></html>";
-            $mail->AltBody = "PreBooking Request Received - Hostel Plaza\n\n"
-                . "RESERVATION DETAILS\n"
-                . "Room: {$bookedRoomName}\n"
-                . "Check In: {$newBooking['checkIn']}\n"
-                . "Check Out: {$newBooking['checkOut']}\n"
-                . "Estimated Arrival: " . ($newBooking['eta'] ?: '—') . "\n"
-                . "Total: $" . number_format($newBooking['totalPrice'], 2) . " (AR$ {$formattedARS})\n\n"
-                . "GUEST INFORMATION\n"
-                . "Name: {$newBooking['guestName']}\n"
-                . "Email: {$newBooking['email']}\n"
-                . "Phone: {$newBooking['phone']}\n"
-                . "Nationality: {$newBooking['nationality']}\n"
-                . "ID Type: {$newBooking['idType']}\n"
-                . "ID Number: {$newBooking['idNumber']}\n"
-                . ($newBooking['notes'] ? "Notes: {$newBooking['notes']}\n" : '');
+            if ($isArgentino) {
+                require_once __DIR__ . '/mail_argentina.php';
+                [$mailSubject, $mailBody, $mailAlt] = hp_mail_argentina(
+                    $newBooking, $bookedRoomName, $totalPriceARS, $mailNights
+                );
+            } else {
+                require_once __DIR__ . '/mail_extranjero.php';
+                [$mailSubject, $mailBody, $mailAlt] = hp_mail_extranjero(
+                    $newBooking, $bookedRoomName, (float)$newBooking['totalPrice'], $mailNights
+                );
+            }
+            $mail->Subject = $mailSubject;
+            $mail->Body    = $mailBody;
+            $mail->AltBody = $mailAlt;
 
             $mail->send();
             file_put_contents(
@@ -517,12 +495,26 @@ $seo = [
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Phone *</label>
-                                    <input type="tel" name="phone" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal" placeholder="+54 ...">
+                                    <div class="flex items-stretch">
+                                        <input type="text" id="phone_code_prefix" readonly maxlength="6"
+                                               class="w-20 text-center bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl px-2 text-slate-700 font-mono text-sm font-bold outline-none focus:ring-2 focus:ring-teal"
+                                               value="+54" placeholder="+??">
+                                        <input type="tel" id="phone_local_input" required
+                                               class="flex-1 bg-slate-50 border border-slate-200 rounded-r-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal"
+                                               placeholder="261 5990326">
+                                        <input type="hidden" name="phone" id="phone_hidden">
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-1.5">Without country code — e.g. 11 1234567</p>
                                 </div>
 
                                 <div>
-                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Nationality *</label>
-                                    <input type="text" name="nationality" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal" placeholder="e.g. Argentina">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Country *</label>
+                                    <select name="nationality" id="nationality_select" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal">
+                                        <option value="">Select country…</option>
+                                        <?php foreach ($countries as $c): ?>
+                                        <option value="<?= htmlspecialchars($c['name']) ?>"<?= $c['name'] === 'Argentina' ? ' selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">ID Type *</label>
@@ -829,6 +821,58 @@ $seo = [
             formEl.addEventListener('submit', () => {
                 sessionStorage.removeItem(stashKey);
             });
+
+            // ── Country code prefix ──────────────────────────────────────────
+            <?php
+                $phoneCodes = [];
+                $phoneHints = [];
+                foreach ($countries as $c) {
+                    if ($c['code']) $phoneCodes[$c['name']] = $c['code'];
+                    if ($c['hint']) $phoneHints[$c['name']] = $c['hint'];
+                }
+            ?>
+            const PHONE_CODES = <?= json_encode($phoneCodes, JSON_UNESCAPED_UNICODE) ?>;
+            const PHONE_HINTS = <?= json_encode($phoneHints, JSON_UNESCAPED_UNICODE) ?>;
+
+            const countrySelect  = document.getElementById('nationality_select');
+            const prefixEl       = document.getElementById('phone_code_prefix');
+            const phoneLocal     = document.getElementById('phone_local_input');
+            const phoneHidden    = document.getElementById('phone_hidden');
+
+            function updatePhoneCode() {
+                const country = countrySelect ? countrySelect.value : '';
+                if (country === 'Other' || !country) {
+                    // Editable: quitar readonly y limpiar
+                    if (prefixEl) {
+                        prefixEl.removeAttribute('readonly');
+                        prefixEl.value = '';
+                        prefixEl.placeholder = '+??';
+                        prefixEl.classList.remove('bg-slate-100');
+                        prefixEl.classList.add('bg-white');
+                        prefixEl.focus();
+                    }
+                } else {
+                    // País conocido: readonly con el código
+                    const code = PHONE_CODES[country] || '';
+                    if (prefixEl) {
+                        prefixEl.setAttribute('readonly', '');
+                        prefixEl.value = code;
+                        prefixEl.classList.remove('bg-white');
+                        prefixEl.classList.add('bg-slate-100');
+                    }
+                    if (phoneLocal && PHONE_HINTS[country]) phoneLocal.placeholder = PHONE_HINTS[country];
+                }
+            }
+
+            if (countrySelect) countrySelect.addEventListener('change', updatePhoneCode);
+            updatePhoneCode(); // sync on load
+
+            // Combine code + local number into hidden field before submit
+            formEl.addEventListener('submit', () => {
+                const code  = prefixEl ? prefixEl.value.trim() : '';
+                const local = phoneLocal ? phoneLocal.value.trim() : '';
+                if (phoneHidden) phoneHidden.value = code ? code + ' ' + local : local;
+            }, true); // capture phase so it runs before the stash listener
         <?php endif; ?>
     </script>
 </body>
