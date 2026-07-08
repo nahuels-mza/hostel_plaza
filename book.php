@@ -651,11 +651,13 @@ $seo = [
             fpIn = flatpickr(ciInput, {
                 minDate: 'today',
                 dateFormat: 'Y-m-d',
+                disableMobile: true,
                 onChange: function(sd) {
                     if (fpOut) fpOut.destroy();
                     fpOut = flatpickr(coInput, {
                         minDate: new Date(sd[0]).fp_incr(1),
                         dateFormat: 'Y-m-d',
+                        disableMobile: true,
                     });
                     if (coInput.value && coInput.value <= ciInput.value) {
                         fpOut.setDate(new Date(sd[0]).fp_incr(1), true);
@@ -665,6 +667,7 @@ $seo = [
             fpOut = flatpickr(coInput, {
                 minDate: ciInput.value ? new Date(ciInput.value).fp_incr(1) : new Date().fp_incr(1),
                 dateFormat: 'Y-m-d',
+                disableMobile: true,
             });
         <?php endif; ?>
 

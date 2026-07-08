@@ -488,6 +488,7 @@ if (file_exists($plazaEventsFile)) {
             fpIn = flatpickr('#hero_check_in', {
                 dateFormat: 'Y-m-d',
                 minDate: 'today',
+                disableMobile: true,
                 onChange: function(selectedDates, dateStr) {
                     if (!dateStr) return;
                     const minOut = addDays(dateStr, 1);
@@ -501,6 +502,7 @@ if (file_exists($plazaEventsFile)) {
             fpOut = flatpickr('#hero_check_out', {
                 dateFormat: 'Y-m-d',
                 minDate: addDays(new Date().toISOString().split('T')[0], 1),
+                disableMobile: true,
             });
 
             document.getElementById('hero_book_form').addEventListener('submit', function(e) {
