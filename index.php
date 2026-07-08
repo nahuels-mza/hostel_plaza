@@ -197,22 +197,18 @@ if (file_exists($plazaEventsFile)) {
                 $hero_today    = date('Y-m-d');
                 $hero_tomorrow = date('Y-m-d', strtotime('+1 day'));
             ?>
-            <form id="hero_book_form" action="book.php" method="GET" class="bg-[#E5E7EB] rounded-2xl p-5 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-end border border-slate-200 overflow-hidden">
-                <div class="space-y-2 min-w-0">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check In</label>
-                    <input type="text" name="check_in" id="hero_check_in"
-                           placeholder="Check-in date"
-                           required readonly
-                           class="w-full min-w-0 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
-                </div>
-                <div class="space-y-2 min-w-0">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> Check Out</label>
-                    <input type="text" name="check_out" id="hero_check_out"
-                           placeholder="Check-out date"
-                           required readonly
-                           class="w-full min-w-0 bg-white border border-slate-200 rounded-lg p-3 text-slate-700 outline-none cursor-pointer" />
-                </div>
-                <button type="submit" class="bg-teal-400 text-slate-900 h-[50px] rounded-lg font-bold text-lg hover:bg-teal-300 transition-all shadow-md">Book Now</button>
+            <form id="hero_book_form" action="book.php" method="GET" class="bg-[#E5E7EB] rounded-2xl p-5 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-[1.3fr_1.3fr_0.7fr_1fr] gap-4 md:gap-6 items-end border border-slate-200 overflow-hidden">
+                <?php
+                    $sf_variant       = 'hero';
+                    $sf_check_in      = '';
+                    $sf_check_out     = '';
+                    $sf_guests        = 1;
+                    $sf_check_in_id   = 'hero_check_in';
+                    $sf_check_out_id  = 'hero_check_out';
+                    $sf_guests_id     = 'hero_guests_count';
+                    include __DIR__ . '/_search_fields.php';
+                ?>
+                <button type="submit" class="bg-[#1c5457] text-white h-[50px] rounded-lg font-bold text-lg hover:bg-[#144042] transition-all shadow-md">Book Now</button>
             </form>
         </div>
     </section>

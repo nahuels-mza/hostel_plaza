@@ -364,21 +364,13 @@ $seo = [
                 <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-10">
                     <form method="GET" action="book.php" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-[1.4fr_1.4fr_0.8fr] gap-6">
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Check In</label>
-                                <input type="text" name="check_in" id="check_in_input" value="<?php echo htmlspecialchars($getCheckIn); ?>" required
-                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal font-medium" />
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Check Out</label>
-                                <input type="text" name="check_out" id="check_out_input" value="<?php echo htmlspecialchars($getCheckOut); ?>" required
-                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal font-medium" />
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Guests</label>
-                                <input type="number" name="guests_count" value="<?php echo (int)$getGuestsCount; ?>" min="1" max="8" required
-                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal font-medium" />
-                            </div>
+                            <?php
+                                $sf_variant   = 'card';
+                                $sf_check_in  = $getCheckIn;
+                                $sf_check_out = $getCheckOut;
+                                $sf_guests    = $getGuestsCount;
+                                include __DIR__ . '/_search_fields.php';
+                            ?>
                         </div>
 
                         <?php /* room_id NO se preserva acá: queremos que el usuario
@@ -473,20 +465,18 @@ $seo = [
                                         <span class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?></span>
                                     </div>
                                     <div class="mt-auto pt-4 flex items-end justify-between">
-                                        <div class="flex items-center gap-3">
-                                            <a href="book.php" class="text-xs text-slate-500 hover:text-teal flex items-center gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <a href="book.php" class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
                                                 <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Change dates
                                             </a>
-                                            <span class="text-slate-300">|</span>
                                             <a id="change_room_link" href="book.php?check_in=<?php echo urlencode($getCheckIn); ?>&check_out=<?php echo urlencode($getCheckOut); ?>&guests_count=<?php echo urlencode((string)$getGuestsCount); ?>"
-                                               class="text-xs text-slate-500 hover:text-teal flex items-center gap-1">
+                                               class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
                                                 <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Change room
                                             </a>
                                         </div>
                                         <div class="text-right">
                                             <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Total</p>
                                             <p id="display_total_ars" class="text-2xl font-bold text-teal">AR$ —</p>
-                                            <p id="display_total_usd" class="text-xs text-slate-500">$—</p>
                                         </div>
                                     </div>
                                 </div>
@@ -506,12 +496,11 @@ $seo = [
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div class="md:col-span-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Number of Guests *</label>
-                                    <input type="number" name="guests_count" id="guests_count_input"
-                                           min="1" max="<?php echo (int)($selectedRoom['capacity'] ?? 1); ?>"
-                                           value="<?php echo max(1, (int)$getGuestsCount); ?>" required
-                                           class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal">
-                                    <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room.</p>
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Number of Guests</label>
+                                    <input type="text" name="guests_count" id="guests_count_input" readonly
+                                           value="<?php echo max(1, (int)$getGuestsCount); ?>"
+                                           class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium outline-none cursor-not-allowed">
+                                    <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room. To change it, use "Change dates" above.</p>
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Full Legal Name *</label>
@@ -766,14 +755,13 @@ $seo = [
             const co = <?php echo json_encode($getCheckOut); ?>;
             const nights = <?php echo (int)$nightsCount; ?>;
             const roomId = <?php echo json_encode((string)$selectedRoom['id']); ?>;
-            const guestsInput = document.getElementById('guests_count_input');
+            const guestsCount = <?php echo (int)$getGuestsCount; ?>; // fijo en este paso: el campo es de solo lectura
 
             // ---- Persistencia de datos del formulario al cambiar de habitación ----
             const formEl = document.getElementById('booking_form');
             const stashKey = 'hp_booking_form_v1';
 
-            // Restaurar si veníamos de otra habitación (antes de pedir precio, para
-            // que la primera consulta ya use la cantidad de huéspedes restaurada)
+            // Restaurar si veníamos de otra habitación
             try {
                 const cached = JSON.parse(sessionStorage.getItem(stashKey) || 'null');
                 if (cached && cached.check_in === ci && cached.check_out === co) {
@@ -786,52 +774,47 @@ $seo = [
 
             async function loadPrice() {
                 try {
-                    const gc = guestsInput ? Math.max(1, parseInt(guestsInput.value, 10) || 1) : <?php echo (int)$getGuestsCount; ?>;
-                    const r = await fetch(`rooms_for_dates.php?check_in=${encodeURIComponent(ci)}&check_out=${encodeURIComponent(co)}&guests_count=${encodeURIComponent(gc)}`, { cache: 'no-store' });
+                    const r = await fetch(`rooms_for_dates.php?check_in=${encodeURIComponent(ci)}&check_out=${encodeURIComponent(co)}&guests_count=${encodeURIComponent(guestsCount)}`, { cache: 'no-store' });
                     const data = await r.json();
                     if (!data.ok) throw new Error(data.error || 'no data');
                     const room = data.rooms.find(x => String(x.id) === String(roomId));
                     if (!room) return;
 
                     const totalARS = Number(room.total_ars || 0); // ya escalado por huéspedes en dormitorios compartidos
-                    const usdMultiplier = (room.booking_unit === 'bed') ? gc : 1;
+                    const usdMultiplier = (room.booking_unit === 'bed') ? guestsCount : 1;
                     const totalUSD = room.price_usd_from ? (Number(room.price_usd_from) * nights * usdMultiplier) : 0;
                     document.getElementById('display_total_ars').textContent = 'AR$ ' + totalARS.toLocaleString('es-AR');
-                    document.getElementById('display_total_usd').textContent = totalUSD ? '$' + totalUSD.toFixed(2) + ' USD' : '';
+                    // totalUSD no se muestra en pantalla (sólo el total en ARS), pero se
+                    // sigue mandando en el hidden field: lo usa el mail para huéspedes extranjeros.
                     document.getElementById('hidden_total').value     = totalUSD || 0;
                     document.getElementById('hidden_total_ars').value = totalARS;
-
-                    const banner  = document.getElementById('room_unavailable_banner');
-                    const reasonEl = document.getElementById('room_unavailable_reason');
-                    const totalEl = document.getElementById('display_total_ars');
-                    const btn     = document.getElementById('submit_btn');
-                    const wrapper = document.querySelector('.lg\\:col-span-8 .bg-white.rounded-3xl.shadow-sm.border.border-slate-200.overflow-hidden');
 
                     // ── Si la habitación NO está disponible para esas fechas/huéspedes:
                     //    - mostrar el banner
                     //    - cambiar el precio total a gris
                     //    - deshabilitar el botón "Confirm booking"
                     //    - bajar la opacidad de la tarjeta de la habitación elegida
-                    // Si SÍ está disponible, revertir todo lo anterior — necesario porque
-                    // loadPrice() ahora se vuelve a ejecutar cada vez que cambia la cantidad
-                    // de huéspedes, no sólo una vez al cargar la página.
                     if (!room.available) {
+                        const banner = document.getElementById('room_unavailable_banner');
                         if (banner) banner.classList.remove('hidden');
 
+                        const reasonEl = document.getElementById('room_unavailable_reason');
                         if (reasonEl) {
                             if (room.reason === 'min_stay') {
                                 reasonEl.textContent = `Minimum stay is ${room.min_stay} nights for this room — your stay is ${nights}. Extend your dates or pick another room.`;
                             } else if (room.reason === 'not_enough_beds') {
-                                reasonEl.textContent = `Only ${room.availability_count} bed(s) left for these dates — reduce the guest count or pick another room.`;
+                                reasonEl.textContent = `Only ${room.availability_count} bed(s) left for these dates — go back and reduce the guest count, or pick another room.`;
                             } else if (room.reason === 'over_capacity') {
-                                reasonEl.textContent = `This room fits up to ${room.capacity} guests — reduce the guest count or pick another room.`;
+                                reasonEl.textContent = `This room fits up to ${room.capacity} guests — go back and reduce the guest count, or pick another room.`;
                             } else {
                                 reasonEl.textContent = 'No rooms left of this type for those dates. Please pick another room from the list, or change your dates.';
                             }
                         }
 
+                        const totalEl = document.getElementById('display_total_ars');
                         if (totalEl) totalEl.className = 'text-2xl font-bold text-slate-400 line-through';
 
+                        const btn = document.getElementById('submit_btn');
                         if (btn) {
                             btn.disabled = true;
                             btn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -839,43 +822,14 @@ $seo = [
                             btn.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4"></i> Not available for these dates';
                         }
 
+                        const wrapper = document.querySelector('.lg\\:col-span-8 .bg-white.rounded-3xl.shadow-sm.border.border-slate-200.overflow-hidden');
                         if (wrapper) wrapper.classList.add('opacity-60', 'grayscale');
-                    } else {
-                        if (banner) banner.classList.add('hidden');
-                        if (totalEl) totalEl.className = 'text-2xl font-bold text-teal';
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                            btn.classList.add('hover:bg-teal-hover');
-                            btn.innerHTML = 'Confirm Prebooking <i data-lucide="check-circle" class="w-4 h-4"></i>';
-                        }
-                        if (wrapper) wrapper.classList.remove('opacity-60', 'grayscale');
+
+                        if (window.lucide) lucide.createIcons();
                     }
-                    if (window.lucide) lucide.createIcons();
                 } catch (e) { console.warn(e); }
             }
-
-            // Mantiene "Change room" y el strip de otras habitaciones apuntando a la
-            // cantidad de huéspedes actual (el input es editable en este paso).
-            function syncGuestsCountLinks() {
-                const gc = guestsInput ? guestsInput.value : <?php echo (int)$getGuestsCount; ?>;
-                document.querySelectorAll('#other_rooms_strip a, #change_room_link').forEach(a => {
-                    const u = new URL(a.getAttribute('href'), location.href);
-                    u.searchParams.set('guests_count', gc);
-                    a.setAttribute('href', u.pathname + u.search);
-                });
-            }
-
-            syncGuestsCountLinks();
             loadPrice();
-
-            if (guestsInput) {
-                let guestsDebounce;
-                guestsInput.addEventListener('input', () => {
-                    clearTimeout(guestsDebounce);
-                    guestsDebounce = setTimeout(() => { loadPrice(); syncGuestsCountLinks(); }, 300);
-                });
-            }
 
             // Guardar antes de cambiar de habitación
             document.querySelectorAll('#other_rooms_strip a').forEach(a => {
