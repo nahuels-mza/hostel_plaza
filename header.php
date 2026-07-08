@@ -111,7 +111,7 @@ $hasHero = isset($hasHero) ? (bool)$hasHero : false;
                 <button class="lang-btn px-3 py-1.5 rounded-full"        onclick="changeLanguage('de', this)">DE</button>
             </div>
 
-            <a href="book.php" class="bg-teal-400 text-slate-900 font-bold px-6 py-2.5 rounded-full hover:bg-teal-300 transition-all shadow-lg ml-2 border-none">
+            <a href="book.php" class="bg-[#1c5457] text-white font-bold px-6 py-2.5 rounded-full hover:bg-[#144042] transition-all shadow-lg ml-2 border-none">
                 Book Now
             </a>
         </div>
@@ -136,7 +136,7 @@ $hasHero = isset($hasHero) ? (bool)$hasHero : false;
             <button class="lang-btn-mob flex-1 text-slate-500 px-3 py-2 rounded-full transition-all"            onclick="changeLanguage('de', this, true)">DE</button>
         </div>
 
-        <a href="book.php" class="bg-teal-400 text-slate-900 hover:bg-teal-300 transition-all w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
+        <a href="book.php" class="bg-[#1c5457] text-white hover:bg-[#144042] transition-all w-full py-3 rounded-xl font-bold text-center block mt-2">Book Now</a>
     </div>
 </nav>
 

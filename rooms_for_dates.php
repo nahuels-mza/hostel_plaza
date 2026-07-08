@@ -45,6 +45,7 @@ require_once __DIR__ . '/whatsapp/availability.php';
 // --- params ---
 $checkIn  = isset($_GET['check_in'])  ? trim((string)$_GET['check_in'])  : '';
 $checkOut = isset($_GET['check_out']) ? trim((string)$_GET['check_out']) : '';
+$guestsCount = isset($_GET['guests_count']) ? max(1, (int)$_GET['guests_count']) : 1;
 
 $checkIn  = hp_normalize_date($checkIn);
 $checkOut = hp_normalize_date($checkOut);
@@ -90,16 +91,37 @@ if (!empty($banana['rooms'])) {
 
 $out = [];
 foreach ($rooms as $r) {
-    $localId    = (string)$r['id'];
-    $typeId     = isset($map[$localId]) ? $map[$localId] : null;
-    $bd         = ($typeId && isset($bananaByType[(int)$typeId])) ? $bananaByType[(int)$typeId] : null;
+    $localId     = (string)$r['id'];
+    $typeId      = isset($map[$localId]) ? $map[$localId] : null;
+    $bd          = ($typeId && isset($bananaByType[(int)$typeId])) ? $bananaByType[(int)$typeId] : null;
+    $bookingUnit = (($r['bookingUnit'] ?? 'room') === 'bed') ? 'bed' : 'room';
+    $capacity    = (int)($r['capacity'] ?? 1);
 
     if ($bd) {
-        // BananaDesk devuelve el precio TOTAL del stay (no por noche), dividimos.
-        $pricePerNight = $nights > 0 ? (float)$bd['price'] / $nights : (float)$bd['price'];
-        $availability  = (int)$bd['availability'];
-        $minStay       = (int)$bd['min_stay'];
-        $available     = $availability > 0 && ($minStay === 0 || $nights >= $minStay);
+        // BananaDesk devuelve el precio TOTAL del stay (no por noche) de UNA unidad
+        // (una cama, si es dormitorio compartido, o la habitación entera si es privada).
+        $unitPrice    = (float)$bd['price'];
+        $availability = (int)$bd['availability'];
+        $minStay      = (int)$bd['min_stay'];
+        $withinMinStay = ($minStay === 0 || $nights >= $minStay);
+
+        if ($bookingUnit === 'bed') {
+            // Compartido: cada huésped ocupa una cama, el precio escala con la cantidad.
+            $available    = $withinMinStay && $availability >= $guestsCount;
+            $totalForStay = $unitPrice * $guestsCount;
+            if (!$withinMinStay)               $reason = 'min_stay';
+            elseif ($availability < $guestsCount) $reason = 'not_enough_beds';
+            else                                 $reason = 'ok';
+        } else {
+            // Privado: se vende la habitación entera, precio plano, tope = capacity.
+            $available    = $withinMinStay && $availability >= 1 && $guestsCount <= $capacity;
+            $totalForStay = $unitPrice;
+            if (!$withinMinStay)              $reason = 'min_stay';
+            elseif ($availability < 1)        $reason = 'sold_out';
+            elseif ($guestsCount > $capacity) $reason = 'over_capacity';
+            else                              $reason = 'ok';
+        }
+        $pricePerNight = $nights > 0 ? $totalForStay / $nights : $totalForStay;
     } else {
         // Sin mapeo o BananaDesk no devolvió este tipo. Calcular precio de
         // fallback: primero usar price_ars de rooms.json si está cargado,
@@ -114,6 +136,7 @@ foreach ($rooms as $r) {
         $availability  = 0;
         $minStay       = 0;
         $available     = false;
+        $reason        = 'no_data';
     }
 
     $out[] = [
@@ -123,12 +146,15 @@ foreach ($rooms as $r) {
         'description'         => $r['description'] ?? '',
         'image'               => $r['image'] ?? '',
         'image_list'          => $r['image_list'] ?? [],
-        'capacity'            => (int)($r['capacity'] ?? 0),
+        'capacity'            => $capacity,
+        'booking_unit'        => $bookingUnit,
         'amenities'           => $r['amenities'] ?? [],
         'price_usd_from'      => isset($r['price']) ? preg_replace('/[^0-9.]/', '', $r['price']) : '',
         'room_type_id'        => $typeId,
         'availability_count'  => $availability,
         'available'           => $available,
+        'reason'              => $reason,
+        'guests_count'        => $guestsCount,
         'price_per_night_ars' => $pricePerNight,
         'total_ars'           => $pricePerNight * $nights,
         'currency'            => $bd['currency'] ?? 'ARS',

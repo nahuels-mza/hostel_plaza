@@ -63,6 +63,7 @@ function hp_mail_extranjero(array $b, string $roomName, float $totalUSD, int $ni
         <h3 style='color:#1c5457;margin:28px 0 10px;font-size:17px;'>Reservation Details</h3>
         <table style='width:100%;border-collapse:collapse;margin-bottom:24px;'>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>Room</td>             <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$roomName}</td></tr>
+            <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Guests</td>                     <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['guestsCount']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check In</td>                   <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['checkIn']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check Out</td>                  <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['checkOut']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Estimated Arrival</td>          <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>" . ($b['eta'] ?: '—') . "</td></tr>
@@ -90,6 +91,7 @@ function hp_mail_extranjero(array $b, string $roomName, float $totalUSD, int $ni
         . $paymentAltText
         . "RESERVATION\n"
         . "Room:      {$roomName}\n"
+        . "Guests:    {$b['guestsCount']}\n"
         . "Check In:  {$b['checkIn']}\n"
         . "Check Out: {$b['checkOut']}\n"
         . "Total:     {$fTotal}\n\n"

@@ -50,6 +50,7 @@ function hp_mail_argentina(array $b, string $roomName, float $totalARS, int $nig
         <h3 style='color:#1c5457;margin:28px 0 10px;font-size:17px;'>Detalles de la Reserva</h3>
         <table style='width:100%;border-collapse:collapse;margin-bottom:24px;'>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>Habitación</td>    <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$roomName}</td></tr>
+            <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Huéspedes</td>               <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['guestsCount']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check In</td>                <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['checkIn']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Check Out</td>               <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['checkOut']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>Llegada estimada</td>        <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>" . ($b['eta'] ?: '—') . "</td></tr>
@@ -94,6 +95,7 @@ function hp_mail_argentina(array $b, string $roomName, float $totalARS, int $nig
         . "Por Favor, envianos el comprobante por WhatsApp: +54 9 2615 37-2767\n\n"
         . "DATOS DE LA RESERVA\n"
         . "Habitación: {$roomName}\n"
+        . "Huéspedes:  {$b['guestsCount']}\n"
         . "Check In:   {$b['checkIn']}\n"
         . "Check Out:  {$b['checkOut']}\n"
         . "Total:      {$fTotal}\n\n"

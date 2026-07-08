@@ -16,12 +16,15 @@
  */
 
 /**
- * @param string $checkIn    YYYY-MM-DD
- * @param string $checkOut   YYYY-MM-DD
- * @param int    $roomTypeId ID de room type en BananaDesk (de room_mapping.json)
+ * @param string $checkIn     YYYY-MM-DD
+ * @param string $checkOut    YYYY-MM-DD
+ * @param int    $roomTypeId  ID de room type en BananaDesk (de room_mapping.json)
  * @param string $guestName
  * @param string $guestEmail
  * @param string $guestPhone
+ * @param int    $guestsCount Cantidad de huéspedes de la reserva (default 1)
+ * @param string $bookingUnit 'room' (privada, se vende entera) o 'bed' (dormitorio
+ *                             compartido, se vende por cama) — viene de rooms.json
  * @return array{ok: bool, response: array|null, error: string|null}
  */
 function hp_bananadesk_reserve(
@@ -30,7 +33,9 @@ function hp_bananadesk_reserve(
     int    $roomTypeId,
     string $guestName,
     string $guestEmail,
-    string $guestPhone
+    string $guestPhone,
+    int    $guestsCount = 1,
+    string $bookingUnit = 'room'
 ): array {
     $cfg   = require __DIR__ . '/whatsapp/config.php';
     $bdCfg = $cfg['bananadesk'];
@@ -79,21 +84,21 @@ function hp_bananadesk_reserve(
         return ['ok' => false, 'response' => null, 'error' => "Room type {$roomTypeId} not found for {$checkIn}–{$checkOut}"];
     }
 
-    if ((int)($room['availability'] ?? 0) < 1) {
-        return ['ok' => false, 'response' => null, 'error' => "Room type {$roomTypeId} has no availability for {$checkIn}–{$checkOut}"];
+    // Determinar cantidad a reservar: 1 habitación entera para privadas, o la
+    // cantidad de camas pedidas para dormitorios compartidos.
+    $quantity = ($bookingUnit === 'bed') ? max(1, $guestsCount) : 1;
+
+    if ((int)($room['availability'] ?? 0) < $quantity) {
+        $available = (int)($room['availability'] ?? 0);
+        return ['ok' => false, 'response' => null, 'error' => "Room type {$roomTypeId} has only {$available} of {$quantity} requested " . ($bookingUnit === 'bed' ? 'beds' : 'rooms') . " for {$checkIn}–{$checkOut}"];
     }
 
     // --- 2. Armar payload ---
-    $totalPrice = (float)($room['price'] ?? 0); // BananaDesk devuelve el total del stay
+    $unitPrice  = (float)($room['price'] ?? 0); // BananaDesk devuelve el total del stay para UNA unidad
+    $totalPrice = $unitPrice * $quantity;
 
-    // Determinar sales_unit: "beds" para dormitorios compartidos, "rooms" para privados
     $roomName  = $room['name'] ?? '';
-    $salesUnit = (stripos($roomName, 'privad') !== false
-               || stripos($roomName, 'private') !== false
-               || stripos($roomName, 'doble') !== false
-               || stripos($roomName, 'matrimonial') !== false)
-        ? 'rooms'
-        : 'beds';
+    $salesUnit = ($bookingUnit === 'bed') ? 'beds' : 'rooms';
 
     $payload = [
         'data' => [
@@ -107,7 +112,7 @@ function hp_bananadesk_reserve(
                 'taxes'                   => $room['taxes'] ?? [],
                 'photos'                  => $room['photos'] ?? [],
                 'availability'            => (int)($room['availability'] ?? 1),
-                'price'                   => number_format($totalPrice, 2, '.', ''),
+                'price'                   => number_format($unitPrice, 2, '.', ''),
                 'currency'                => $room['currency'] ?? 'ARS',
                 'stay_length_restriction' => $room['stay_length_restriction'] ?? [
                     'has_restriction'    => false,
@@ -115,7 +120,7 @@ function hp_bananadesk_reserve(
                     'stay_length'        => 0,
                 ],
                 'sales_unit'  => $salesUnit,
-                'reservation' => 1,
+                'reservation' => $quantity,
             ]],
             'taxes'     => [['amount' => 0, 'percentage' => 0, '$$hashKey' => 'object:190']],
             'arrival'   => $checkIn,

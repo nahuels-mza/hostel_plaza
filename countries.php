@@ -9,7 +9,7 @@
  */
 return [
     // América del Sur
-    ['name' => 'Argentina',     'code' => '+54',  'hint' => '261 5990326'],
+    ['name' => 'Argentina',     'code' => '+54',  'hint' => '11 1234567'],
     ['name' => 'Bolivia',       'code' => '+591', 'hint' => '7 123 4567'],
     ['name' => 'Brazil',        'code' => '+55',  'hint' => '11 99999-9999'],
     ['name' => 'Chile',         'code' => '+56',  'hint' => '9 1234 5678'],
