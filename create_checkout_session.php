@@ -62,9 +62,10 @@ if ($amountCents < 50) { // mínimo de Stripe (~USD 0.50)
 $origin = (($_SERVER['HTTPS'] ?? '') !== 'off' && !empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 
 $result = hp_stripe_request('post', 'checkout/sessions', [
-    'ui_mode'        => 'embedded_page',
-    'mode'           => 'payment',
-    'customer_email' => $booking['email'] ?? null,
+    'ui_mode'              => 'embedded_page',
+    'mode'                 => 'payment',
+    'payment_method_types' => ['card'],
+    'customer_email'       => $booking['email'] ?? null,
     'line_items'     => [[
         'quantity'   => 1,
         'price_data' => [
