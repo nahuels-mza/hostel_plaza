@@ -89,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         require_once $pathPHPMailer;
         require_once $pathSMTP;
 
+        $mailLogFile  = __DIR__ . '/logs/mail.log';
         $smtpDebugLog = '';
         try {
             $mail = new PHPMailer(true);
@@ -145,18 +146,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
             $mail->AltBody = $mailAlt;
 
             $mail->send();
-            file_put_contents(
-                __DIR__ . '/mail_debug.log',
-                date('c') . " OK booking={$newReservationId} to={$newBooking['email']}\n" . $smtpDebugLog . "\n",
-                FILE_APPEND
-            );
+            $logEntry  = "[" . date('Y-m-d H:i:s') . "] OK\n";
+            $logEntry .= "Booking: {$newReservationId}\n";
+            $logEntry .= "To:      {$newBooking['email']}\n";
+            $logEntry .= str_repeat('-', 60) . "\n";
+            $logEntry .= $smtpDebugLog ?: "(no debug output)\n";
+            $logEntry .= str_repeat('=', 60) . "\n\n";
+            file_put_contents($mailLogFile, $logEntry, FILE_APPEND);
         } catch (\Exception $e) {
             $mailError = $e->getMessage() . ($mail->ErrorInfo ? " | {$mail->ErrorInfo}" : '');
-            file_put_contents(
-                __DIR__ . '/mail_debug.log',
-                date('c') . " ERROR booking={$newReservationId} to={$newBooking['email']}\n{$mailError}\n{$smtpDebugLog}\n",
-                FILE_APPEND
-            );
+            $logEntry  = "[" . date('Y-m-d H:i:s') . "] ERROR\n";
+            $logEntry .= "Booking: {$newReservationId}\n";
+            $logEntry .= "To:      {$newBooking['email']}\n";
+            $logEntry .= "Error:   {$mailError}\n";
+            $logEntry .= str_repeat('-', 60) . "\n";
+            $logEntry .= $smtpDebugLog ?: "(no debug output)\n";
+            $logEntry .= str_repeat('=', 60) . "\n\n";
+            file_put_contents($mailLogFile, $logEntry, FILE_APPEND);
             error_log("[Hostel Plaza] Mail error {$newReservationId}: {$mailError}");
         }
     } else {
@@ -192,9 +198,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         unset($b);
         file_put_contents($bookingsFile, json_encode($bookingsNow, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-        $bdLog = date('c') . " BANANADESK booking={$newReservationId} room_type={$bdRoomTypeId} unit={$bdBookingUnit} quantity={$newBooking['guestsCount']} ok=" . ($bdResult['ok'] ? '1' : '0');
-        if (!$bdResult['ok']) $bdLog .= " | " . ($bdResult['error'] ?? 'unknown error');
-        file_put_contents(__DIR__ . '/mail_debug.log', $bdLog . "\n", FILE_APPEND);
+        $bdStatus = $bdResult['ok'] ? 'OK' : 'ERROR';
+        $bdLog    = "[" . date('Y-m-d H:i:s') . "] BANANADESK {$bdStatus}\n";
+        $bdLog   .= "Booking:   {$newReservationId}\n";
+        $bdLog   .= "RoomType:  {$bdRoomTypeId} | Unit: {$bdBookingUnit} | Qty: {$newBooking['guestsCount']}\n";
+        if (!$bdResult['ok']) $bdLog .= "Error:     " . ($bdResult['error'] ?? 'unknown error') . "\n";
+        $bdLog   .= str_repeat('=', 60) . "\n\n";
+        file_put_contents(__DIR__ . '/logs/mail.log', $bdLog, FILE_APPEND);
     }
 
     $bookingSuccess = true;

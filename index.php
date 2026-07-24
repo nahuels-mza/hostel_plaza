@@ -67,6 +67,13 @@ if (file_exists($plazaEventsFile)) {
     $plazaEvents = json_decode(file_get_contents($plazaEventsFile), true) ?: [];
 }
 
+// --- ABOUT SECTION PHOTO CAROUSEL (hotlinked from Google Drive) ---
+require_once __DIR__ . '/_about_gallery.php';
+$aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
+    'src' => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
+    'alt' => 'Hostel Plaza Courtyard',
+]]);
+
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth overflow-x-hidden">
@@ -218,9 +225,21 @@ if (file_exists($plazaEventsFile)) {
     <section id="about" class="py-16 px-6 max-w-7xl mx-auto w-full">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div class="relative animate-float">
-                <div class="rounded-3xl overflow-hidden shadow-2xl aspect-square">
-                    <img src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=" alt="Hostel Plaza Courtyard" class="w-full h-full object-cover" />
+                <div id="about-carousel" class="relative rounded-3xl overflow-hidden shadow-2xl aspect-square">
+                    <?php foreach ($aboutGallery as $i => $photo): ?>
+                    <img src="<?php echo htmlspecialchars($photo['src']); ?>" alt="<?php echo htmlspecialchars($photo['alt']); ?>"
+                         class="about-slide absolute inset-0 w-full h-full object-cover transition-opacity duration-700 <?php echo $i === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'; ?>"
+                         loading="<?php echo $i === 0 ? 'eager' : 'lazy'; ?>" />
+                    <?php endforeach; ?>
+
+                    <?php if (count($aboutGallery) > 1): ?>
+                    <button type="button" onclick="scrollAbout(-1)" aria-label="Previous photo" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-slate-700 hover:bg-teal hover:text-white transition-all shadow-md z-10"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <button type="button" onclick="scrollAbout(1)" aria-label="Next photo" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-slate-700 hover:bg-teal hover:text-white transition-all shadow-md z-10"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    <?php endif; ?>
                 </div>
+                <?php if (count($aboutGallery) > 1): ?>
+                <div id="about-dots" class="flex justify-center items-center gap-2 mt-4"></div>
+                <?php endif; ?>
             </div>
             <div class="space-y-8">
                 <span class="text-teal font-bold tracking-widest uppercase text-sm">Who We Are</span>
@@ -626,6 +645,44 @@ if (file_exists($plazaEventsFile)) {
             const scrollStep = firstCard ? firstCard.offsetWidth + 24 : roomsCarousel.clientWidth / 2;
             roomsCtrl.scrollBy(direction * scrollStep);
         }
+
+        // --- ABOUT PHOTO CAROUSEL (single-image crossfade) ---
+        (function () {
+            const carousel = document.getElementById('about-carousel');
+            const dotsContainer = document.getElementById('about-dots');
+            if (!carousel) return;
+
+            const slides = Array.from(carousel.querySelectorAll('.about-slide'));
+            if (slides.length <= 1) return;
+
+            let current = 0;
+
+            slides.forEach((_, i) => {
+                const dot = document.createElement('span');
+                dot.style.cssText = 'display:block;height:8px;border-radius:9999px;transition:all .3s;cursor:pointer;';
+                dot.style.width = i === 0 ? '24px' : '8px';
+                dot.style.backgroundColor = i === 0 ? '#1c5457' : '#cbd5e1';
+                dot.addEventListener('click', () => show(i));
+                dotsContainer.appendChild(dot);
+            });
+            const dots = Array.from(dotsContainer.children);
+
+            function show(index) {
+                slides[current].classList.remove('opacity-100');
+                slides[current].classList.add('opacity-0', 'pointer-events-none');
+                dots[current].style.width = '8px';
+                dots[current].style.backgroundColor = '#cbd5e1';
+
+                current = ((index % slides.length) + slides.length) % slides.length;
+
+                slides[current].classList.remove('opacity-0', 'pointer-events-none');
+                slides[current].classList.add('opacity-100');
+                dots[current].style.width = '24px';
+                dots[current].style.backgroundColor = '#1c5457';
+            }
+
+            window.scrollAbout = function (direction) { show(current + direction); };
+        })();
 
         // Review Randomizer Script
         document.addEventListener("DOMContentLoaded", function() {

@@ -15,6 +15,15 @@
 define('HP_PAYMENT_LINK', '');   // e.g. 'https://pay.example.com/hostelplaza'
 // ────────────────────────────────────────────────────────────────────────────
 
+// ── US bank account (international wire transfer) ───────────────────────────
+define('HP_US_ACCOUNT_HOLDER', 'Nahuel Eduardo Calderon');
+define('HP_US_ACCOUNT_NUMBER', '8332195480');
+define('HP_US_ACCOUNT_TYPE',   'Checking');
+define('HP_US_ROUTING_NUMBER', '026073150');
+define('HP_US_BANK_NAME',      'Community Federal Savings Bank');
+define('HP_US_BANK_ADDRESS',   '5 Penn Plaza, 14th Floor, New York, NY 10001, US');
+// ────────────────────────────────────────────────────────────────────────────
+
 /**
  * @param array  $b        Booking array
  * @param string $roomName Booked room name
@@ -37,14 +46,31 @@ function hp_mail_extranjero(array $b, string $roomName, float $totalUSD, int $ni
                </a>
                <p style='font-size:12px;color:#94a3b8;margin-top:8px;'>Secure payment · {$fNightly} (1 night deposit)</p>
            </div>"
-        : "<div style='background:#fff7ed;border:1.5px solid #f59e0b;border-radius:10px;padding:18px;margin:24px 0;'>
-               <p style='margin:0;font-size:15px;color:#92400e;'><strong>💳 Payment link coming soon.</strong><br>
-               Our team will contact you via WhatsApp to complete the payment of <strong>{$fNightly}</strong> (1 night deposit).</p>
+        : "<div style='background:#f0faf9;border:1.5px solid #1c5457;border-radius:10px;padding:22px;margin:24px 0;'>
+               <h3 style='color:#1c5457;margin:0 0 14px;font-size:17px;'>🏦 Bank Transfer Details</h3>
+               <table style='width:100%;border-collapse:collapse;'>
+                   <tr><td style='padding:6px 0;color:#64748b;width:45%;'>Account Holder Name</td> <td style='padding:6px 0;font-weight:bold;text-align:right;'>" . HP_US_ACCOUNT_HOLDER . "</td></tr>
+                   <tr><td style='padding:6px 0;color:#64748b;'>Account Number</td>                 <td style='padding:6px 0;font-weight:bold;font-family:monospace;text-align:right;'>" . HP_US_ACCOUNT_NUMBER . "</td></tr>
+                   <tr><td style='padding:6px 0;color:#64748b;'>Account Type</td>                   <td style='padding:6px 0;font-weight:bold;text-align:right;'>" . HP_US_ACCOUNT_TYPE . "</td></tr>
+                   <tr><td style='padding:6px 0;color:#64748b;'>ACH Routing Number</td>              <td style='padding:6px 0;font-weight:bold;font-family:monospace;text-align:right;'>" . HP_US_ROUTING_NUMBER . "</td></tr>
+                   <tr><td style='padding:6px 0;color:#64748b;'>Bank Name</td>                      <td style='padding:6px 0;font-weight:bold;text-align:right;'>" . HP_US_BANK_NAME . "</td></tr>
+                   <tr><td style='padding:6px 0;color:#64748b;vertical-align:top;'>Bank Address</td> <td style='padding:6px 0;font-weight:bold;text-align:right;'>" . HP_US_BANK_ADDRESS . "</td></tr>
+                   <tr><td style='padding:10px 0 0;color:#64748b;font-weight:bold;'>Minimum amount</td><td style='padding:10px 0 0;font-weight:bold;color:#1c5457;font-size:16px;text-align:right;'>{$fNightly} <span style='font-size:12px;color:#94a3b8;'>(1 night)</span></td></tr>
+               </table>
+               <p style='margin:14px 0 0;font-size:13px;color:#64748b;'>Once you've sent the transfer, please share the confirmation with us via WhatsApp.</p>
            </div>";
 
     $paymentAltText = HP_PAYMENT_LINK
         ? "To confirm your booking, please complete a payment of {$fNightly} (1 night deposit):\n" . HP_PAYMENT_LINK . "\n\n"
-        : "Our team will contact you via WhatsApp to arrange the payment of {$fNightly} (1 night deposit).\n\n";
+        : "BANK TRANSFER DETAILS\n"
+            . "Account Holder Name: " . HP_US_ACCOUNT_HOLDER . "\n"
+            . "Account Number:      " . HP_US_ACCOUNT_NUMBER . "\n"
+            . "Account Type:        " . HP_US_ACCOUNT_TYPE . "\n"
+            . "ACH Routing Number:  " . HP_US_ROUTING_NUMBER . "\n"
+            . "Bank Name:           " . HP_US_BANK_NAME . "\n"
+            . "Bank Address:        " . HP_US_BANK_ADDRESS . "\n"
+            . "Minimum amount:      {$fNightly} (1 night deposit)\n\n"
+            . "Once you've sent the transfer, please share the confirmation with us via WhatsApp.\n\n";
 
     $subject = 'PreBooking Received — Hostel Plaza Mendoza';
 

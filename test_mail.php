@@ -67,6 +67,8 @@ if ($fp2) {
 
 // 4. PHPMailer full send test
 echo "\n--- PHPMailer SMTP Auth Test ---\n";
+$testStatus = 'ERROR';
+$testError  = '';
 $mail = new PHPMailer(true);
 $debugLog = '';
 $mail->SMTPDebug  = 3;
@@ -100,13 +102,30 @@ try {
     $mail->send();
     echo "✓ Mail enviado correctamente!\n";
     echo "  Revisá la bandeja de confirmation@hostelplaza.com.ar\n";
+    $testStatus = 'OK';
+    $testError  = '';
 } catch (\Exception $e) {
+    $testStatus = 'ERROR';
+    $testError  = $e->getMessage() . ' | ' . $mail->ErrorInfo;
     echo "✗ FALLÓ: " . $e->getMessage() . "\n";
     echo "  ErrorInfo: " . $mail->ErrorInfo . "\n";
 }
 
 echo "\n--- SMTP Debug Log ---\n";
 echo $debugLog ?: "(vacío)\n";
+
+// Write result to logs/mail.log
+$logFile  = __DIR__ . '/logs/mail.log';
+$logEntry = "[" . date('Y-m-d H:i:s') . "] TEST_MAIL {$testStatus}\n";
+if ($testError) $logEntry .= "Error: {$testError}\n";
+$logEntry .= str_repeat('-', 60) . "\n";
+$logEntry .= $debugLog ?: "(no debug output)\n";
+$logEntry .= str_repeat('=', 60) . "\n\n";
+if (@file_put_contents($logFile, $logEntry, FILE_APPEND) !== false) {
+    echo "\n✓ Resultado guardado en logs/mail.log\n";
+} else {
+    echo "\n⚠ No se pudo escribir en logs/mail.log (verificar permisos)\n";
+}
 
 echo "\n=== Fin del diagnóstico ===\n";
 echo "</pre>";

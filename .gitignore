@@ -3,6 +3,7 @@
 # Secrets — nunca subir al repo
 secrets.php
 mail_debug.log
+logs/*.log
 test_mail.php
 # whatsapp/diag.php
 
