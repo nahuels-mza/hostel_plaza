@@ -79,7 +79,11 @@ if ($sessionId !== '' && $stripeSecretKey) {
                 fetchClientSecret: async () => {
                     const res  = await fetch('/create_checkout_session.php?booking=' + encodeURIComponent(bookingId));
                     const data = await res.json();
-                    if (data.error) throw new Error(data.error);
+                    if (data.error) {
+                        const err = new Error(data.error);
+                        err.fallbackSent = data.fallback_email_sent || false;
+                        throw err;
+                    }
                     return data.clientSecret;
                 },
             });
@@ -87,8 +91,13 @@ if ($sessionId !== '' && $stripeSecretKey) {
             document.getElementById('checkout').innerHTML = '';
             checkout.mount('#checkout');
         })().catch((err) => {
-            document.getElementById('checkout').innerHTML =
-                '<p class="text-center text-red-600">' + err.message + '</p>';
+            const msg = err.fallbackSent
+                ? `<div class="text-center">
+                     <p class="text-amber-600 font-bold mb-2">Online payment is temporarily unavailable.</p>
+                     <p class="text-slate-600 text-sm">We've sent you an email with bank transfer instructions so you can still confirm your booking.</p>
+                   </div>`
+                : `<p class="text-center text-red-600">${err.message}</p>`;
+            document.getElementById('checkout').innerHTML = msg;
         });
         </script>
     <?php endif; ?>

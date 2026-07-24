@@ -104,11 +104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         if (!$mailResult['ok']) $mailError = $mailResult['error'];
     }
 
-    // --- Auto-crear reserva en BananaDesk ---
+    // --- Auto-crear reserva en BananaDesk (solo Argentinos) ---
+    // Extranjeros: se crea después de que Stripe confirme el pago (stripe_webhook.php)
+    // o cuando Stripe falla (create_checkout_session.php).
     require_once __DIR__ . '/bananadesk_reserve.php';
     $bdRoomTypeId  = (int)($roomMap[$newBooking['roomId']] ?? 0);
     $bdBookingUnit = $bookedRoomMeta['bookingUnit'] ?? 'room';
-    if ($bdRoomTypeId > 0) {
+    if ($isArgentino && $bdRoomTypeId > 0) {
         $bdResult = hp_bananadesk_reserve(
             $newBooking['checkIn'],
             $newBooking['checkOut'],
