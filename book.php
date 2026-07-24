@@ -8,9 +8,6 @@
 // step success → confirmación post-POST
 // =============================================================================
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
 // --- 0. Config + rooms ---
 $config         = is_file('config.json') ? json_decode(file_get_contents('config.json'), true) : [];
 $exchangeRateARS = $config['exchangeRateARS'] ?? 1370; // fallback para total en email si BananaDesk no responde
@@ -79,94 +76,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     array_unshift($bookings, $newBooking);
     file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT));
 
-    // Send confirmation email (Ferozo SMTP)
-    $pathException = __DIR__ . '/PHPMailer-master/src/Exception.php';
-    $pathPHPMailer = __DIR__ . '/PHPMailer-master/src/PHPMailer.php';
-    $pathSMTP      = __DIR__ . '/PHPMailer-master/src/SMTP.php';
+    // Room name for the email (ya resuelto arriba junto con $bookedRoomMeta)
+    $bookedRoomName = $bookedRoomMeta['name'] ?? '';
 
-    if (file_exists($pathException) && file_exists($pathPHPMailer) && file_exists($pathSMTP)) {
-        require_once $pathException;
-        require_once $pathPHPMailer;
-        require_once $pathSMTP;
+    // Calcular noches para el template de mail
+    $mailNights = max(1, (int)round(
+        (strtotime($newBooking['checkOut']) - strtotime($newBooking['checkIn'])) / 86400
+    ));
 
-        $mailLogFile  = __DIR__ . '/logs/mail.log';
-        $smtpDebugLog = '';
-        try {
-            $mail = new PHPMailer(true);
-            $mail->SMTPDebug  = 3;
-            $mail->Debugoutput = function($str, $level) use (&$smtpDebugLog) {
-                $smtpDebugLog .= "[{$level}] " . trim($str) . "\n";
-            };
-            $mail->isSMTP();
-            $mail->Host       = 'c2721166.ferozo.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'confirmation@hostelplaza.com.ar';
-            $mail->Password   = 'ThHQ*RW5hG';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = 465;
-            $mail->Timeout    = 15;
-            $mail->SMTPOptions = [
-                'ssl' => [
-                    'verify_peer'       => false,
-                    'verify_peer_name'  => false,
-                    'allow_self_signed' => true,
-                ],
-            ];
+    // Argentinos: se manda la pre-reserva con datos de transferencia, como siempre.
+    // Extranjeros: NO se manda mail acá — se los redirige al checkout de Stripe
+    // más abajo, y el mail de confirmación (sin datos de pago) lo dispara
+    // stripe_webhook.php una vez que el pago se acredita.
+    $isArgentino = strtolower(trim($newBooking['nationality'])) === 'argentina';
 
-            $mail->setFrom('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
-            $mail->addAddress($newBooking['email'], $newBooking['guestName']);
-            $mail->addCC('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
-            $mail->addBCC('hostelplazamza@gmail.com');
-            $mail->addReplyTo('info@hostelplaza.com.ar', 'Hostel Plaza Info');
-
-            // Room name for the email (ya resuelto arriba junto con $bookedRoomMeta)
-            $bookedRoomName = $bookedRoomMeta['name'] ?? '';
-
-            // Calcular noches para el template de mail
-            $mailNights = max(1, (int)round(
-                (strtotime($newBooking['checkOut']) - strtotime($newBooking['checkIn'])) / 86400
-            ));
-
-            // Elegir template según nacionalidad
-            $isArgentino = strtolower(trim($newBooking['nationality'])) === 'argentina';
-            $mail->isHTML(true);
-            if ($isArgentino) {
-                require_once __DIR__ . '/mail_argentina.php';
-                [$mailSubject, $mailBody, $mailAlt] = hp_mail_argentina(
-                    $newBooking, $bookedRoomName, $totalPriceARS, $mailNights
-                );
-            } else {
-                require_once __DIR__ . '/mail_extranjero.php';
-                [$mailSubject, $mailBody, $mailAlt] = hp_mail_extranjero(
-                    $newBooking, $bookedRoomName, (float)$newBooking['totalPrice'], $mailNights
-                );
-            }
-            $mail->Subject = $mailSubject;
-            $mail->Body    = $mailBody;
-            $mail->AltBody = $mailAlt;
-
-            $mail->send();
-            $logEntry  = "[" . date('Y-m-d H:i:s') . "] OK\n";
-            $logEntry .= "Booking: {$newReservationId}\n";
-            $logEntry .= "To:      {$newBooking['email']}\n";
-            $logEntry .= str_repeat('-', 60) . "\n";
-            $logEntry .= $smtpDebugLog ?: "(no debug output)\n";
-            $logEntry .= str_repeat('=', 60) . "\n\n";
-            file_put_contents($mailLogFile, $logEntry, FILE_APPEND);
-        } catch (\Exception $e) {
-            $mailError = $e->getMessage() . ($mail->ErrorInfo ? " | {$mail->ErrorInfo}" : '');
-            $logEntry  = "[" . date('Y-m-d H:i:s') . "] ERROR\n";
-            $logEntry .= "Booking: {$newReservationId}\n";
-            $logEntry .= "To:      {$newBooking['email']}\n";
-            $logEntry .= "Error:   {$mailError}\n";
-            $logEntry .= str_repeat('-', 60) . "\n";
-            $logEntry .= $smtpDebugLog ?: "(no debug output)\n";
-            $logEntry .= str_repeat('=', 60) . "\n\n";
-            file_put_contents($mailLogFile, $logEntry, FILE_APPEND);
-            error_log("[Hostel Plaza] Mail error {$newReservationId}: {$mailError}");
-        }
-    } else {
-        $mailError = "The 'PHPMailer' folder is missing!";
+    if ($isArgentino) {
+        require_once __DIR__ . '/send_mail.php';
+        require_once __DIR__ . '/mail_argentina.php';
+        [$mailSubject, $mailBody, $mailAlt] = hp_mail_argentina(
+            $newBooking, $bookedRoomName, $totalPriceARS, $mailNights
+        );
+        $mailResult = hp_send_mail(
+            $newBooking['email'], $newBooking['guestName'],
+            $mailSubject, $mailBody, $mailAlt,
+            "booking={$newReservationId}"
+        );
+        if (!$mailResult['ok']) $mailError = $mailResult['error'];
     }
 
     // --- Auto-crear reserva en BananaDesk ---
@@ -205,6 +140,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         if (!$bdResult['ok']) $bdLog .= "Error:     " . ($bdResult['error'] ?? 'unknown error') . "\n";
         $bdLog   .= str_repeat('=', 60) . "\n\n";
         file_put_contents(__DIR__ . '/logs/mail.log', $bdLog, FILE_APPEND);
+    }
+
+    // Extranjeros: mandar a completar el depósito con Stripe antes de confirmar.
+    // El mail de confirmación se envía desde stripe_webhook.php al acreditarse el pago.
+    if (!$isArgentino) {
+        header('Location: /pay.php?booking=' . urlencode($newReservationId));
+        exit;
     }
 
     $bookingSuccess = true;

@@ -59,7 +59,7 @@ if ($sessionId !== '' && $stripeSecretKey) {
     <?php elseif ($paymentStatus === 'complete'): ?>
         <div class="text-center">
             <p class="text-emerald-600 text-lg font-bold mb-2">✓ Payment received</p>
-            <p class="text-slate-600">Thank you! Your deposit has been confirmed. See you soon at Hostel Plaza.</p>
+            <p class="text-slate-600">Thank you! Your deposit has been confirmed. A confirmation email is on its way. See you soon at Hostel Plaza!</p>
         </div>
 
     <?php elseif (!$stripePublishableKey || !$stripeSecretKey): ?>
