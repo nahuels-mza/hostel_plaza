@@ -12,11 +12,11 @@ $seo = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php include '_seo.php'; ?>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -127,12 +127,13 @@ $seo = [
                         </div>
                         <div class="faq-answer px-8 border-t border-slate-100 text-slate-600 leading-relaxed pt-0 pb-0 text-base">
                             Payment can be made in Argentine pesos via cash.
+                            Debit and Credit cards are also accepted
                         </div>
                     </div>
 
-                        
 
-                    
+
+
                 </div>
             </div>
 
@@ -153,7 +154,7 @@ $seo = [
                             <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-100"><i data-lucide="chevron-down" class="w-5 h-5 text-teal faq-icon transition-transform duration-300"></i></div>
                         </div>
                         <div class="faq-answer px-8 border-t border-slate-100 text-slate-600 leading-relaxed pt-0 pb-0 text-base">
-                            Yes, we offer a highly-rated complimentary breakfast for all our guests to start the day right.
+                            Yes, we offer a complimentary breakfast for all our guests to start the day right.
                         </div>
                     </div>
 
@@ -235,7 +236,7 @@ $seo = [
             if (!item) return;
 
             const allItems = document.querySelectorAll('.faq-item');
-            
+
             if (item.classList.contains('active')) {
                 item.classList.remove('active');
                 return;
