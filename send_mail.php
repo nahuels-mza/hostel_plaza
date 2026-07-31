@@ -28,6 +28,7 @@ function hp_send_mail(string $toEmail, string $toName, string $subject, string $
         $mail->Debugoutput = function ($str, $level) use (&$smtpDebugLog) {
             $smtpDebugLog .= "[{$level}] " . trim($str) . "\n";
         };
+        $mail->CharSet    = \PHPMailer\PHPMailer\PHPMailer::CHARSET_UTF8;
         $mail->isSMTP();
         $mail->Host       = 'c2721166.ferozo.com';
         $mail->SMTPAuth   = true;

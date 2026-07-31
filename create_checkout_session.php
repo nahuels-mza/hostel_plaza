@@ -113,6 +113,7 @@ if (!$result['ok']) {
 
         try {
             $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->CharSet = PHPMailer\PHPMailer\PHPMailer::CHARSET_UTF8;
             $mail->isSMTP();
             $mail->Host       = 'c2721166.ferozo.com';
             $mail->SMTPAuth   = true;
