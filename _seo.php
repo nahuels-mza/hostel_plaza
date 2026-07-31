@@ -27,6 +27,9 @@ $_h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 <link rel="apple-touch-icon" sizes="180x180"       href="/image.png">
 <meta name="robots" content="max-snippet:160, max-image-preview:large, max-video-preview:-1">
 
+<!-- Site verification -->
+<meta name="facebook-domain-verification" content="w6skewvhurx0cx89373n97sfm23y46" />
+
 <!-- Open Graph -->
 <meta property="og:type"        content="<?php echo $_h($_p); ?>">
 <meta property="og:site_name"   content="Hostel Plaza Mendoza">
