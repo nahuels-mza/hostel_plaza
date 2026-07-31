@@ -47,7 +47,14 @@ return [
         'breakfast'   => '07:30 - 10:00',
     ],
     'agent' => [
-        'history_turns'     => 8,
-        'office_hours_only' => false,
+        // Cantidad de pares user+assistant a mantener en memoria por número
+        'history_turns'          => 5,
+        // Horas de inactividad tras las cuales la conversación se resetea
+        // (evita arrastrar historial viejo de consultas ya cerradas)
+        'reset_after_hours'      => 6,
+        // Días tras los cuales una conversación inactiva se borra por completo
+        // (limpia conversations.json de datos viejos)
+        'purge_after_days'       => 30,
+        'office_hours_only'      => false,
     ],
 ];

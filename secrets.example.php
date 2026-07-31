@@ -17,9 +17,4 @@ return [
     'wa_phone_number_id' => '',  // ID numérico del número en Meta (no el número E.164)
     'wa_access_token'    => '',  // Token permanente del sistema
     'wa_verify_token'    => '',  // Token libre que pusiste en el webhook de Meta
-
-    // Stripe — usado por create_checkout_session.php, pay.php y stripe_webhook.php
-    'stripe_secret_key'      => '',  // sk_live_... (sk_test_... para pruebas) — Dashboard → Developers → API keys
-    'stripe_publishable_key' => '',  // pk_live_... (pk_test_... para pruebas)
-    'stripe_webhook_secret'  => '',  // whsec_... — Dashboard → Developers → Webhooks → tu endpoint
 ];

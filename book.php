@@ -84,33 +84,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         (strtotime($newBooking['checkOut']) - strtotime($newBooking['checkIn'])) / 86400
     ));
 
-    // Argentinos: se manda la pre-reserva con datos de transferencia, como siempre.
-    // Extranjeros: NO se manda mail acá — se los redirige al checkout de Stripe
-    // más abajo, y el mail de confirmación (sin datos de pago) lo dispara
-    // stripe_webhook.php una vez que el pago se acredita.
-    $isArgentino = strtolower(trim($newBooking['nationality'])) === 'argentina';
+    // Un solo mail para todos los huéspedes, sin datos de pago — se paga en el
+    // check-in. Idioma según el browser, no según nacionalidad.
+    require_once __DIR__ . '/send_mail.php';
+    require_once __DIR__ . '/mail_booking.php';
+    $guestLang = hp_detect_lang();
+    [$mailSubject, $mailBody, $mailAlt] = hp_mail_booking(
+        $newBooking, $bookedRoomName, $totalPriceARS, $mailNights, $guestLang
+    );
+    $mailResult = hp_send_mail(
+        $newBooking['email'], $newBooking['guestName'],
+        $mailSubject, $mailBody, $mailAlt,
+        "booking={$newReservationId}"
+    );
+    if (!$mailResult['ok']) $mailError = $mailResult['error'];
 
-    if ($isArgentino) {
-        require_once __DIR__ . '/send_mail.php';
-        require_once __DIR__ . '/mail_argentina.php';
-        [$mailSubject, $mailBody, $mailAlt] = hp_mail_argentina(
-            $newBooking, $bookedRoomName, $totalPriceARS, $mailNights
-        );
-        $mailResult = hp_send_mail(
-            $newBooking['email'], $newBooking['guestName'],
-            $mailSubject, $mailBody, $mailAlt,
-            "booking={$newReservationId}"
-        );
-        if (!$mailResult['ok']) $mailError = $mailResult['error'];
-    }
-
-    // --- Auto-crear reserva en BananaDesk (solo Argentinos) ---
-    // Extranjeros: se crea después de que Stripe confirme el pago (stripe_webhook.php)
-    // o cuando Stripe falla (create_checkout_session.php).
+    // --- Auto-crear reserva en BananaDesk ---
     require_once __DIR__ . '/bananadesk_reserve.php';
     $bdRoomTypeId  = (int)($roomMap[$newBooking['roomId']] ?? 0);
     $bdBookingUnit = $bookedRoomMeta['bookingUnit'] ?? 'room';
-    if ($isArgentino && $bdRoomTypeId > 0) {
+    if ($bdRoomTypeId > 0) {
         $bdResult = hp_bananadesk_reserve(
             $newBooking['checkIn'],
             $newBooking['checkOut'],
@@ -142,13 +135,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         if (!$bdResult['ok']) $bdLog .= "Error:     " . ($bdResult['error'] ?? 'unknown error') . "\n";
         $bdLog   .= str_repeat('=', 60) . "\n\n";
         file_put_contents(__DIR__ . '/logs/mail.log', $bdLog, FILE_APPEND);
-    }
-
-    // Extranjeros: mandar a completar el depósito con Stripe antes de confirmar.
-    // El mail de confirmación se envía desde stripe_webhook.php al acreditarse el pago.
-    if (!$isArgentino) {
-        header('Location: /pay.php?booking=' . urlencode($newReservationId));
-        exit;
     }
 
     $bookingSuccess = true;
@@ -209,7 +195,7 @@ function gv($key, $default = '') { return htmlspecialchars((string)($_GET[$key] 
 // --- SEO ---
 $seo = [
     'title'       => 'Book Your Stay | Hostel Plaza Mendoza',
-    'description' => 'Reserve your room at Hostel Plaza Mendoza. Fast and easy prebooking — no payment required upfront. Pay at check-in. Private rooms and shared dorms available.',
+    'description' => 'Reserve your room at Hostel Plaza Mendoza. Fast and easy booking — no payment required upfront. Pay at check-in. Private rooms and shared dorms available.',
     'url'         => 'https://hostelplaza.com.ar/book',
     'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
 ];
@@ -270,14 +256,14 @@ $seo = [
             <!-- ========== HEADER + STEP INDICATOR ========== -->
             <div class="text-center mb-10">
                 <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
-                    <?php if ($step === 'success'): ?>Your PreBooking is Set!
+                    <?php if ($step === 'success'): ?><?php echo ($guestLang ?? 'en') === 'es' ? '¡Gracias por tu Reserva!' : 'Thank You for Your Reservation!'; ?>
                     <?php elseif ($step === 1):   ?>When are you coming?
                     <?php elseif ($step === 2):   ?>Choose Your Room
                     <?php else:                   ?>Last Step — Your Details
                     <?php endif; ?>
                 </h1>
                 <p class="text-slate-500 text-lg">
-                    <?php if ($step === 'success'): ?>We've sent a confirmation email with your details.
+                    <?php if ($step === 'success'): ?><?php echo ($guestLang ?? 'en') === 'es' ? 'Te enviamos un mail con la confirmación y los detalles de tu estadía.' : "We've sent you a confirmation email with all your stay details."; ?>
                     <?php elseif ($step === 1):   ?>Pick your check-in &amp; check-out dates to see live availability.
                     <?php elseif ($step === 2):   ?>Real-time availability for <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?> · <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?>
                     <?php else:                   ?>You're booking <strong class="text-teal"><?php echo htmlspecialchars($selectedRoom['name'] ?? ''); ?></strong>.
@@ -560,27 +546,43 @@ $seo = [
             <?php endif; ?>
 
             <!-- ============================ SUCCESS ============================ -->
-            <?php if ($step === 'success'): ?>
+            <?php if ($step === 'success'):
+                $successCopy = ($guestLang ?? 'en') === 'es' ? [
+                    'title'    => '¡Gracias por tu reserva!',
+                    'subtitle' => 'Ya la tenemos registrada y nuestro equipo va a estar esperándote. Te mandamos una copia de los detalles por mail — el pago se hace directamente en el check-in.',
+                    'mailErr'  => 'No se pudo enviar el email de confirmación.',
+                    'mailOk'   => '✓ Email de confirmación enviado a',
+                    'backHome' => 'Volver al inicio',
+                    'chat'     => 'Escribinos',
+                ] : [
+                    'title'    => 'Thank You for Your Reservation!',
+                    'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
+                    'mailErr'  => 'No se pudo enviar el email de confirmación.',
+                    'mailOk'   => '✓ Confirmation email sent to',
+                    'backHome' => 'Back to home',
+                    'chat'     => 'Chat with us',
+                ];
+            ?>
                 <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-10 text-center">
                     <div class="w-16 h-16 mx-auto bg-teal-light text-teal rounded-full flex items-center justify-center mb-6">
                         <i data-lucide="check" class="w-8 h-8"></i>
                     </div>
-                    <h2 class="text-3xl font-bold text-slate-900 mb-3">PreBooking Submitted</h2>
-                    <p class="text-slate-500 mb-8">We're reviewing your request and will confirm it shortly. A copy of your details has been emailed to you.</p>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-3"><?php echo htmlspecialchars($successCopy['title']); ?></h2>
+                    <p class="text-slate-500 mb-8"><?php echo htmlspecialchars($successCopy['subtitle']); ?></p>
 
                     <?php if ($mailError): ?>
                         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-left">
-                            <p class="text-sm font-bold text-amber-800 mb-1">No se pudo enviar el email de confirmación.</p>
+                            <p class="text-sm font-bold text-amber-800 mb-1"><?php echo htmlspecialchars($successCopy['mailErr']); ?></p>
                             <p class="text-xs text-amber-700 font-mono break-all"><?php echo htmlspecialchars($mailError); ?></p>
                         </div>
                     <?php else: ?>
-                        <p class="text-xs text-green-600 mb-4">✓ Email de confirmación enviado a <?php echo htmlspecialchars($newBooking['email']); ?></p>
+                        <p class="text-xs text-green-600 mb-4"><?php echo htmlspecialchars($successCopy['mailOk']); ?> <?php echo htmlspecialchars($newBooking['email']); ?></p>
                     <?php endif; ?>
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                        <a href="/" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all">Back to home</a>
+                        <a href="/" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"><?php echo htmlspecialchars($successCopy['backHome']); ?></a>
                         <a href="https://api.whatsapp.com/send/?phone=5492615372767" target="_blank" class="px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all flex items-center justify-center gap-2">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i> Chat with us
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> <?php echo htmlspecialchars($successCopy['chat']); ?>
                         </a>
                     </div>
                 </div>

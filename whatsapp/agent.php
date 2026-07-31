@@ -68,16 +68,76 @@ function hp_load_conversations(): array
 function hp_save_conversations(array $all): void
 {
     $cfg = hp_cfg();
+    // Purge oportunista: 1 de cada ~20 guardadas hacemos limpieza de viejas
+    if (mt_rand(1, 20) === 1) {
+        $all = hp_maybe_purge_old_conversations($all);
+    }
     @file_put_contents(
         $cfg['paths']['conversations'],
         json_encode($all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
     );
 }
 
-function hp_get_history(string $phone): array
+/**
+ * Devuelve true si la conversación para $phone superó reset_after_hours de inactividad.
+ * Usado para arrancar limpio (borrar historial + slots).
+ */
+function hp_should_reset(string $phone): bool
+{
+    $cfg = hp_cfg();
+    $resetHrs = (int)($cfg['agent']['reset_after_hours'] ?? 6);
+    if ($resetHrs <= 0) return false;
+
+    $all = hp_load_conversations();
+    $lastSeen = $all[$phone]['last_seen'] ?? null;
+    if (!$lastSeen) return false;
+
+    return (time() - strtotime($lastSeen)) > ($resetHrs * 3600);
+}
+
+function hp_reset_conversation(string $phone): void
 {
     $all = hp_load_conversations();
-    return $all[$phone]['messages'] ?? [];
+    if (isset($all[$phone])) {
+        hp_log("Auto-reset de {$phone}: borro historial y slots (>reset_after_hours de inactividad)");
+        unset($all[$phone]);
+        hp_save_conversations($all);
+    }
+}
+
+function hp_get_history(string $phone): array
+{
+    $all  = hp_load_conversations();
+    $hist = $all[$phone]['messages'] ?? [];
+    // Sanitiza cualquier historial guardado que empiece con tool_result huérfano
+    // o termine con tool_use sin respuesta (esto puede pasar con datos previos al fix).
+    return hp_prune_history($hist, PHP_INT_MAX);
+}
+
+/**
+ * Elimina conversaciones cuyo último contacto fue hace más de purge_after_days.
+ * Se ejecuta oportunísticamente al guardar (1 de cada ~20 escrituras) para no
+ * penalizar cada request.
+ */
+function hp_maybe_purge_old_conversations(array $all): array
+{
+    $cfg = hp_cfg();
+    $days = (int)($cfg['agent']['purge_after_days'] ?? 0);
+    if ($days <= 0) return $all;
+
+    $cutoff = time() - ($days * 86400);
+    $before = count($all);
+    foreach ($all as $phone => $conv) {
+        $lastSeen = $conv['last_seen'] ?? null;
+        if ($lastSeen && strtotime($lastSeen) < $cutoff) {
+            unset($all[$phone]);
+        }
+    }
+    $after = count($all);
+    if ($before !== $after) {
+        hp_log("Purge: eliminadas " . ($before - $after) . " conversaciones inactivas hace más de {$days} días");
+    }
+    return $all;
 }
 
 function hp_get_slots(string $phone): array
@@ -101,17 +161,91 @@ function hp_append_history(string $phone, array $messages): void
     $hist = $all[$phone]['messages'] ?? [];
     foreach ($messages as $m) $hist[] = $m;
 
-    // Conservar solo los últimos N turnos
-    $max = ($cfg['agent']['history_turns'] ?? 8) * 2;
-    if (count($hist) > $max) {
-        $hist = array_slice($hist, -$max);
-    }
+    // Conservar solo los últimos N turnos, pero sin romper pares tool_use/tool_result.
+    // Claude rechaza cualquier request cuya historia arranque con un `tool_result`
+    // porque no encuentra el `tool_use` correspondiente en un mensaje previo.
+    $max  = ($cfg['agent']['history_turns'] ?? 8) * 2;
+    $hist = hp_prune_history($hist, $max);
 
     $all[$phone] = array_merge($all[$phone] ?? [], [
         'last_seen' => date('c'),
         'messages'  => $hist,
     ]);
     hp_save_conversations($all);
+}
+
+/**
+ * Poda el historial de conversación de forma "safe" para la API de Anthropic.
+ * Reglas:
+ *  1. Si el historial es <= $maxMessages, lo devuelve tal cual.
+ *  2. Si hay que cortar, corta al final y luego avanza descartando mensajes hasta
+ *     que el primero sea un `user` con contenido de texto plano (no `tool_result`).
+ *  3. Descarta también trailing `assistant tool_use` sin `tool_result` posterior
+ *     (evita el error inverso).
+ */
+function hp_prune_history(array $hist, int $maxMessages): array
+{
+    // 1. Corte por tamaño (si excede el máximo)
+    if (count($hist) > $maxMessages) {
+        $hist = array_slice($hist, -$maxMessages);
+    }
+
+    // 2. SIEMPRE avanzar hasta encontrar un user-text limpio como primer mensaje.
+    //    Esto arregla tanto los cortes en pares tool_use/tool_result como cualquier
+    //    historial guardado previamente corrupto.
+    while (!empty($hist)) {
+        $first = $hist[0];
+        $role  = $first['role'] ?? '';
+        $content = $first['content'] ?? '';
+
+        $isSafeUser = false;
+        if ($role === 'user') {
+            if (is_string($content) && $content !== '') {
+                $isSafeUser = true;
+            } elseif (is_array($content)) {
+                $hasToolResult = false;
+                foreach ($content as $b) {
+                    if (is_array($b) && ($b['type'] ?? '') === 'tool_result') {
+                        $hasToolResult = true;
+                        break;
+                    }
+                }
+                $isSafeUser = !$hasToolResult;
+            }
+        }
+        if ($isSafeUser) break;
+        array_shift($hist);
+    }
+
+    // 3. Descartar assistant tool_use huérfano al final
+    return hp_trim_dangling_tool_use($hist);
+}
+
+/**
+ * Elimina del final del historial cualquier `assistant` con `tool_use` sin
+ * `tool_result` respondiéndolo — Claude también rechaza eso.
+ */
+function hp_trim_dangling_tool_use(array $hist): array
+{
+    while (!empty($hist)) {
+        $last = end($hist);
+        $role = $last['role'] ?? '';
+        $content = $last['content'] ?? '';
+        if ($role !== 'assistant' || !is_array($content)) break;
+
+        $hasToolUse = false;
+        foreach ($content as $b) {
+            if (is_array($b) && ($b['type'] ?? '') === 'tool_use') {
+                $hasToolUse = true;
+                break;
+            }
+        }
+        if (!$hasToolUse) break;
+
+        // Buscar si hay tool_results DESPUÉS de este assistant (no debería si es el last)
+        array_pop($hist);
+    }
+    return $hist;
 }
 
 /* ---------- Tools que Claude puede llamar ---------- */
@@ -346,6 +480,11 @@ function hp_handle_message(string $from, string $text, ?string $messageId = null
 
     if ($messageId) {
         wa_mark_read($cfg, $messageId);
+    }
+
+    // Si pasó mucho tiempo desde la última interacción, arrancamos limpio.
+    if (hp_should_reset($from)) {
+        hp_reset_conversation($from);
     }
 
     $reply = hp_ask_claude($from, $text);

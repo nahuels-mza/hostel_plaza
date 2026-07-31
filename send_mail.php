@@ -1,7 +1,7 @@
 <?php
 /**
- * Envío de mail vía SMTP de Ferozo (PHPMailer) — compartido entre book.php
- * (mail al crear la reserva) y stripe_webhook.php (confirmación post-pago).
+ * Envío de mail vía SMTP de Ferozo (PHPMailer) — usado por book.php para
+ * mandar la confirmación de reserva.
  */
 
 /**
