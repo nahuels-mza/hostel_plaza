@@ -2,7 +2,7 @@
 /**
  * Agente de WhatsApp para Hostel Plaza — versión mínima.
  *
- * Objetivo: pedir SOLO check-in + check-out, y mandar un link a book.php
+ * Objetivo: pedir SOLO check-in + check-out y la cantidad de huespedes, y mandar un link a book.php
  * step 2 (grilla de habitaciones con disponibilidad real). El propio wizard
  * se encarga del resto.
  *
@@ -121,14 +121,15 @@ function hp_tools_definition(): array
     return [
         [
             'name' => 'generate_booking_link',
-            'description' => 'Arma el link de Hostel Plaza para ver disponibilidad y reservar entre dos fechas. USAR apenas tengas check_in y check_out válidos. El link lleva al huésped al paso 2 del wizard, donde ve TODAS las habitaciones disponibles para esas fechas con precio en vivo (no es necesario que el bot consulte disponibilidad por su cuenta).',
+            'description' => 'Arma el link de Hostel Plaza para ver disponibilidad y reservar. USAR apenas tengas check_in, check_out y guests_count. El link lleva al huésped al paso 2 del wizard, donde ve las habitaciones disponibles para esas fechas y cantidad de huéspedes con precio en vivo (no es necesario que el bot consulte disponibilidad por su cuenta).',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
-                    'check_in'  => ['type' => 'string', 'description' => 'Fecha de entrada en formato YYYY-MM-DD'],
-                    'check_out' => ['type' => 'string', 'description' => 'Fecha de salida en formato YYYY-MM-DD'],
+                    'check_in'     => ['type' => 'string',  'description' => 'Fecha de entrada en formato YYYY-MM-DD'],
+                    'check_out'    => ['type' => 'string',  'description' => 'Fecha de salida en formato YYYY-MM-DD'],
+                    'guests_count' => ['type' => 'integer', 'description' => 'Cantidad de huéspedes (mínimo 1). Si el huésped no lo dijo, asumí 1 y en la respuesta aclará "asumí 1 persona, cambialo en el link si son más".'],
                 ],
-                'required' => ['check_in', 'check_out'],
+                'required' => ['check_in', 'check_out', 'guests_count'],
             ],
         ],
     ];
@@ -139,8 +140,9 @@ function hp_run_tool(string $name, array $input, string $phone): array
     $cfg = hp_cfg();
 
     if ($name === 'generate_booking_link') {
-        $checkIn  = hp_normalize_date($input['check_in']  ?? '');
-        $checkOut = hp_normalize_date($input['check_out'] ?? '');
+        $checkIn     = hp_normalize_date($input['check_in']  ?? '');
+        $checkOut    = hp_normalize_date($input['check_out'] ?? '');
+        $guestsCount = max(1, (int)($input['guests_count'] ?? 1));
 
         if (!$checkIn || !$checkOut) {
             return ['error' => 'Fechas inválidas. Necesito ambas en formato YYYY-MM-DD.'];
@@ -155,13 +157,15 @@ function hp_run_tool(string $name, array $input, string $phone): array
 
         $base = $cfg['hostel']['booking_url'];
         $url  = $base
-              . '?check_in='  . rawurlencode($checkIn)
-              . '&check_out=' . rawurlencode($checkOut);
+              . '?check_in='     . rawurlencode($checkIn)
+              . '&check_out='    . rawurlencode($checkOut)
+              . '&guests_count=' . rawurlencode((string)$guestsCount);
 
         // Persistir en slots para que el admin lo vea
         $slots = hp_get_slots($phone);
         $slots['check_in']      = $checkIn;
         $slots['check_out']     = $checkOut;
+        $slots['guests_count']  = $guestsCount;
         $slots['proposed_link'] = $url;
         hp_save_slots($phone, $slots);
 
@@ -169,6 +173,7 @@ function hp_run_tool(string $name, array $input, string $phone): array
             'booking_link' => $url,
             'check_in'     => $checkIn,
             'check_out'    => $checkOut,
+            'guests_count' => $guestsCount,
             'nights'       => (int)((strtotime($checkOut) - strtotime($checkIn)) / 86400),
         ];
     }
@@ -189,41 +194,86 @@ function hp_system_prompt(string $phone): string
         ? '(ninguno todavía)'
         : json_encode($slots, JSON_UNESCAPED_UNICODE);
 
+    $faqText = hp_faq_as_text();
+
     return <<<PROMPT
 Sos el asistente virtual de {$h['name']}, un hostel en Mendoza, Argentina. Atendés por WhatsApp.
 
 DATOS BÁSICOS:
 - Sitio web: {$h['website']}
 - Check-in: {$h['check_in']} | Check-out: {$h['check_out']} | Desayuno incluido: {$h['breakfast']}
-- Tu WhatsApp (el del hostel): +54 9 2615 37-2767
+- Tu WhatsApp (el del hostel): +54 9 261 259-2729
 - Hoy es {$today}.
 
-TU ÚNICA TAREA:
-Conseguir las dos fechas del huésped (check-in y check-out) y mandarle un link
-para que vea disponibilidad y reserve directamente en el sitio.
-- NO consultes precios ni disponibilidad por tu cuenta — el link lleva al wizard
-  que muestra todo en vivo desde BananaDesk.
-- NO pidas nombre, email, DNI, ni datos personales. Eso se completa en el formulario.
+TU TAREA PRINCIPAL:
+Ayudar al huésped a reservar. Para eso:
+- Si mencionan fechas: llamás `generate_booking_link` y compartís el link para que vean
+  disponibilidad y reserven directamente en el sitio.
+- Si tienen otras consultas (servicios, ubicación, políticas, etc.): las respondés vos
+  usando la info del FAQ de abajo. No inventes datos que no estén ahí.
+- NUNCA pidas nombre, email, DNI ni datos personales. Eso se completa en el formulario web.
+- NO consultes precios ni disponibilidad por tu cuenta — la disponibilidad la muestra el link
+  en tiempo real desde BananaDesk.
 
-ESTADO ACTUAL de este huésped (memoria persistente entre mensajes):
+ESTADO ACTUAL del huésped (memoria persistente entre mensajes):
 {$slotsDump}
 
-FLUJO IDEAL:
+DATOS QUE NECESITÁS PARA EL LINK:
+1. check_in  (fecha de entrada)
+2. check_out (fecha de salida)
+3. guests_count (cantidad de huéspedes, entero >= 1)
+
+FLUJO PARA RESERVAS:
 1. Saludá brevemente y preguntá las fechas si no las tenés.
-2. Si el huésped manda una sola fecha, pedile la otra.
-3. Apenas tengas las dos fechas, llamá a `generate_booking_link` y compartí el link
-   con un texto cordial: "¡Listo! Seguí este link para ver la disponibilidad y reservar:
-   <URL>". Adaptá el wording al idioma del huésped.
-4. Si después tiene más preguntas (servicios, ubicación, etc.), respondé corto y derivá
-   a {$h['website']}.
+2. Si mandan solo una fecha, pedí la otra.
+3. Si ya tenés las dos fechas pero no sabés la cantidad de huéspedes, preguntá
+   "¿para cuántas personas?" (una sola pregunta, breve).
+4. Con las tres cosas (fechas + huéspedes) llamá `generate_booking_link` y compartí el link
+   con un texto cordial adaptado al idioma del huésped, tipo "¡Listo! Seguí este link
+   para ver la disponibilidad y reservar: <URL>".
+5. Si el huésped dice "somos uno" o parece obvio que va solo (ej: "quiero reservar
+   para el 3 al 5"), asumí guests_count=1 y aclará en la respuesta que puede
+   cambiarlo desde el link si son más.
+
 
 ESTILO:
 - Detectá el idioma del último mensaje y respondé en ESE idioma (ES, EN, PT, etc).
 - Cordial, breve. 1-2 frases por mensaje. Una pregunta por mensaje.
-- No inventes precios ni disponibilidad. No digas "te reservé" — el huésped reserva en el link.
-- Si el huésped da fechas que no tienen sentido (check-out antes que check-in, fechas
-  pasadas), pedile aclaración con buena onda.
+- No digas "te reservé" — el huésped confirma la reserva en el link.
+- Si dan fechas raras (check-out antes que check-in, fechas pasadas), pedí aclaración
+  con buena onda.
+- Si te preguntan algo que NO está en el FAQ ni es sobre reservas, decí que no sabés
+  y derivá a {$h['website']} o al staff en el mismo número.
+
+===== FAQ / INFO DEL HOSTEL (usá esto para responder consultas) =====
+{$faqText}
+======================================================================
 PROMPT;
+}
+
+/**
+ * Carga hostel_faq.json y lo formatea como texto plano para el system prompt.
+ */
+function hp_faq_as_text(): string
+{
+    $path = __DIR__ . '/../hostel_faq.json';
+    if (!is_file($path)) return '(FAQ no disponible)';
+    $data = json_decode(file_get_contents($path), true);
+    if (!is_array($data) || empty($data['categories'])) return '(FAQ vacío)';
+
+    $out = [];
+    foreach ($data['categories'] as $cat) {
+        $out[] = '## ' . ($cat['title'] ?? '');
+        foreach ($cat['items'] ?? [] as $item) {
+            $q = trim($item['q'] ?? '');
+            $a = trim($item['a'] ?? '');
+            if ($q === '' || $a === '') continue;
+            $out[] = "Q: {$q}";
+            $out[] = "A: {$a}";
+            $out[] = '';
+        }
+    }
+    return implode("\n", $out);
 }
 
 /* ---------- Loop principal con Claude ---------- */
@@ -316,6 +366,7 @@ function hp_handle_message(string $from, string $text, ?string $messageId = null
             if (!empty($slots['guest_email']))    $bits[] = "Email: {$slots['guest_email']}";
             if (!empty($slots['check_in']))       $bits[] = "Check-in: {$slots['check_in']}";
             if (!empty($slots['check_out']))      $bits[] = "Check-out: {$slots['check_out']}";
+            if (!empty($slots['guests_count']))   $bits[] = "Huéspedes: {$slots['guests_count']}";
             if (!empty($slots['room_id']))        $bits[] = "Room ID: {$slots['room_id']}";
             if (!empty($slots['proposed_link']))  $bits[] = "Link enviado: {$slots['proposed_link']}";
             $slotSummary = empty($bits) ? '' : ("\n\n📋 Datos:\n— " . implode("\n— ", $bits));

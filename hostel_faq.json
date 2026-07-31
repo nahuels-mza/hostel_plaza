@@ -1,0 +1,101 @@
+{
+    "_comment": "FAQ del hostel. Fuente única para faq.php (página web) y whatsapp/agent.php (bot). Editá acá y se actualiza en ambos lados.",
+    "categories": [
+        {
+            "id": "bookings",
+            "title": "Bookings & Check-In",
+            "icon": "calendar-check",
+            "description": "Details regarding your arrival, departure, and location.",
+            "items": [
+                {
+                    "q": "What are the check-in and check-out times?",
+                    "a": "Check-in is from 3:00 PM to 11:30 PM. Check-out is from 7:00 AM to 10:00 AM. If you plan to arrive after 11:30 PM, please let us know in advance so we can arrange late check-in. Free luggage storage if you arrive early"
+                },
+                {
+                    "q": "Where exactly is the hostel located?",
+                    "a": "We are located at Avenida Bartolomé Mitre 1237, Mendoza, Argentina. Right in the heart of the city, just a 2-minute walk from Plaza Independencia."
+                },
+                {
+                    "q": "Do you offer an airport shuttle?",
+                    "a": "No, we don't offer an airport shuttle. However, if you don't have a way to get to Hostel Plaza, we can arrange a ride for you upon request."
+                },
+                {
+                    "q": "Do you have parking?",
+                    "a": "No, we don't have private parking. There are paid parking garages nearby within a few blocks."
+                }
+            ]
+        },
+        {
+            "id": "payments",
+            "title": "Payments & Cancellations",
+            "icon": "credit-card",
+            "description": "Information on accepted methods and cancellation rules.",
+            "items": [
+                {
+                    "q": "What payment methods do you accept?",
+                    "a": "We accept cash, debit cards, credit cards (both local and international), and bank transfers for Argentine guests."
+                },
+                {
+                    "q": "What is your cancellation policy?",
+                    "a": "The reservation deposit is non-refundable. If you don't show up on your check-in date, the full amount of the reservation will be charged to your credit card."
+                }
+            ]
+        },
+        {
+            "id": "facilities",
+            "title": "Facilities & Amenities",
+            "icon": "coffee",
+            "description": "Everything you need for a comfortable stay.",
+            "items": [
+                {
+                    "q": "Is breakfast included?",
+                    "a": "Yes, complimentary breakfast is included for all guests. Served from 7:30 AM to 10:00 AM."
+                },
+                {
+                    "q": "Do you have a kitchen and common areas?",
+                    "a": "Yes. We are located in a beautiful historic house with a fully equipped shared kitchen, a lovely courtyard with parrilla (BBQ) space, and a comfortable shared lounge to relax and meet other travelers."
+                },
+                {
+                    "q": "Is there Wi-Fi available?",
+                    "a": "Yes. We have fast fiber-optic Wi-Fi available for free throughout the entire hostel."
+                },
+                {
+                    "q": "Can I leave my luggage before check-in or after check-out?",
+                    "a": "After check-out you can leave your luggage with us free of charge. For storage BEFORE check-in (if you arrive early), we recommend Bounce (bounce.com), a luggage storage service with several locations nearby."
+                }
+            ]
+        },
+        {
+            "id": "rules",
+            "title": "Rules & Policies",
+            "icon": "clipboard-list",
+            "description": "Important guidelines to ensure everyone has a great time.",
+            "items": [
+                {
+                    "q": "Is there an age restriction?",
+                    "a": "Yes. To maintain our atmosphere, check-in is only permitted for guests between 18 and 45 years old. Guests under 18 may only check in if accompanied by a parent or legal guardian in a private room."
+                },
+                {
+                    "q": "Are pets allowed?",
+                    "a": "Pets are allowed. Please contact us before booking to confirm availability and any applicable arrangements."
+                },
+                {
+                    "q": "Can I smoke inside the hostel?",
+                    "a": "Smoking is strictly prohibited indoors. Smoking is only permitted in outdoor areas (patio). Smoking indoors may result in a fine and immediate expulsion from the hostel."
+                },
+                {
+                    "q": "Does the hostel organize social events?",
+                    "a": "Yes! We host regular events including communal dinners, wine tours, paragliding trips, and rafting on the Mendoza River. See our full events calendar at https://hostelplaza.com.ar/tourist-events."
+                },
+                {
+                    "q": "What languages does the staff speak?",
+                    "a": "Our staff speaks Spanish, English and Portuguese."
+                },
+                {
+                    "q": "What's special about the hostel building?",
+                    "a": "Hostel Plaza occupies a beautifully preserved heritage house in the center of Mendoza. Learn more about the building and our history at https://hostelplaza.com.ar/history."
+                }
+            ]
+        }
+    ]
+}
