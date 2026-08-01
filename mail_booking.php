@@ -43,6 +43,7 @@ function hp_mail_booking(array $b, string $roomName, float $totalARS, int $night
         'greeting'  => "¡Hola {$b['guestName']}!",
         'intro'     => '¡Gracias por tu reserva! Ya la tenemos registrada y nuestro equipo va a estar esperándote. El pago se realiza directamente en el check-in — no necesitás hacer nada más por ahora.',
         'details'   => 'Detalles de la Reserva',
+        'code'      => 'Código de Reserva',
         'room'      => 'Habitación',
         'guests'    => 'Huéspedes',
         'checkin'   => 'Check In',
@@ -64,6 +65,7 @@ function hp_mail_booking(array $b, string $roomName, float $totalARS, int $night
         'greeting'  => "Hi {$b['guestName']}!",
         'intro'     => "Thank you for your reservation! We've got it on file and our team will be ready for you. Payment is made directly at check-in — no need to do anything else for now.",
         'details'   => 'Reservation Details',
+        'code'      => 'Booking Code',
         'room'      => 'Room',
         'guests'    => 'Guests',
         'checkin'   => 'Check In',
@@ -95,6 +97,7 @@ function hp_mail_booking(array $b, string $roomName, float $totalARS, int $night
 
         <h3 style='color:#1c5457;margin:28px 0 10px;font-size:17px;'>{$t['details']}</h3>
         <table style='width:100%;border-collapse:collapse;margin-bottom:24px;'>
+            <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>{$t['code']}</td>    <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;font-family:monospace;'>{$b['id']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;width:45%;'>{$t['room']}</td>    <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$roomName}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>{$t['guests']}</td>            <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['guestsCount']}</td></tr>
             <tr><td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;color:#64748b;'>{$t['checkin']}</td>           <td style='padding:9px 10px;border-bottom:1px solid #e2e8f0;font-weight:bold;text-align:right;'>{$b['checkIn']}</td></tr>
@@ -122,6 +125,7 @@ function hp_mail_booking(array $b, string $roomName, float $totalARS, int $night
         . "{$t['greeting']}\n\n"
         . "{$t['intro']}\n\n"
         . strtoupper($t['details']) . "\n"
+        . "{$t['code']}: {$b['id']}\n"
         . "{$t['room']}: {$roomName}\n"
         . "{$t['guests']}: {$b['guestsCount']}\n"
         . "{$t['checkin']}: {$b['checkIn']}\n"

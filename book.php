@@ -554,11 +554,13 @@ $seo = [
                     'mailOk'   => '✓ Email de confirmación enviado a',
                     'backHome' => 'Volver al inicio',
                     'chat'     => 'Escribinos',
+                    'code'     => 'Código de reserva',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
                     'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
                     'mailErr'  => 'No se pudo enviar el email de confirmación.',
                     'mailOk'   => '✓ Confirmation email sent to',
+                    'code'     => 'Booking code',
                     'backHome' => 'Back to home',
                     'chat'     => 'Chat with us',
                 ];
@@ -568,7 +570,12 @@ $seo = [
                         <i data-lucide="check" class="w-8 h-8"></i>
                     </div>
                     <h2 class="text-3xl font-bold text-slate-900 mb-3"><?php echo htmlspecialchars($successCopy['title']); ?></h2>
-                    <p class="text-slate-500 mb-8"><?php echo htmlspecialchars($successCopy['subtitle']); ?></p>
+                    <p class="text-slate-500 mb-4"><?php echo htmlspecialchars($successCopy['subtitle']); ?></p>
+
+                    <div class="inline-flex items-center gap-2 bg-teal-light text-teal rounded-full px-4 py-2 mb-6 font-mono text-sm font-bold">
+                        <span class="font-sans font-medium text-xs uppercase tracking-wide opacity-70"><?php echo htmlspecialchars($successCopy['code']); ?>:</span>
+                        <?php echo htmlspecialchars($newReservationId); ?>
+                    </div>
 
                     <?php if ($mailError): ?>
                         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-left">
