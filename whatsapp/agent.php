@@ -266,12 +266,86 @@ function hp_tools_definition(): array
                 'required' => ['check_in', 'check_out', 'guests_count'],
             ],
         ],
+        [
+            'name' => 'lookup_booking',
+            'description' => 'Busca una reserva existente en bookings.json por su código (formato HP-XXXX o HP-YYMM-XXXXX). Usar cuando el huésped menciona su código de reserva o pregunta por el estado de su reserva. Devuelve fechas, habitación, estado, total y notas — NO devuelve teléfono/email/DNI por privacidad. Si el código no existe, devuelve {found: false}.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'reservation_id' => [
+                        'type' => 'string',
+                        'description' => 'Código de reserva. Ejemplos válidos: "HP-2604-C34C3", "HP-25CX", "hp-2604-c34c3" (case-insensitive).',
+                    ],
+                ],
+                'required' => ['reservation_id'],
+            ],
+        ],
     ];
 }
 
 function hp_run_tool(string $name, array $input, string $phone): array
 {
     $cfg = hp_cfg();
+
+    if ($name === 'lookup_booking') {
+        $raw = (string)($input['reservation_id'] ?? '');
+        // Normalizar: strip espacios, uppercase. NO stripear guiones porque los IDs los usan.
+        $needle = strtoupper(preg_replace('/\s+/', '', $raw));
+        if ($needle === '') {
+            return ['found' => false, 'error' => 'Código vacío'];
+        }
+
+        $bookingsPath = __DIR__ . '/../bookings.json';
+        if (!is_file($bookingsPath)) {
+            return ['found' => false, 'error' => 'No hay archivo de reservas disponible'];
+        }
+        $bookings = json_decode(file_get_contents($bookingsPath), true);
+        if (!is_array($bookings)) {
+            return ['found' => false, 'error' => 'Archivo de reservas corrupto'];
+        }
+
+        $found = null;
+        foreach ($bookings as $b) {
+            if (strtoupper(trim((string)($b['id'] ?? ''))) === $needle) {
+                $found = $b;
+                break;
+            }
+        }
+        if (!$found) {
+            hp_log("lookup_booking: sin match para {$needle}");
+            return [
+                'found'  => false,
+                'reason' => 'no_match',
+                'hint'   => 'El código debe ser exactamente el que vino en el email de confirmación (formato HP-XXXX o HP-YYMM-XXXXX).',
+            ];
+        }
+
+        // Resolver nombre de habitación
+        $rooms = hp_load_rooms(__DIR__ . '/../rooms.json');
+        $roomName = 'Habitación';
+        foreach ($rooms as $r) {
+            if ((string)($r['id'] ?? '') === (string)($found['roomId'] ?? '')) {
+                $roomName = (string)($r['name'] ?? $roomName);
+                break;
+            }
+        }
+
+        // Devolver SOLO campos no sensibles. Nunca phone/email/idNumber/nationality/age.
+        return [
+            'found'          => true,
+            'id'             => $found['id']          ?? '',
+            'guest_name'     => $found['guestName']   ?? '',
+            'room_name'      => $roomName,
+            'check_in'       => $found['checkIn']     ?? '',
+            'check_out'      => $found['checkOut']    ?? '',
+            'guests_count'   => $found['guestsCount'] ?? null,
+            'status'         => $found['status']      ?? '',
+            'total_price'    => $found['totalPrice']  ?? 0,
+            'amount_paid'    => $found['amountPaid']  ?? 0,
+            'payment_method' => $found['paymentMethod'] ?? '',
+            'notes'          => $found['notes']       ?? '',
+        ];
+    }
 
     if ($name === 'generate_booking_link') {
         $checkIn     = hp_normalize_date($input['check_in']  ?? '');
@@ -340,14 +414,24 @@ DATOS BÁSICOS:
 - Hoy es {$today}.
 
 TU TAREA PRINCIPAL:
-Ayudar al huésped a reservar. Para eso:
-- Si mencionan fechas: llamás `generate_booking_link` y compartís el link para que vean
-  disponibilidad y reserven directamente en el sitio.
-- Si tienen otras consultas (servicios, ubicación, políticas, etc.): las respondés vos
-  usando la info del FAQ de abajo. No inventes datos que no estén ahí.
-- NUNCA pidas nombre, email, DNI ni datos personales. Eso se completa en el formulario web.
-- NO consultes precios ni disponibilidad por tu cuenta — la disponibilidad la muestra el link
-  en tiempo real desde BananaDesk.
+Ayudar al huésped en 3 tipos de consultas:
+
+1. **Reservas nuevas** → Si mencionan fechas, llamás `generate_booking_link` y compartís el
+   link para que vean disponibilidad y reserven en el sitio.
+
+2. **Reservas existentes** → Si mencionan un código HP-XXXX o preguntan por el estado
+   de "su reserva", llamás `lookup_booking` con ese código. Contame la info que sabés
+   (fechas, habitación, estado, total pendiente, notas) SIN mencionar teléfono/email/DNI.
+   Si quiere modificar o cancelar, derivá al staff (+54 9 2615 37-2767).
+
+3. **Consultas generales** (servicios, políticas, tours) → Respondés usando el FAQ de
+   abajo. No inventes datos que no estén ahí.
+
+Reglas generales:
+- NUNCA pidas nombre, email, DNI ni datos personales para reservar. Eso se completa en el formulario web.
+- NO consultes precios ni disponibilidad por tu cuenta — el link las muestra en tiempo real
+  desde BananaDesk.
+- Para reservas existentes: NUNCA reveles teléfono, email o DNI aunque el código exista.
 
 ESTADO ACTUAL del huésped (memoria persistente entre mensajes):
 {$slotsDump}
