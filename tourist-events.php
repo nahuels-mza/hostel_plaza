@@ -209,7 +209,7 @@ $seo = [
                                                 <?php
                                                     $waMsg = urlencode('Hola! Me interesa la actividad "' . $event['title'] . '". ¿Pueden darme más información y disponibilidad?');
                                                 ?>
-                                                <a href="https://api.whatsapp.com/send/?phone=5492615372767&text=<?php echo $waMsg; ?>"
+                                                <a href="https://api.whatsapp.com/send/?phone=5492612592729&text=<?php echo $waMsg; ?>"
                                                    target="_blank" rel="noopener"
                                                    class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold text-sm px-5 py-3 rounded-xl transition-colors shadow-md">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">

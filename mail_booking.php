@@ -104,7 +104,7 @@ function hp_mail_booking(array $b, string $roomName, float $totalARS, int $night
         </table>
 
         <p style='font-size:15px;margin-bottom:6px;'>{$t['questions']}</p>
-        <p style='margin:0;'><a href='https://api.whatsapp.com/send/?phone=5492615372767' style='color:#1c5457;font-weight:bold;text-decoration:none;'>+54 9 2615 37-2767</a></p>
+        <p style='margin:0;'><a href='https://api.whatsapp.com/send/?phone=5492612592729' style='color:#1c5457;font-weight:bold;text-decoration:none;'>+54 9 2612 59-2729</a></p>
 
         <h3 style='color:#1c5457;margin:28px 0 10px;font-size:17px;'>{$t['yourinfo']}</h3>
         <table style='width:100%;border-collapse:collapse;margin-bottom:28px;'>
@@ -127,7 +127,7 @@ function hp_mail_booking(array $b, string $roomName, float $totalARS, int $night
         . "{$t['checkin']}: {$b['checkIn']}\n"
         . "{$t['checkout']}: {$b['checkOut']}\n"
         . "{$t['total']}: {$fTotal}\n\n"
-        . "WhatsApp: +54 9 2615 37-2767\n\n"
+        . "WhatsApp: +54 9 2612 59-2729\n\n"
         . "Hostel Plaza Mendoza";
 
     return [$subject, $body, $altBody];

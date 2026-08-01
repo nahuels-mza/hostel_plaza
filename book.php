@@ -581,7 +581,7 @@ $seo = [
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <a href="/" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"><?php echo htmlspecialchars($successCopy['backHome']); ?></a>
-                        <a href="https://api.whatsapp.com/send/?phone=5492615372767" target="_blank" class="px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all flex items-center justify-center gap-2">
+                        <a href="https://api.whatsapp.com/send/?phone=5492612592729" target="_blank" class="px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all flex items-center justify-center gap-2">
                             <i data-lucide="message-circle" class="w-4 h-4"></i> <?php echo htmlspecialchars($successCopy['chat']); ?>
                         </a>
                     </div>

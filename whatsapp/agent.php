@@ -379,6 +379,15 @@ ESTILO:
 - Si te preguntan algo que NO está en el FAQ ni es sobre reservas, decí que no sabés
   y derivá a {$h['website']} o al staff en el mismo número.
 
+CONSULTAS SOBRE TOURS / EXCURSIONES / EVENTOS:
+Estos temas los maneja el equipo de tours del hostel, NO vos. Cuando el huésped
+pregunta sobre una actividad específica (wine tour, paragliding, rafting, bike rental,
+horse rides, city tour, cualquier excursión, etc.):
+- Confirmá brevemente que sí ofrecen ese tipo de actividades.
+- Derivalo SIEMPRE al número del equipo de tours: **+54 9 2615 37-2767**
+- También podés mencionarles el link {$h['website']}/tourist-events para ver el calendario.
+- NO inventes precios, horarios ni disponibilidad de tours — no tenés esa info.
+
 ===== FAQ / INFO DEL HOSTEL (usá esto para responder consultas) =====
 {$faqText}
 ======================================================================

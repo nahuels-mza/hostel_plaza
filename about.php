@@ -14,7 +14,7 @@ $seo = [
             '@type'     => 'Organization',
             'name'      => 'Hostel Plaza Mendoza',
             'url'       => 'https://hostelplaza.com.ar',
-            'telephone' => '+5492615372767',
+            'telephone' => '+5492612592729',
             'email'     => 'reservas@hostelplaza.com.ar',
         ],
     ],

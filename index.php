@@ -21,7 +21,7 @@ $seo = [
         '@type'       => 'Hostel',
         'name'        => 'Hostel Plaza Mendoza',
         'url'         => 'https://hostelplaza.com.ar',
-        'telephone'   => '+5492615372767',
+        'telephone'   => '+5492612592729',
         'email'       => 'reservas@hostelplaza.com.ar',
         'image'       => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
         'description' => 'Boutique hostel in a beautifully preserved heritage house in the heart of Mendoza, Argentina. Private rooms and shared dorms, colonial courtyard, wine tours, and Andes adventures.',
@@ -377,7 +377,7 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
                         </div>
                         <div>
                             <p class="font-bold text-slate-900 mb-1">WhatsApp</p>
-                            <a href="https://api.whatsapp.com/send/?phone=5492615372767" class="text-slate-500 hover:text-teal transition-colors">+54 9 2615 37-2767</a>
+                            <a href="https://api.whatsapp.com/send/?phone=5492612592729" class="text-slate-500 hover:text-teal transition-colors">+54 9 2612 59-2729</a>
                         </div>
                     </div>
                     <div class="flex items-start gap-4">
