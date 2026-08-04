@@ -212,10 +212,21 @@ $t = $isEs ? [
 
                 decidir.createToken(form, function (status, response) {
                     if (status === 200 || status === 201) {
+                        // La doc de Payway dice "response.token", pero algunos ejemplos
+                        // reales de su propio SDK devuelven "response.id" en su lugar —
+                        // aceptamos cualquiera de los dos.
+                        const tokenValue = response && (response.token || response.id);
+                        if (!tokenValue) {
+                            showError('No se pudo tokenizar la tarjeta (respuesta inesperada del SDK).');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = submitLabel;
+                            console.warn('Decidir createToken response sin token/id:', response);
+                            return;
+                        }
                         fetch('payway_charge.php', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ booking_id: bookingId, token: response.token, bin: bin }),
+                            body: JSON.stringify({ booking_id: bookingId, token: tokenValue, bin: bin }),
                         })
                         .then(function (r) { return r.json(); })
                         .then(function (data) {
