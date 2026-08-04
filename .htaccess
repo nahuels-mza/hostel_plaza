@@ -10,9 +10,11 @@ RewriteCond %{REQUEST_FILENAME}/index.php -f
 RewriteRule ^admin/?$ admin/index.php [L]
 
 # 3. Remove .php extension from URLs (External Redirect)
-# Excluir whatsapp/ — el webhook necesita recibir POST con la URL exacta .php
+# Excluir whatsapp/ y payway_charge.php — reciben POST con body y un 301
+# los redirige a GET, perdiendo el body (el navegador no reenvía el POST).
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.php
 RewriteCond %{REQUEST_URI} !^/whatsapp/
+RewriteCond %{REQUEST_URI} !^/payway_charge\.php$
 RewriteRule ^/?(.*)\.php$ /$1 [L,R=301]
 
 # 4. Map the dynamic Room URLs (MUST be placed before the generic .php rule)
