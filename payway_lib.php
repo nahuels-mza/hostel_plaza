@@ -33,6 +33,7 @@ function hp_payway_config(): array
             'public_key'  => $s['payway_prod_public_key']  ?? '',
             'private_key' => $s['payway_prod_private_key'] ?? '',
             'site_id'     => $s['payway_prod_site_id']     ?? '',
+            'template_id' => $s['payway_prod_template_id'] ?? '',
         ]
         : [
             'env'         => 'test',
@@ -40,6 +41,7 @@ function hp_payway_config(): array
             'public_key'  => $s['payway_test_public_key']  ?? '',
             'private_key' => $s['payway_test_private_key'] ?? '',
             'site_id'     => $s['payway_test_site_id']     ?? '',
+            'template_id' => $s['payway_test_template_id'] ?? '',
         ];
 }
 
@@ -95,6 +97,12 @@ function hp_payway_charge(array $payload): array
     // para que ningún caller tenga que acordarse de mandarlo.
     if ($cfg['site_id'] && !isset($payload['site_id'])) {
         $payload['site_id'] = $cfg['site_id'];
+    }
+    // Experimental: template_id distingue perfiles "con/sin CyberSource" en
+    // Payway. No está confirmado que este endpoint (/payments) lo use — se
+    // manda solo si está configurado, sin romper nada si Payway lo ignora.
+    if ($cfg['template_id'] && !isset($payload['template_id'])) {
+        $payload['template_id'] = $cfg['template_id'];
     }
 
     $ch = curl_init($cfg['base_url'] . '/api/v2/payments');

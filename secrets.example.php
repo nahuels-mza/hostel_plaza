@@ -24,7 +24,9 @@ return [
     'payway_test_public_key'  => '',      // Portal Payway → Credenciales → Sandbox
     'payway_test_private_key' => '',
     'payway_test_site_id'     => '',      // Portal Payway → "Site ID" de Sandbox
+    'payway_test_template_id' => '',      // Portal Payway → "Template ID" de Sandbox
     'payway_prod_public_key'  => '',      // Portal Payway → Credenciales → Producción
     'payway_prod_private_key' => '',
     'payway_prod_site_id'     => '',      // Portal Payway → "Site ID" de Producción
+    'payway_prod_template_id' => '',      // Portal Payway → "Template ID" de Producción
 ];
