@@ -12,7 +12,8 @@ echo "=== WhatsApp Bot Diagnostic ===\n\n";
 
 // ─── 0. Secrets file ─────────────────────────────────────────
 echo "── 0. Archivo de secrets ──\n";
-$secretsPath = dirname(dirname(__DIR__)) . '/storagedir/secrets.php';
+require_once dirname(__DIR__) . '/dev_env.php';
+$secretsPath = hp_secrets_path(dirname(__DIR__));
 echo "Ruta buscada : " . $secretsPath . "\n";
 echo "¿Existe?     : " . (is_file($secretsPath) ? "✓ sí" : "✗ NO ENCONTRADO") . "\n";
 if (is_file($secretsPath)) {

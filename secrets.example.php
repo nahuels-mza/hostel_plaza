@@ -17,4 +17,12 @@ return [
     'wa_phone_number_id' => '',  // ID numérico del número en Meta (no el número E.164)
     'wa_access_token'    => '',  // Token permanente del sistema
     'wa_verify_token'    => '',  // Token libre que pusiste en el webhook de Meta
+
+    // Payway (Decidir) — usado por payway_lib.php / pay.php / payway_charge.php.
+    // 'payway_env' es la ÚNICA variable a cambiar para pasar de test a producción.
+    'payway_env'              => 'test',  // 'test' | 'prod'
+    'payway_test_public_key'  => '',      // Portal Payway → Credenciales → Sandbox
+    'payway_test_private_key' => '',
+    'payway_prod_public_key'  => '',      // Portal Payway → Credenciales → Producción
+    'payway_prod_private_key' => '',
 ];

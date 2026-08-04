@@ -555,6 +555,9 @@ $seo = [
                     'backHome' => 'Volver al inicio',
                     'chat'     => 'Escribinos',
                     'code'     => 'Código de reserva',
+                    'payTitle' => '¿Deseas confirmar tu estadía con el pago de 1 noche?',
+                    'payDesc'  => 'Es opcional, pero asegura tu lugar. Pago único y seguro con tarjeta.',
+                    'payCta'   => 'Pagar 1 noche ahora',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
                     'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
@@ -563,6 +566,9 @@ $seo = [
                     'code'     => 'Booking code',
                     'backHome' => 'Back to home',
                     'chat'     => 'Chat with us',
+                    'payTitle' => 'Want to confirm your stay by paying for 1 night?',
+                    'payDesc'  => "It's optional, but it secures your spot. One single, secure card payment.",
+                    'payCta'   => 'Pay 1 night now',
                 ];
             ?>
                 <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-10 text-center">
@@ -585,6 +591,15 @@ $seo = [
                     <?php else: ?>
                         <p class="text-xs text-green-600 mb-4"><?php echo htmlspecialchars($successCopy['mailOk']); ?> <?php echo htmlspecialchars($newBooking['email']); ?></p>
                     <?php endif; ?>
+
+                    <div class="bg-teal-light rounded-2xl p-6 mb-6 text-left">
+                        <p class="font-bold text-teal mb-1"><?php echo htmlspecialchars($successCopy['payTitle']); ?></p>
+                        <p class="text-sm text-teal/80 mb-4"><?php echo htmlspecialchars($successCopy['payDesc']); ?></p>
+                        <a href="pay.php?booking_id=<?php echo urlencode($newReservationId); ?>"
+                           class="inline-flex items-center gap-2 bg-teal text-white font-bold px-6 py-3 rounded-xl hover:bg-teal-hover transition-all">
+                            <i data-lucide="credit-card" class="w-4 h-4"></i> <?php echo htmlspecialchars($successCopy['payCta']); ?>
+                        </a>
+                    </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <a href="/" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"><?php echo htmlspecialchars($successCopy['backHome']); ?></a>

@@ -5,7 +5,8 @@
  * Copiar secrets.example.php → /storagedir/secrets.php y completar los valores.
  */
 
-$_secretsFile = dirname(dirname(__DIR__)) . '/storagedir/secrets.php';
+require_once dirname(__DIR__) . '/dev_env.php';
+$_secretsFile = hp_secrets_path(dirname(__DIR__));
 $_s = is_file($_secretsFile) ? (require $_secretsFile) : [];
 
 return [

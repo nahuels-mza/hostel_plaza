@@ -2,7 +2,8 @@
 error_reporting(0); // Prevents HTTP 500 errors from crashing the UI
 
 // Secrets desde fuera del webroot
-$_secretsFile = dirname(__DIR__) . '/storagedir/secrets.php';
+require_once __DIR__ . '/dev_env.php';
+$_secretsFile = hp_secrets_path(__DIR__);
 $_secrets     = is_file($_secretsFile) ? (require $_secretsFile) : [];
 $smtpPassword = $_secrets['smtp_password'] ?? '';
 

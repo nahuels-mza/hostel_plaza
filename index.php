@@ -184,9 +184,15 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
 
     <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
 
+    <?php
+    require_once __DIR__ . '/dev_env.php';
+    // En localhost storagedir/ no existe (vive fuera del repo, en el server) —
+    // usamos una imagen local de do_not_upload/ para poder ver el hero.
+    $heroImgUrl = hp_is_localhost() ? '/do_not_upload/hero.jpg' : '/hero-img?p=index';
+    ?>
     <section id="home" class="relative h-screen min-h-[700px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('/hero-img?p=index');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('<?php echo htmlspecialchars($heroImgUrl); ?>');"></div>
             <div class="absolute inset-0 hero-gradient"></div>
         </div>
 

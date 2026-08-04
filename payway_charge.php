@@ -1,0 +1,119 @@
+<?php
+/**
+ * Cobra 1 noche con tarjeta vía Payway para una reserva existente.
+ * Recibe el token ya tokenizado en el navegador (los datos de tarjeta nunca
+ * llegan a este endpoint) — ver pay.php.
+ *
+ * POST JSON: {booking_id, token, bin}
+ * → {ok:true, operationId, amountArs} | {ok:false, error}
+ */
+declare(strict_types=1);
+
+header('Content-Type: application/json');
+
+require_once __DIR__ . '/payway_lib.php';
+
+$in = json_decode(file_get_contents('php://input'), true);
+if (!is_array($in)) $in = [];
+
+$bookingId = trim((string)($in['booking_id'] ?? ''));
+$token     = trim((string)($in['token'] ?? ''));
+$bin       = preg_replace('/\D/', '', (string)($in['bin'] ?? ''));
+
+if ($bookingId === '' || $token === '' || strlen($bin) !== 6) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'Datos incompletos.']);
+    exit;
+}
+
+$bookingsFile = __DIR__ . '/bookings.json';
+$bookings = is_file($bookingsFile) ? (json_decode(file_get_contents($bookingsFile), true) ?: []) : [];
+
+$booking = null;
+foreach ($bookings as $b) {
+    if ($b['id'] === $bookingId) { $booking = $b; break; }
+}
+if (!$booking) {
+    http_response_code(404);
+    echo json_encode(['ok' => false, 'error' => 'Reserva no encontrada.']);
+    exit;
+}
+
+if (($booking['paymentMethod'] ?? '') === 'Payway' && (float)($booking['amountPaid'] ?? 0) > 0) {
+    echo json_encode(['ok' => false, 'error' => 'already_paid']);
+    exit;
+}
+
+// Monto server-side — misma fórmula que pay.php, nunca confiar en el cliente
+// (el cliente solo manda token/bin, no un monto).
+$config          = is_file(__DIR__ . '/config.json') ? json_decode(file_get_contents(__DIR__ . '/config.json'), true) : [];
+$exchangeRateARS = $config['exchangeRateARS'] ?? 1370;
+
+$nights     = max(1, (int)round((strtotime($booking['checkOut']) - strtotime($booking['checkIn'])) / 86400));
+$nightlyUSD = (float)$booking['totalPrice'] / $nights;
+$nightlyARS = round($nightlyUSD * $exchangeRateARS);
+$amountCents = (int)round($nightlyARS * 100);
+
+if ($amountCents < 50) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'Monto inválido.']);
+    exit;
+}
+
+$paymentMethodId = hp_payway_resolve_payment_method_id($bin);
+if ($paymentMethodId === null) {
+    echo json_encode(['ok' => false, 'error' => 'Tarjeta no reconocida. Probá con otra o pagá directamente en el check-in.']);
+    exit;
+}
+
+$siteTransactionId = substr($bookingId . '-' . bin2hex(random_bytes(4)), 0, 39);
+
+$payload = [
+    'site_transaction_id' => $siteTransactionId,
+    'token'               => $token,
+    'customer'            => [
+        'id'         => $bookingId,
+        'email'      => $booking['email'] ?? '',
+        'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+    ],
+    'payment_method_id' => $paymentMethodId,
+    'bin'               => $bin,
+    'amount'            => $amountCents,
+    'currency'          => 'ARS',
+    'installments'      => 1,
+    'payment_type'      => 'single',
+];
+
+$result = hp_payway_charge($payload);
+
+$logDir = __DIR__ . '/logs';
+if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
+file_put_contents(
+    $logDir . '/payway.log',
+    date('c') . ' ' . ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} amount_ars={$nightlyARS} " . ($result['ok'] ? '' : $result['error']) . "\n",
+    FILE_APPEND
+);
+
+if (!$result['ok']) {
+    echo json_encode(['ok' => false, 'error' => $result['error']]);
+    exit;
+}
+
+// Re-leer antes de escribir (mismo patrón que book.php usa para el sync de BananaDesk)
+$bookingsNow = json_decode(file_get_contents($bookingsFile), true) ?: [];
+foreach ($bookingsNow as &$bb) {
+    if ($bb['id'] === $bookingId) {
+        $bb['amountPaid']       = (float)($bb['amountPaid'] ?? 0) + $nightlyUSD;
+        $bb['paymentMethod']    = 'Payway';
+        $bb['paywayOperationId'] = $result['response']['id'] ?? null;
+        break;
+    }
+}
+unset($bb);
+file_put_contents($bookingsFile, json_encode($bookingsNow, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+echo json_encode([
+    'ok'         => true,
+    'operationId'=> $result['response']['id'] ?? null,
+    'amountArs'  => $nightlyARS,
+]);

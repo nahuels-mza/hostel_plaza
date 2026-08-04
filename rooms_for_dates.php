@@ -36,6 +36,20 @@
  *   }
  */
 
+require_once __DIR__ . '/dev_env.php';
+// En localhost, algunos warnings/deprecations de PHP (ej: curl_close() en
+// PHP 8.5) se imprimen antes del JSON y rompen el fetch() del front-end.
+// En producción no se toca nada.
+$hpLocal = hp_is_localhost();
+if ($hpLocal) {
+    // ini_set no alcanza para algunos deprecation notices de PHP 8.5 (ej.
+    // curl_close()) que igual dejan un byte de más antes del JSON — con un
+    // buffer de salida nos aseguramos de limpiar cualquier cosa previa al
+    // echo final, sin tocar nada en producción.
+    ini_set('display_errors', '0');
+    ob_start();
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=120');
 header('Access-Control-Allow-Origin: *');
@@ -52,6 +66,7 @@ $checkOut = hp_normalize_date($checkOut);
 
 if (!$checkIn || !$checkOut || $checkIn >= $checkOut) {
     http_response_code(400);
+    if ($hpLocal) ob_clean();
     echo json_encode(['ok' => false, 'error' => 'check_in y check_out válidos requeridos (check_out > check_in, formato YYYY-MM-DD)']);
     exit;
 }
@@ -163,6 +178,7 @@ foreach ($rooms as $r) {
     ];
 }
 
+if ($hpLocal) ob_clean();
 echo json_encode([
     'ok'        => true,
     'check_in'  => $checkIn,
