@@ -77,12 +77,15 @@ $payload = [
         'email'      => $booking['email'] ?? '',
         'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
     ],
-    'payment_method_id' => $paymentMethodId,
-    'bin'               => $bin,
-    'amount'            => $amountCents,
-    'currency'          => 'ARS',
-    'installments'      => 1,
-    'payment_type'      => 'single',
+    'payment_method_id'  => $paymentMethodId,
+    'bin'                => $bin,
+    'amount'             => $amountCents,
+    'currency'           => 'ARS',
+    'installments'       => 1,
+    'description'        => "Hostel Plaza - {$bookingId}",
+    'establishment_name' => 'Hostel Plaza',
+    'payment_type'       => 'single',
+    'sub_payments'       => [],
 ];
 
 $result = hp_payway_charge($payload);
