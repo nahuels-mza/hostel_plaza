@@ -114,6 +114,14 @@ function hp_payway_charge(array $payload): array
 
     if ($respCode < 200 || $respCode >= 300) {
         $reason = $respData['message'] ?? $respData['error_type'] ?? substr((string)$respBody, 0, 300);
+        if (!empty($respData['validation_errors']) && is_array($respData['validation_errors'])) {
+            $details = array_map(function ($e) {
+                $param = $e['param'] ?? ($e['code'] ?? '?');
+                $msg   = $e['message'] ?? ($e['type'] ?? 'invalid');
+                return "{$param}: {$msg}";
+            }, $respData['validation_errors']);
+            $reason .= ' — ' . implode('; ', $details);
+        }
         return ['ok' => false, 'response' => $respData, 'error' => "Payway devolvió HTTP {$respCode}: {$reason}"];
     }
 

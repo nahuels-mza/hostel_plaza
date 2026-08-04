@@ -280,12 +280,59 @@ function hp_tools_definition(): array
                 'required' => ['reservation_id'],
             ],
         ],
+        [
+            'name' => 'get_weather',
+            'description' => 'Consulta el pronóstico del clima en Mendoza ciudad usando Open-Meteo (gratis, sin API key). Si el huésped no mencionó fechas, devuelve solo el clima de HOY. Si tenés fechas de check-in/check-out (por ejemplo en los slots o mencionadas en la conversación), pasalas y devuelve el pronóstico día por día para ese rango (hasta 16 días adelante, más lejano no está disponible). Los códigos meteorológicos son WMO (0=despejado, 1-3=parcialmente nublado a nublado, 45-48=niebla, 51-67=llovizna/lluvia, 71-77=nieve, 80-82=chubascos, 95-99=tormenta).',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'check_in'  => ['type' => 'string', 'description' => 'Fecha inicial YYYY-MM-DD (opcional). Si se omite, devuelve solo el clima de hoy.'],
+                    'check_out' => ['type' => 'string', 'description' => 'Fecha final YYYY-MM-DD (opcional, exclusiva; solo se usa si check_in también viene).'],
+                ],
+                'required' => [],
+            ],
+        ],
     ];
 }
 
 function hp_run_tool(string $name, array $input, string $phone): array
 {
     $cfg = hp_cfg();
+
+    if ($name === 'get_weather') {
+        $checkIn  = hp_normalize_date($input['check_in']  ?? '');
+        $checkOut = hp_normalize_date($input['check_out'] ?? '');
+
+        // Si solo dan check_in, tratamos como un solo día
+        // Si no dan nada, hoy
+        $today = date('Y-m-d');
+        if (!$checkIn) {
+            $start = $today;
+            $end   = $today;
+        } else {
+            $start = $checkIn;
+            // Open-Meteo espera end inclusive; el checkout del huésped es exclusive.
+            // Restamos 1 día al checkout para consultar solo las noches que se hospeda.
+            if ($checkOut && $checkOut > $checkIn) {
+                $end = date('Y-m-d', strtotime($checkOut . ' -1 day'));
+            } else {
+                $end = $start;
+            }
+        }
+        // Open-Meteo forecast_days=1..16 desde hoy. No sirve para fechas
+        // muy lejanas — validamos.
+        if ($start < $today) $start = $today;
+        $maxDate = date('Y-m-d', strtotime('+16 days'));
+        if ($end > $maxDate) $end = $maxDate;
+        if ($start > $maxDate) {
+            return [
+                'error' => "El pronóstico solo llega hasta {$maxDate}. Para fechas más lejanas no hay datos confiables.",
+            ];
+        }
+
+        $cache = hp_weather_fetch($start, $end, $cfg['paths']['cache']);
+        return $cache;
+    }
 
     if ($name === 'lookup_booking') {
         $raw = (string)($input['reservation_id'] ?? '');
@@ -463,6 +510,15 @@ ESTILO:
 - Si te preguntan algo que NO está en el FAQ ni es sobre reservas, decí que no sabés
   y derivá a {$h['website']} o al staff en el mismo número.
 
+CONSULTAS SOBRE EL CLIMA:
+Si el huésped pregunta por el clima ("¿va a llover?", "how's the weather?", "que tiempo hace"):
+- Llamá `get_weather` sin parámetros para el clima de HOY en Mendoza.
+- Si ya conocés las fechas de check-in/check-out del huésped (por los slots o la conversación),
+  pasalas al tool para dar el pronóstico de esos días concretos.
+- Presentá temperatura mínima/máxima y probabilidad de lluvia de forma breve y humana.
+- Si el pronóstico predice tormenta o lluvia fuerte, sugerí llevar algo abrigado/paraguas
+  con buena onda.
+
 CONSULTAS SOBRE TOURS / EXCURSIONES / EVENTOS:
 Estos temas los maneja el equipo de tours del hostel, NO vos. Cuando el huésped
 pregunta sobre una actividad específica (wine tour, paragliding, rafting, bike rental,
@@ -476,6 +532,107 @@ horse rides, city tour, cualquier excursión, etc.):
 {$faqText}
 ======================================================================
 PROMPT;
+}
+
+/**
+ * Consulta el pronóstico del clima en Mendoza ciudad vía Open-Meteo.
+ * Gratis, sin API key. Ver https://open-meteo.com/en/docs
+ *
+ * @param string $startDate Fecha inicial YYYY-MM-DD (>= hoy)
+ * @param string $endDate   Fecha final YYYY-MM-DD (<= hoy+16)
+ * @param string $cacheDir  Dónde cachear
+ * @return array {ok, days: [{date, temp_max, temp_min, precip_probability, weather_code, condition}]}
+ */
+function hp_weather_fetch(string $startDate, string $endDate, string $cacheDir): array
+{
+    // Cache: 1h para hoy, 6h para forecasts. Key por (start, end).
+    $isToday   = ($startDate === date('Y-m-d') && $endDate === date('Y-m-d'));
+    $ttl       = $isToday ? 3600 : 21600; // 1h vs 6h
+    $cacheFile = rtrim($cacheDir, '/') . "/weather_{$startDate}_{$endDate}.json";
+
+    if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
+        $c = json_decode(file_get_contents($cacheFile), true);
+        if (is_array($c)) { $c['cached'] = true; return $c; }
+    }
+
+    // Mendoza ciudad: lat -32.8908, lon -68.8272
+    $url = 'https://api.open-meteo.com/v1/forecast'
+         . '?latitude=-32.8908&longitude=-68.8272'
+         . '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max'
+         . '&timezone=America/Argentina/Mendoza'
+         . '&start_date=' . rawurlencode($startDate)
+         . '&end_date='   . rawurlencode($endDate);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => ['Accept: application/json', 'User-Agent: HostelPlaza-Bot/1.0'],
+        CURLOPT_TIMEOUT        => 12,
+        CURLOPT_FOLLOWLOCATION => true,
+    ]);
+    $body = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code < 200 || $code >= 300 || !$body) {
+        return ['ok' => false, 'error' => "Open-Meteo HTTP $code", 'cached' => false];
+    }
+    $raw = json_decode($body, true);
+    if (!is_array($raw) || empty($raw['daily'])) {
+        return ['ok' => false, 'error' => 'Respuesta no válida de Open-Meteo', 'cached' => false];
+    }
+
+    $d = $raw['daily'];
+    $days = [];
+    for ($i = 0, $n = count($d['time'] ?? []); $i < $n; $i++) {
+        $wc = (int)($d['weather_code'][$i] ?? -1);
+        $days[] = [
+            'date'               => $d['time'][$i],
+            'temp_max_c'         => $d['temperature_2m_max'][$i] ?? null,
+            'temp_min_c'         => $d['temperature_2m_min'][$i] ?? null,
+            'precip_probability' => $d['precipitation_probability_max'][$i] ?? null,
+            'weather_code'       => $wc,
+            'condition'          => hp_weather_code_to_text($wc),
+        ];
+    }
+
+    $result = [
+        'ok'         => true,
+        'location'   => 'Mendoza, Argentina',
+        'start_date' => $startDate,
+        'end_date'   => $endDate,
+        'days'       => $days,
+        'source'     => 'Open-Meteo',
+        'cached'     => false,
+    ];
+
+    @mkdir($cacheDir, 0775, true);
+    @file_put_contents($cacheFile, json_encode($result, JSON_UNESCAPED_UNICODE));
+    return $result;
+}
+
+/**
+ * Traduce un weather code WMO a una descripción breve en inglés.
+ * Claude se encarga de traducir al idioma del huésped.
+ */
+function hp_weather_code_to_text(int $code): string
+{
+    if ($code === 0)                              return 'Clear sky';
+    if ($code === 1)                              return 'Mainly clear';
+    if ($code === 2)                              return 'Partly cloudy';
+    if ($code === 3)                              return 'Overcast';
+    if (in_array($code, [45, 48], true))          return 'Fog';
+    if (in_array($code, [51, 53, 55], true))      return 'Drizzle';
+    if (in_array($code, [56, 57], true))          return 'Freezing drizzle';
+    if (in_array($code, [61, 63, 65], true))      return 'Rain';
+    if (in_array($code, [66, 67], true))          return 'Freezing rain';
+    if (in_array($code, [71, 73, 75], true))      return 'Snow';
+    if ($code === 77)                             return 'Snow grains';
+    if (in_array($code, [80, 81, 82], true))      return 'Rain showers';
+    if (in_array($code, [85, 86], true))          return 'Snow showers';
+    if ($code === 95)                             return 'Thunderstorm';
+    if (in_array($code, [96, 99], true))          return 'Thunderstorm with hail';
+    return 'Unknown';
 }
 
 /**

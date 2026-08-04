@@ -66,7 +66,8 @@ if ($paymentMethodId === null) {
     exit;
 }
 
-$siteTransactionId = substr($bookingId . '-' . bin2hex(random_bytes(4)), 0, 39);
+// Alfanumérico, sin guiones ni otros símbolos — la API de Payway lo pide así.
+$siteTransactionId = substr(preg_replace('/[^A-Za-z0-9]/', '', $bookingId . bin2hex(random_bytes(4))), 0, 39);
 
 $payload = [
     'site_transaction_id' => $siteTransactionId,
@@ -90,7 +91,10 @@ $logDir = __DIR__ . '/logs';
 if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
 file_put_contents(
     $logDir . '/payway.log',
-    date('c') . ' ' . ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} amount_ars={$nightlyARS} " . ($result['ok'] ? '' : $result['error']) . "\n",
+    date('c') . ' ' . ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} amount_ars={$nightlyARS} payment_method_id={$paymentMethodId}\n"
+        . 'request: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n"
+        . 'response: ' . json_encode($result['response'], JSON_UNESCAPED_UNICODE) . "\n"
+        . ($result['ok'] ? '' : "error: {$result['error']}\n"),
     FILE_APPEND
 );
 
