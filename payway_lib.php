@@ -19,7 +19,7 @@ function hp_payway_secrets(): array
 
 /**
  * Config server-side (incluye la private key). Nunca exponer al frontend.
- * @return array{env: string, base_url: string, public_key: string, private_key: string}
+ * @return array{env: string, base_url: string, public_key: string, private_key: string, site_id: string}
  */
 function hp_payway_config(): array
 {
@@ -32,12 +32,14 @@ function hp_payway_config(): array
             'base_url'    => 'https://ventasonline.payway.com.ar',
             'public_key'  => $s['payway_prod_public_key']  ?? '',
             'private_key' => $s['payway_prod_private_key'] ?? '',
+            'site_id'     => $s['payway_prod_site_id']     ?? '',
         ]
         : [
             'env'         => 'test',
             'base_url'    => 'https://developers.decidir.com',
             'public_key'  => $s['payway_test_public_key']  ?? '',
             'private_key' => $s['payway_test_private_key'] ?? '',
+            'site_id'     => $s['payway_test_site_id']     ?? '',
         ];
 }
 
@@ -88,6 +90,13 @@ function hp_payway_charge(array $payload): array
         return ['ok' => false, 'response' => null, 'error' => 'Payway no está configurado (falta la private key).'];
     }
 
+    // site_id identifica el establecimiento ante Payway/CyberSource — sin él,
+    // el antifraude puede rechazar de forma genérica (id:-1). Se agrega acá
+    // para que ningún caller tenga que acordarse de mandarlo.
+    if ($cfg['site_id'] && !isset($payload['site_id'])) {
+        $payload['site_id'] = $cfg['site_id'];
+    }
+
     $ch = curl_init($cfg['base_url'] . '/api/v2/payments');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -112,6 +121,19 @@ function hp_payway_charge(array $payload): array
     $respData = json_decode((string)$respBody, true);
     if (!is_array($respData)) $respData = [];
 
+    // Payway devuelve un "status" (approved/rejected/etc.) tanto con HTTP 200
+    // como con 402 (pago procesado pero rechazado) — si viene ese campo,
+    // usamos esa info rica en vez de tratarlo como un error de request.
+    if (isset($respData['status'])) {
+        // Allowlist explícita: solo "approved" se trata como éxito. Ante
+        // cualquier otro status (rejected, in_process, o algo no contemplado)
+        // fallamos seguro.
+        if ($respData['status'] !== 'approved') {
+            return ['ok' => false, 'response' => $respData, 'error' => "Pago {$respData['status']}: " . hp_payway_describe_status_details($respData['status_details'] ?? null)];
+        }
+        return ['ok' => true, 'response' => $respData, 'error' => null];
+    }
+
     if ($respCode < 200 || $respCode >= 300) {
         $reason = $respData['message'] ?? $respData['error_type'] ?? substr((string)$respBody, 0, 300);
         if (!empty($respData['validation_errors']) && is_array($respData['validation_errors'])) {
@@ -125,12 +147,29 @@ function hp_payway_charge(array $payload): array
         return ['ok' => false, 'response' => $respData, 'error' => "Payway devolvió HTTP {$respCode}: {$reason}"];
     }
 
-    // Allowlist explícita: solo "approved" se trata como éxito. Ante cualquier
-    // otro status (rejected, in_process, o algo no contemplado) fallamos seguro.
-    if (($respData['status'] ?? '') !== 'approved') {
-        $details = $respData['status_details'] ?? $respData['status'] ?? 'unknown';
-        return ['ok' => false, 'response' => $respData, 'error' => "Pago no aprobado: " . (is_string($details) ? $details : json_encode($details))];
+    // HTTP 2xx sin "status" reconocible — no debería pasar, pero no lo
+    // tratamos como éxito ante la duda (allowlist, no denylist).
+    return ['ok' => false, 'response' => $respData, 'error' => 'Respuesta de Payway sin status reconocible.'];
+}
+
+/**
+ * Arma un texto legible a partir de status_details, sea cual sea su forma
+ * exacta (varía según el tipo de rechazo — antifraude, banco, CyberSource, etc.).
+ */
+function hp_payway_describe_status_details($statusDetails): string
+{
+    if (!is_array($statusDetails)) {
+        return $statusDetails !== null ? (string)$statusDetails : 'sin detalle';
     }
 
-    return ['ok' => true, 'response' => $respData, 'error' => null];
+    $error = $statusDetails['error'] ?? null;
+    if (is_array($error)) {
+        $reason = $error['reason'] ?? null;
+        $msg = is_array($reason) ? ($reason['message'] ?? $reason['description'] ?? null) : null;
+        $type = $error['type'] ?? null;
+        if ($msg) return "{$type}: {$msg}";
+        if ($type) return (string)$type . ' — ' . json_encode($error, JSON_UNESCAPED_UNICODE);
+    }
+
+    return json_encode($statusDetails, JSON_UNESCAPED_UNICODE);
 }
