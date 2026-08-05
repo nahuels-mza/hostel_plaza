@@ -4,7 +4,7 @@
  * Recibe el token ya tokenizado en el navegador (los datos de tarjeta nunca
  * llegan a este endpoint) — ver pay.php.
  *
- * POST JSON: {booking_id, token, bin, billing: {street, city, state, postal_code}}
+ * POST JSON: {booking_id, token, bin, billing: {street, city, state, postal_code, country}}
  * → {ok:true, operationId, amountArs} | {ok:false, error}
  */
 declare(strict_types=1);
@@ -20,10 +20,13 @@ $bookingId = trim((string)($in['booking_id'] ?? ''));
 $token     = trim((string)($in['token'] ?? ''));
 $bin       = preg_replace('/\D/', '', (string)($in['bin'] ?? ''));
 $billing   = is_array($in['billing'] ?? null) ? $in['billing'] : [];
-$billStreet = trim((string)($billing['street'] ?? ''));
-$billCity   = trim((string)($billing['city'] ?? ''));
-$billState  = trim((string)($billing['state'] ?? ''));
-$billZip    = trim((string)($billing['postal_code'] ?? ''));
+$billStreet  = trim((string)($billing['street'] ?? ''));
+$billCity    = trim((string)($billing['city'] ?? ''));
+$billState   = trim((string)($billing['state'] ?? ''));
+$billZip     = trim((string)($billing['postal_code'] ?? ''));
+// País de facturación — 'AR' por default (huésped argentino no manda este
+// campo), o el ISO alpha-2 elegido en pay.php si tildó "tarjeta extranjera".
+$billCountry = strtoupper(trim((string)($billing['country'] ?? 'AR'))) ?: 'AR';
 
 if ($bookingId === '' || $token === '' || strlen($bin) !== 6) {
     http_response_code(400);
@@ -116,7 +119,7 @@ $payload = [
             'city'         => $billCity,
             'state'        => $billState,
             'postal_code'  => $billZip,
-            'country'      => 'AR',
+            'country'      => $billCountry,
             'customer_id'  => $bookingId,
         ],
         'purchase_totals' => [
@@ -127,6 +130,21 @@ $payload = [
             'is_guest'            => true,
             'days_in_site'        => 0,
             'num_of_transactions' => 1,
+        ],
+        // No hay envío físico — es un depósito por 1 noche de hostel.
+        // "homeDelivery" es el único valor que confirmamos documentado por
+        // Payway; si lo rechaza, es el próximo dato a ajustar.
+        'retail_transaction_data' => [
+            'dispatch_method'  => 'homeDelivery',
+            'days_to_delivery' => 0,
+            'items'            => [
+                [
+                    'id'          => 'HOSTEL-1NIGHT',
+                    'value'       => $amountCents,
+                    'description' => "Hostel Plaza - 1 noche ({$bookingId})",
+                    'quantity'    => 1,
+                ],
+            ],
         ],
     ],
 ];
