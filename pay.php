@@ -67,20 +67,6 @@ $arProvinces = [
     'T' => 'Tucumán',
 ];
 
-// Mapeo a ISO 3166-1 alpha-2 de los países de countries.php — para
-// bill_to.country cuando el titular de la tarjeta no es de Argentina.
-$countryIso2 = [
-    'Argentina' => 'AR', 'Bolivia' => 'BO', 'Brazil' => 'BR', 'Chile' => 'CL',
-    'Colombia' => 'CO', 'Ecuador' => 'EC', 'Paraguay' => 'PY', 'Peru' => 'PE',
-    'Uruguay' => 'UY', 'Venezuela' => 'VE', 'Canada' => 'CA', 'Mexico' => 'MX',
-    'United States' => 'US', 'Austria' => 'AT', 'Belgium' => 'BE', 'Denmark' => 'DK',
-    'Finland' => 'FI', 'France' => 'FR', 'Germany' => 'DE', 'Ireland' => 'IE',
-    'Israel' => 'IL', 'Italy' => 'IT', 'Netherlands' => 'NL', 'Norway' => 'NO',
-    'Poland' => 'PL', 'Portugal' => 'PT', 'Spain' => 'ES', 'Sweden' => 'SE',
-    'Switzerland' => 'CH', 'United Kingdom' => 'GB', 'Australia' => 'AU',
-    'New Zealand' => 'NZ', 'China' => 'CN', 'India' => 'IN', 'Japan' => 'JP',
-    'South Korea' => 'KR', 'South Africa' => 'ZA',
-];
 $isForeignGuest = ($booking['nationality'] ?? 'Argentina') !== 'Argentina';
 
 $t = $isEs ? [
@@ -102,9 +88,8 @@ $t = $isEs ? [
     'street'       => 'Calle y número',
     'city'         => 'Ciudad',
     'state'        => 'Provincia',
-    'stateForeign' => 'Provincia / Estado',
-    'country'      => 'País',
     'postalCode'   => 'Código postal',
+    'foreignNote'  => 'No necesitás completar tu dirección — usamos la del hostel para procesar el pago.',
     'submit'       => 'Pagar ' . $fNightlyARS,
     'processing'   => 'Procesando…',
     'unavailable'  => 'El pago online no está disponible en este momento. Podés pagar directamente en el check-in.',
@@ -130,9 +115,8 @@ $t = $isEs ? [
     'street'       => 'Street and number',
     'city'         => 'City',
     'state'        => 'State / Province',
-    'stateForeign' => 'State / Province',
-    'country'      => 'Country',
     'postalCode'   => 'Postal code',
+    'foreignNote'  => "You don't need to fill in your address — we use the hostel's to process the payment.",
     'submit'       => 'Pay ' . $fNightlyARS,
     'processing'   => 'Processing…',
     'unavailable'  => 'Online payment is temporarily unavailable. You can pay directly at check-in.',
@@ -238,7 +222,7 @@ $t = $isEs ? [
                     <?php echo htmlspecialchars($t['foreignCard']); ?>
                 </label>
 
-                <div class="space-y-3">
+                <div id="billingFields" class="space-y-3">
                     <input type="text" id="billStreet" autocomplete="address-line1" required
                            placeholder="<?php echo htmlspecialchars($t['street']); ?>"
                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
@@ -246,29 +230,19 @@ $t = $isEs ? [
                         <input type="text" id="billCity" autocomplete="address-level2" required
                                placeholder="<?php echo htmlspecialchars($t['city']); ?>"
                                class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-
                         <select id="billStateAR" required
-                                class="ar-field col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal bg-white">
+                                class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal bg-white">
                             <option value="" disabled selected><?php echo htmlspecialchars($t['state']); ?></option>
                             <?php foreach ($arProvinces as $code => $name): ?>
                                 <option value="<?php echo htmlspecialchars($code); ?>" <?php echo $code === 'M' ? 'selected' : ''; ?>><?php echo htmlspecialchars($name); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <input type="text" id="billStateForeign"
-                               placeholder="<?php echo htmlspecialchars($t['stateForeign']); ?>"
-                               class="foreign-field hidden col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-
                         <input type="text" id="billPostalCode" autocomplete="postal-code" required
                                placeholder="<?php echo htmlspecialchars($t['postalCode']); ?>"
                                class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
                     </div>
-
-                    <select id="billCountry" class="foreign-field hidden w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal bg-white">
-                        <?php foreach ($countryIso2 as $name => $iso): if ($iso === 'AR') continue; ?>
-                            <option value="<?php echo htmlspecialchars($iso); ?>"><?php echo htmlspecialchars($name); ?></option>
-                        <?php endforeach; ?>
-                    </select>
                 </div>
+                <p id="foreignNote" class="hidden text-xs text-slate-400"><?php echo htmlspecialchars($t['foreignNote']); ?></p>
             </div>
 
             <div id="payError" class="hidden text-red-600 text-xs bg-red-50 border border-red-200 rounded-xl p-3"></div>
@@ -303,21 +277,17 @@ $t = $isEs ? [
                 errorBox.classList.remove('hidden');
             }
 
-            // Toggle argentino/extranjero: cambia qué campos de dirección se
-            // piden y cuáles son obligatorios.
-            const foreignToggle = document.getElementById('foreignToggle');
-            const arFields      = form.querySelectorAll('.ar-field');
-            const foreignFields = form.querySelectorAll('.foreign-field');
+            // Toggle argentino/extranjero: para tarjetas extranjeras no
+            // pedimos dirección — se usa la del hostel del lado del servidor.
+            const foreignToggle  = document.getElementById('foreignToggle');
+            const billingFields  = document.getElementById('billingFields');
+            const foreignNote    = document.getElementById('foreignNote');
+            const billingInputs  = billingFields.querySelectorAll('input, select');
             function applyForeignToggle() {
                 const isForeign = foreignToggle.checked;
-                arFields.forEach(function (el) {
-                    el.classList.toggle('hidden', isForeign);
-                    el.required = !isForeign;
-                });
-                foreignFields.forEach(function (el) {
-                    el.classList.toggle('hidden', !isForeign);
-                    if (el.id === 'billStateForeign') el.required = isForeign;
-                });
+                billingFields.classList.toggle('hidden', isForeign);
+                foreignNote.classList.toggle('hidden', !isForeign);
+                billingInputs.forEach(function (el) { el.required = !isForeign; });
             }
             foreignToggle.addEventListener('change', applyForeignToggle);
             applyForeignToggle();
@@ -350,14 +320,12 @@ $t = $isEs ? [
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 booking_id: bookingId, token: tokenValue, bin: bin,
-                                billing: {
+                                foreign: isForeign,
+                                billing: isForeign ? null : {
                                     street: document.getElementById('billStreet').value,
                                     city: document.getElementById('billCity').value,
-                                    state: isForeign
-                                        ? document.getElementById('billStateForeign').value
-                                        : document.getElementById('billStateAR').value,
+                                    state: document.getElementById('billStateAR').value,
                                     postal_code: document.getElementById('billPostalCode').value,
-                                    country: isForeign ? document.getElementById('billCountry').value : 'AR',
                                 },
                             }),
                         })

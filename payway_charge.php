@@ -4,7 +4,7 @@
  * Recibe el token ya tokenizado en el navegador (los datos de tarjeta nunca
  * llegan a este endpoint) — ver pay.php.
  *
- * POST JSON: {booking_id, token, bin, billing: {street, city, state, postal_code, country}}
+ * POST JSON: {booking_id, token, bin, foreign, billing: {street, city, state, postal_code}}
  * → {ok:true, operationId, amountArs} | {ok:false, error}
  */
 declare(strict_types=1);
@@ -13,20 +13,23 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/payway_lib.php';
 
+// Dirección fija del hostel — se usa como bill_to para tarjetas extranjeras,
+// ya que no tiene sentido pedirle al huésped su dirección real (no la vamos
+// a poder validar contra el banco emisor de todos modos) ni hace que el
+// pago sea más seguro. Payway/CyberSource solo necesita un bill_to válido.
+const HP_BILLING_STREET = 'Av Mitre 1237';
+const HP_BILLING_CITY   = 'Ciudad de Mendoza';
+const HP_BILLING_STATE  = 'M'; // Mendoza — ISO 3166-2:AR
+const HP_BILLING_ZIP    = '5500';
+
 $in = json_decode(file_get_contents('php://input'), true);
 if (!is_array($in)) $in = [];
 
 $bookingId = trim((string)($in['booking_id'] ?? ''));
 $token     = trim((string)($in['token'] ?? ''));
 $bin       = preg_replace('/\D/', '', (string)($in['bin'] ?? ''));
+$isForeign = (bool)($in['foreign'] ?? false);
 $billing   = is_array($in['billing'] ?? null) ? $in['billing'] : [];
-$billStreet  = trim((string)($billing['street'] ?? ''));
-$billCity    = trim((string)($billing['city'] ?? ''));
-$billState   = trim((string)($billing['state'] ?? ''));
-$billZip     = trim((string)($billing['postal_code'] ?? ''));
-// País de facturación — 'AR' por default (huésped argentino no manda este
-// campo), o el ISO alpha-2 elegido en pay.php si tildó "tarjeta extranjera".
-$billCountry = strtoupper(trim((string)($billing['country'] ?? 'AR'))) ?: 'AR';
 
 if ($bookingId === '' || $token === '' || strlen($bin) !== 6) {
     http_response_code(400);
@@ -34,12 +37,27 @@ if ($bookingId === '' || $token === '' || strlen($bin) !== 6) {
     exit;
 }
 
-// CyberSource (antifraude de Payway) rechaza sin esto — ver payway.log:
-// "Bill To is required".
-if ($billStreet === '' || $billCity === '' || $billState === '' || $billZip === '') {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'Falta la dirección de facturación.']);
-    exit;
+if ($isForeign) {
+    // Tarjeta extranjera: no le pedimos dirección al huésped, usamos la del hostel.
+    $billStreet  = HP_BILLING_STREET;
+    $billCity    = HP_BILLING_CITY;
+    $billState   = HP_BILLING_STATE;
+    $billZip     = HP_BILLING_ZIP;
+    $billCountry = 'AR';
+} else {
+    $billStreet  = trim((string)($billing['street'] ?? ''));
+    $billCity    = trim((string)($billing['city'] ?? ''));
+    $billState   = trim((string)($billing['state'] ?? ''));
+    $billZip     = trim((string)($billing['postal_code'] ?? ''));
+    $billCountry = 'AR';
+
+    // CyberSource (antifraude de Payway) rechaza sin esto — ver payway.log:
+    // "Bill To is required".
+    if ($billStreet === '' || $billCity === '' || $billState === '' || $billZip === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Falta la dirección de facturación.']);
+        exit;
+    }
 }
 
 $bookingsFile = __DIR__ . '/bookings.json';
@@ -136,7 +154,7 @@ $payload = [
         // Payway; si lo rechaza, es el próximo dato a ajustar.
         'retail_transaction_data' => [
             'dispatch_method'  => 'homeDelivery',
-            'days_to_delivery' => 0,
+            'days_to_delivery' => 1,
             'items'            => [
                 [
                     'id'          => 'HOSTEL-1NIGHT',
