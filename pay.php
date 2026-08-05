@@ -52,6 +52,11 @@ $t = $isEs ? [
     'holderName'   => 'Nombre del titular',
     'docType'      => 'Tipo de documento',
     'docNumber'    => 'Número de documento',
+    'billingTitle' => 'Dirección de facturación',
+    'street'       => 'Calle y número',
+    'city'         => 'Ciudad',
+    'state'        => 'Provincia',
+    'postalCode'   => 'Código postal',
     'submit'       => 'Pagar ' . $fNightlyARS,
     'processing'   => 'Procesando…',
     'unavailable'  => 'El pago online no está disponible en este momento. Podés pagar directamente en el check-in.',
@@ -72,6 +77,11 @@ $t = $isEs ? [
     'holderName'   => 'Cardholder name',
     'docType'      => 'ID type',
     'docNumber'    => 'ID number',
+    'billingTitle' => 'Billing address',
+    'street'       => 'Street and number',
+    'city'         => 'City',
+    'state'        => 'State / Province',
+    'postalCode'   => 'Postal code',
     'submit'       => 'Pay ' . $fNightlyARS,
     'processing'   => 'Processing…',
     'unavailable'  => 'Online payment is temporarily unavailable. You can pay directly at check-in.',
@@ -169,6 +179,26 @@ $t = $isEs ? [
                 </div>
             </div>
 
+            <div class="pt-1">
+                <p class="text-xs font-bold text-slate-500 mb-2"><?php echo htmlspecialchars($t['billingTitle']); ?></p>
+                <div class="space-y-3">
+                    <input type="text" id="billStreet" autocomplete="address-line1" required
+                           placeholder="<?php echo htmlspecialchars($t['street']); ?>"
+                           class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="text" id="billCity" autocomplete="address-level2" required
+                               placeholder="<?php echo htmlspecialchars($t['city']); ?>"
+                               class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
+                        <input type="text" id="billState" autocomplete="address-level1" required
+                               placeholder="<?php echo htmlspecialchars($t['state']); ?>"
+                               class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
+                        <input type="text" id="billPostalCode" autocomplete="postal-code" required
+                               placeholder="<?php echo htmlspecialchars($t['postalCode']); ?>"
+                               class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
+                    </div>
+                </div>
+            </div>
+
             <div id="payError" class="hidden text-red-600 text-xs bg-red-50 border border-red-200 rounded-xl p-3"></div>
 
             <button type="submit" id="paySubmit"
@@ -226,7 +256,15 @@ $t = $isEs ? [
                         fetch('payway_charge.php', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ booking_id: bookingId, token: tokenValue, bin: bin }),
+                            body: JSON.stringify({
+                                booking_id: bookingId, token: tokenValue, bin: bin,
+                                billing: {
+                                    street: document.getElementById('billStreet').value,
+                                    city: document.getElementById('billCity').value,
+                                    state: document.getElementById('billState').value,
+                                    postal_code: document.getElementById('billPostalCode').value,
+                                },
+                            }),
                         })
                         .then(function (r) { return r.json(); })
                         .then(function (data) {

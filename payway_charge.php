@@ -4,7 +4,7 @@
  * Recibe el token ya tokenizado en el navegador (los datos de tarjeta nunca
  * llegan a este endpoint) — ver pay.php.
  *
- * POST JSON: {booking_id, token, bin}
+ * POST JSON: {booking_id, token, bin, billing: {street, city, state, postal_code}}
  * → {ok:true, operationId, amountArs} | {ok:false, error}
  */
 declare(strict_types=1);
@@ -19,10 +19,23 @@ if (!is_array($in)) $in = [];
 $bookingId = trim((string)($in['booking_id'] ?? ''));
 $token     = trim((string)($in['token'] ?? ''));
 $bin       = preg_replace('/\D/', '', (string)($in['bin'] ?? ''));
+$billing   = is_array($in['billing'] ?? null) ? $in['billing'] : [];
+$billStreet = trim((string)($billing['street'] ?? ''));
+$billCity   = trim((string)($billing['city'] ?? ''));
+$billState  = trim((string)($billing['state'] ?? ''));
+$billZip    = trim((string)($billing['postal_code'] ?? ''));
 
 if ($bookingId === '' || $token === '' || strlen($bin) !== 6) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Datos incompletos.']);
+    exit;
+}
+
+// CyberSource (antifraude de Payway) rechaza sin esto — ver payway.log:
+// "Bill To is required".
+if ($billStreet === '' || $billCity === '' || $billState === '' || $billZip === '') {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'Falta la dirección de facturación.']);
     exit;
 }
 
@@ -69,6 +82,11 @@ if ($paymentMethodId === null) {
 // Alfanumérico, sin guiones ni otros símbolos — la API de Payway lo pide así.
 $siteTransactionId = substr(preg_replace('/[^A-Za-z0-9]/', '', $bookingId . bin2hex(random_bytes(4))), 0, 39);
 
+// Nombre/apellido para bill_to — CyberSource los pide separados.
+$nameParts = preg_split('/\s+/', trim((string)$booking['guestName']), 2);
+$firstName = $nameParts[0] ?? $booking['guestName'];
+$lastName  = $nameParts[1] ?? $nameParts[0] ?? '';
+
 $payload = [
     'site_transaction_id' => $siteTransactionId,
     'token'               => $token,
@@ -86,6 +104,31 @@ $payload = [
     'establishment_name' => 'Hostel Plaza',
     'payment_type'       => 'single',
     'sub_payments'       => [],
+    'fraud_detection'    => [
+        'send_to_cs' => true,
+        'channel'    => 'web',
+        'bill_to'    => [
+            'first_name'   => $firstName,
+            'last_name'    => $lastName,
+            'email'        => $booking['email'] ?? '',
+            'phone_number' => preg_replace('/[^0-9+]/', '', (string)($booking['phone'] ?? '')),
+            'street1'      => $billStreet,
+            'city'         => $billCity,
+            'state'        => $billState,
+            'postal_code'  => $billZip,
+            'country'      => 'AR',
+            'customer_id'  => $bookingId,
+        ],
+        'purchase_totals' => [
+            'currency' => 'ARS',
+            'amount'   => $amountCents,
+        ],
+        'customer_in_site' => [
+            'is_guest'            => true,
+            'days_in_site'        => 0,
+            'num_of_transactions' => 1,
+        ],
+    ],
 ];
 
 $result = hp_payway_charge($payload);
