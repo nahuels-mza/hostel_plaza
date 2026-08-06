@@ -108,6 +108,21 @@ $nameParts = preg_split('/\s+/', trim((string)$booking['guestName']), 2);
 $firstName = $nameParts[0] ?? $booking['guestName'];
 $lastName  = $nameParts[1] ?? $nameParts[0] ?? '';
 
+// bill_to y ship_to tienen la misma forma — acá es "storepickup" (retiro en
+// el hostel), así que la dirección de envío es la misma que la de facturación.
+$addressTo = [
+    'first_name'   => $firstName,
+    'last_name'    => $lastName,
+    'email'        => $booking['email'] ?? '',
+    'phone_number' => preg_replace('/[^0-9+]/', '', (string)($booking['phone'] ?? '')),
+    'street1'      => $billStreet,
+    'city'         => $billCity,
+    'state'        => $billState,
+    'postal_code'  => $billZip,
+    'country'      => $billCountry,
+    'customer_id'  => $bookingId,
+];
+
 $payload = [
     'site_transaction_id' => $siteTransactionId,
     'token'               => $token,
@@ -128,18 +143,8 @@ $payload = [
     'fraud_detection'    => [
         'send_to_cs' => true,
         'channel'    => 'web',
-        'bill_to'    => [
-            'first_name'   => $firstName,
-            'last_name'    => $lastName,
-            'email'        => $booking['email'] ?? '',
-            'phone_number' => preg_replace('/[^0-9+]/', '', (string)($booking['phone'] ?? '')),
-            'street1'      => $billStreet,
-            'city'         => $billCity,
-            'state'        => $billState,
-            'postal_code'  => $billZip,
-            'country'      => $billCountry,
-            'customer_id'  => $bookingId,
-        ],
+        'bill_to'    => $addressTo,
+        'ship_to'    => $addressTo,
         'purchase_totals' => [
             'currency' => 'ARS',
             'amount'   => $amountCents,
