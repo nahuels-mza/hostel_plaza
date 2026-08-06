@@ -150,11 +150,11 @@ $payload = [
             'num_of_transactions' => 1,
         ],
         // No hay envío físico — es un depósito por 1 noche de hostel.
-        // "homeDelivery" es el único valor que confirmamos documentado por
-        // Payway; si lo rechaza, es el próximo dato a ajustar.
+        // "storepickup" (retiro en el local) es el que mejor encaja. Ambos
+        // van como string: el SDK de .NET confirma days_to_delivery="55" (string, no número).
         'retail_transaction_data' => [
-            'dispatch_method'  => 'homeDelivery',
-            'days_to_delivery' => 1,
+            'dispatch_method'  => 'storepickup',
+            'days_to_delivery' => '0',
             'items'            => [
                 [
                     'id'          => 'HOSTEL-1NIGHT',
