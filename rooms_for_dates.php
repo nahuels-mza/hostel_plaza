@@ -136,7 +136,9 @@ foreach ($rooms as $r) {
             elseif ($guestsCount > $capacity) $reason = 'over_capacity';
             else                              $reason = 'ok';
         }
-        $pricePerNight = $nights > 0 ? $totalForStay / $nights : $totalForStay;
+        // Redondeamos a pesos enteros para mostrar: el total real (totalForStay)
+        // no siempre es divisible exacto entre las noches (ej: 310000/7).
+        $pricePerNight = $nights > 0 ? round($totalForStay / $nights) : round($totalForStay);
     } else {
         // Sin mapeo o BananaDesk no devolvió este tipo. Calcular precio de
         // fallback: primero usar price_ars de rooms.json si está cargado,
@@ -148,6 +150,8 @@ foreach ($rooms as $r) {
             $rawUsd = (float)preg_replace('/[^0-9.]/', '', (string)($r['price'] ?? '0'));
             $pricePerNight = $rawUsd * $exchangeARS;
         }
+        $pricePerNight = round($pricePerNight);
+        $totalForStay  = $pricePerNight * $nights;
         $availability  = 0;
         $minStay       = 0;
         $available     = false;
@@ -171,7 +175,7 @@ foreach ($rooms as $r) {
         'reason'              => $reason,
         'guests_count'        => $guestsCount,
         'price_per_night_ars' => $pricePerNight,
-        'total_ars'           => $pricePerNight * $nights,
+        'total_ars'           => $totalForStay,
         'currency'            => $bd['currency'] ?? 'ARS',
         'min_stay'            => $minStay,
         'source'              => $bd ? 'bananadesk' : 'local',

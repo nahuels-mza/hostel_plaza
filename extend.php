@@ -9,17 +9,6 @@ if (file_exists($roomsFile)) {
     $rooms = json_decode(file_get_contents($roomsFile), true) ?: [];
 }
 
-// // Fallback just in case JSON is empty or missing
-// if (empty($rooms)) {
-//     $rooms = [
-//         [ "id" => "1", "name" => "Double Room with Shared Bathroom", "price" => "35", "price_ars" => "38911" ],
-//         [ "id" => "2", "name" => "Family Room", "price" => "35", "price_ars" => "35024" ],
-//         [ "id" => "4", "name" => "4-Bed Female Dorm", "price" => "18", "price_ars" => "17883" ],
-//         [ "id" => "5", "name" => "4-Bed Mixed Dorm", "price" => "18", "price_ars" => "" ],
-//         [ "id" => "6", "name" => "8-Bed Mixed Dorm", "price" => "15", "price_ars" => "" ]
-//     ];
-// }
-
 // Ensure price_ars is calculated based on price and exchangeRateARS
 foreach ($rooms as &$room) {
     $raw_price = (float) preg_replace('/[^0-9.]/', '', $room['price']);
@@ -115,6 +104,7 @@ if (file_exists($bookingsFile)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extend Your Stay | Hostel Plaza</title>
+    <link rel="icon" href="/iconwhite.ico" sizes="any">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -149,81 +139,11 @@ if (file_exists($bookingsFile)) {
 
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <style>
-        .glass {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* --- THE ULTIMATE GOOGLE TRANSLATE KILLER CSS --- */
-        #google_translate_element,
-        .goog-te-banner-frame,
-        .skiptranslate,
-        .goog-te-gadget-icon,
-        .goog-tooltip,
-        .goog-tooltip:hover,
-        #goog-gt-tt { display: none !important; opacity: 0 !important; visibility: hidden !important; }
-        body { top: 0px !important; position: static !important; }
-        html { height: auto !important; top: 0px !important; }
-        html.translated-ltr, html.translated-rtl { margin-top: 0 !important; padding-top: 0 !important; }
-        .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
-
-        .lang-btn { transition: all 0.3s ease; }
-        .lang-btn.active { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
-        .lang-toggle-container { background-color: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
-    </style>
+    <!-- CSS de nav/lang/google translate vive en header.php -->
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-    <div id="google_translate_element"></div>
-
-    <nav id="mainNav" class="fixed top-0 w-full z-50 transition-all duration-300 glass py-3">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <a href="/" class="transition-opacity hover:opacity-80 block shrink-0">
-                <img src="hostel.png" alt="Hostel Plaza Logo" style="height: 60px; width: auto; object-fit: contain; filter: brightness(0) invert(1);" class="block" onerror="this.style.display='none'">
-            </a>
-
-            <div id="desktopMenu" class="hidden lg:flex items-center gap-10 text-sm font-semibold text-white">
-                <nav class="flex items-center gap-8 uppercase tracking-[0.15em] text-[13px] font-bold">
-                    <a href="/" class="hover:text-teal-300 transition-colors">Home</a>
-                    <a href="about" class="hover:text-teal-300 transition-colors">About Us</a>
-                    <a href="rooms" class="hover:text-teal-300 transition-colors">Rooms</a>
-                    <a href="tourist-events" class="hover:text-teal-300 transition-colors">Tourist Events</a>
-                </nav>
-
-                <div class="flex items-center gap-6 pl-4">
-                    <div class="notranslate lang-toggle-container flex items-center backdrop-blur-sm rounded-full p-1 border text-[11px] font-bold tracking-wider transition-all">
-                        <button class="lang-btn active px-3 py-1.5 rounded-full" onclick="changeLanguage('en', this)">EN</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('es', this)">ES</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('pt', this)">PT</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('fr', this)">FR</button>
-                        <button class="lang-btn px-3 py-1.5 rounded-full text-white/70 hover:text-white" onclick="changeLanguage('de', this)">DE</button>
-                    </div>
-                </div>
-            </div>
-
-            <button id="mobileMenuBtn" class="lg:hidden p-2 text-white transition-colors">
-                <i data-lucide="menu"></i>
-            </button>
-        </div>
-
-        <div id="mobileMenu" class="hidden absolute top-full left-0 w-full glass p-6 flex-col space-y-4 shadow-xl text-white border-t border-white/10">
-            <a href="/" class="text-left text-lg font-medium block hover:text-teal-300">Home</a>
-            <a href="about" class="text-left text-lg font-medium block hover:text-teal-300">About Us</a>
-            <a href="rooms" class="text-left text-lg font-medium block hover:text-teal-300">Rooms</a>
-            <a href="events" class="text-left text-lg font-medium block hover:text-teal-300">Events</a>
-
-            <div class="notranslate flex items-center justify-center bg-slate-800 rounded-full p-1 border border-slate-700 text-xs font-bold tracking-wider mt-4">
-                <button class="lang-btn-mob flex-1 active bg-teal text-white px-3 py-2 rounded-full transition-all" onclick="changeLanguage('en', this, true)">EN</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('es', this, true)">ES</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('pt', this, true)">PT</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('fr', this, true)">FR</button>
-                <button class="lang-btn-mob flex-1 text-slate-400 px-3 py-2 rounded-full transition-all" onclick="changeLanguage('de', this, true)">DE</button>
-            </div>
-        </div>
-    </nav>
+    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
 
     <div class="w-full pt-40 pb-16 bg-slate-900 border-b border-white/10">
         <div class="max-w-3xl mx-auto px-6 text-center">
@@ -327,30 +247,12 @@ if (file_exists($bookingsFile)) {
     }
     ?>
 
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'en,es,fr,de,pt',
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
     <script>
         lucide.createIcons();
 
-        // --- GOOGLE TRANSLATE KILLER LOOP ---
-        setInterval(function() {
-            if (document.body.style.top !== '0px') {
-                document.body.style.top = '0px';
-            }
-            if (document.documentElement.style.top !== '0px') {
-                document.documentElement.style.top = '0px';
-            }
-        }, 50);
-
+        // Google Translate init + killer-loop + mobile menu toggle already live in header.php.
+        // This page's own changeLanguage() below overrides the one from header.php (it's
+        // declared later in the DOM) so it can also swap the .nav-label copy on this page.
         function changeLanguage(langCode, btnElement, isMobile = false) {
             var selectField = document.querySelector("#google_translate_element select");
             if(selectField) {
@@ -380,12 +282,12 @@ if (file_exists($bookingsFile)) {
                 label.innerText = label.getAttribute('data-' + langCode) || label.getAttribute('data-en');
             });
 
-            localStorage.setItem('site_lang', langCode);
+            localStorage.setItem('hp_lang', langCode);
         }
 
         window.addEventListener('load', function() {
             setTimeout(function() {
-                let savedLang = localStorage.getItem('site_lang') || 'en';
+                let savedLang = localStorage.getItem('hp_lang') || 'en';
                 let btns = document.querySelectorAll('.lang-btn');
 
                 let targetBtn = null;
@@ -402,13 +304,6 @@ if (file_exists($bookingsFile)) {
                     targetBtn.classList.remove('text-white/70');
                 }
             }, 1000);
-        });
-
-        // --- MOBILE MENU TOGGLE ---
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('hidden');
-            menu.classList.toggle('flex');
         });
 
         // --- FLATPICKR CALENDAR BLOCKED DATES ENGINE ---

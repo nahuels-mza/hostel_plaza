@@ -32,7 +32,7 @@ if (empty($rooms)) {
             "price" => "From $48",
             "price_ars" => "ARS $68,000",
             "description" => "Spacious private room with a queen-size bed, perfect for couples seeking comfort and privacy.",
-            "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495911.jpg?k=2d05efc0c85d55bc46117c2fac077f173fc192703ecc6f42a6b1d03f69f2397b&o="
+            "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/895570952.jpg?k=ecb247a9addcc97c181bbf5b0149e9a76768da57ef31c95aa6854e30074d3e8d&o="
         ],
         [
             "id" => 2,
@@ -62,7 +62,7 @@ if (empty($rooms)) {
             "price" => "From $18",
             "price_ars" => "",
             "description" => "A cozy shared room perfect for socializing with fellow travelers. Features comfortable bunk beds, air conditioning, and plenty of space for your luggage.",
-            "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/729495915.jpg?k=96bca737f1985971884b70e028507f92633ac7a28f2a52a37683029a75b158e9&o="
+            "image" => "https://cf.bstatic.com/xdata/images/hotel/max1024x768/895570963.jpg?k=d8b5579af114b9ddd3aac7b70b6b548a8598cee11014020318e2eca6c1191f78&o="
         ],
         [
             "id" => 6,

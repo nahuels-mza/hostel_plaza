@@ -682,8 +682,8 @@ $seo = [
                         // Mostrar SIEMPRE el precio cuando lo tenemos
                         // (ya sea desde BananaDesk o desde rooms.json como fallback).
                         if (ppn > 0) {
-                            price.textContent = 'AR$ ' + ppn.toLocaleString('es-AR');
-                            total.textContent = 'Total ' + data.nights + 'n: AR$ ' + tot.toLocaleString('es-AR');
+                            price.textContent = 'AR$ ' + ppn.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+                            total.textContent = 'Total ' + data.nights + 'n: AR$ ' + tot.toLocaleString('es-AR', { maximumFractionDigits: 0 });
                         } else {
                             price.textContent = '—';
                             total.textContent = '';
@@ -764,7 +764,7 @@ $seo = [
                     const totalARS = Number(room.total_ars || 0); // ya escalado por huéspedes en dormitorios compartidos
                     const usdMultiplier = (room.booking_unit === 'bed') ? guestsCount : 1;
                     const totalUSD = room.price_usd_from ? (Number(room.price_usd_from) * nights * usdMultiplier) : 0;
-                    document.getElementById('display_total_ars').textContent = 'AR$ ' + totalARS.toLocaleString('es-AR');
+                    document.getElementById('display_total_ars').textContent = 'AR$ ' + totalARS.toLocaleString('es-AR', { maximumFractionDigits: 0 });
                     // totalUSD no se muestra en pantalla (sólo el total en ARS), pero se
                     // sigue mandando en el hidden field: lo usa el mail para huéspedes extranjeros.
                     document.getElementById('hidden_total').value     = totalUSD || 0;

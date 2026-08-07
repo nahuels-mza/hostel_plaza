@@ -31,7 +31,7 @@
         "id": 2,
         "name": "Double Room with Shared Bathroom",
         "type": "Superior Private",
-        "capacity": 3,
+        "capacity": 2,
         "bookingUnit": "room",
         "price": "From $24",
         "price_ars": "",
@@ -90,7 +90,7 @@
         "bookingUnit": "bed",
         "price": "From $12",
         "price_ars": "",
-        "description": "Private room with one double bed and one single bed, great for small families or groups.",
+        "description": "Spacious four bed mixed dorm with big window overlooking the patio.",
         "amenities": [
             "Air Conditioning",
             "Wi-Fi",

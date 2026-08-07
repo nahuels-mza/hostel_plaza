@@ -131,14 +131,20 @@ $t = $isEs ? [
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo htmlspecialchars($t['title']); ?> — Hostel Plaza</title>
+<link rel="icon" href="/iconwhite.ico" sizes="any">
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
     tailwind.config = { theme: { extend: { colors: {
         teal: '#1c5457', 'teal-hover': '#144042', 'teal-light': '#e6f0f0',
     } } } };
 </script>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 font-sans">
+
+<?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+
+<div class="flex-1 w-full flex items-center justify-center pt-20">
 <div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
     <div class="text-center mb-6">
         <img src="H.png" alt="Hostel Plaza" style="height:44px;width:auto;" class="mx-auto mb-3">
@@ -357,5 +363,8 @@ $t = $isEs ? [
         </script>
     <?php endif; ?>
 </div>
+</div>
+
+<script>lucide.createIcons();</script>
 </body>
 </html>

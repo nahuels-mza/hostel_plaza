@@ -568,7 +568,7 @@ $avatarColors = ['bg-rose-100 text-rose-700', 'bg-blue-100 text-blue-700', 'bg-a
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Master | Hostel Plaza</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Master | Hostel Plaza</title><link rel="icon" href="/iconwhite.ico" sizes="any">
     <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
     <script>tailwind.config = { theme: { extend: { colors: { teal: { DEFAULT: '#1c5457' } }, fontFamily: { serif: ['"Playfair Display"', 'serif'], sans: ['"Inter"', 'sans-serif'] } } } }</script>

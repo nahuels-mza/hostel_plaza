@@ -141,6 +141,7 @@ if ($isLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest Portal | Hostel Plaza</title>
+    <link rel="icon" href="/iconwhite.ico" sizes="any">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -148,8 +149,10 @@ if ($isLoggedIn) {
 </head>
 <body class="bg-[#f8fafc] font-sans text-slate-800 min-h-screen flex flex-col">
 
+    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+
     <?php if (!$isLoggedIn): ?>
-    <div class="flex-1 flex items-center justify-center p-6">
+    <div class="flex-1 flex items-center justify-center p-6 pt-24">
         <div class="max-w-md w-full bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
             
@@ -188,7 +191,7 @@ if ($isLoggedIn) {
     </div>
 
     <?php else: ?>
-    <nav class="bg-white border-b border-slate-100 py-4 px-6 md:px-10 flex justify-between items-center sticky top-0 z-50">
+    <nav class="bg-white border-b border-slate-100 py-4 px-6 md:px-10 flex justify-between items-center mt-20">
         <div>
             <h1 class="text-2xl font-serif font-bold text-slate-900 leading-none">Hostel Plaza</h1>
             <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1">Guest Portal</p>

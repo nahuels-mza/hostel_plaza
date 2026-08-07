@@ -239,8 +239,8 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
                     <?php endforeach; ?>
 
                     <?php if (count($aboutGallery) > 1): ?>
-                    <button type="button" onclick="scrollAbout(-1)" aria-label="Previous photo" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-slate-700 hover:bg-teal hover:text-white transition-all shadow-md z-10"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                    <button type="button" onclick="scrollAbout(1)" aria-label="Next photo" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-slate-700 hover:bg-teal hover:text-white transition-all shadow-md z-10"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    <button type="button" onclick="scrollAbout(-1)" aria-label="Previous photo" class="absolute left-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm z-10"><i data-lucide="chevron-left"></i></button>
+                    <button type="button" onclick="scrollAbout(1)" aria-label="Next photo" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm z-10"><i data-lucide="chevron-right"></i></button>
                     <?php endif; ?>
                 </div>
                 <?php if (count($aboutGallery) > 1): ?>
@@ -300,7 +300,7 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
                             View
                         </a>
                         <a href="book.php?room_id=<?php echo urlencode($room['id']); ?>" class="flex-1 block text-center py-4 bg-teal text-white rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-hover group-hover:shadow-md">
-                            Book
+                            Book Now
                         </a>
                     </div>
                 </div>
