@@ -764,7 +764,16 @@ function hp_handle_message(string $from, string $text, ?string $messageId = null
                   . "Huésped: {$text}\n\n"
                   . "Bot: {$reply}"
                   . $slotSummary;
-            wa_send_text($cfg, $admin, $note);
+            $adminSend = wa_send_text($cfg, $admin, $note);
+            if (!$adminSend['ok']) {
+                hp_log("Admin forward FAIL a +{$admin}: code={$adminSend['code']} body=" . substr((string)$adminSend['body'], 0, 500));
+            } else {
+                hp_log("Admin forward OK a +{$admin}");
+            }
+        } else {
+            hp_log("Admin forward SKIP: admin ({$admin}) === from ({$from})");
         }
+    } else {
+        hp_log("Admin forward SKIP: forward=" . ($cfg['admin']['forward'] ? '1' : '0') . " phone=" . ($cfg['admin']['phone'] ?: 'empty'));
     }
 }
