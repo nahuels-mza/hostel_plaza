@@ -4,7 +4,7 @@
  * Recibe el token ya tokenizado en el navegador (los datos de tarjeta nunca
  * llegan a este endpoint) — ver pay.php.
  *
- * POST JSON: {booking_id, token, bin, foreign, billing: {street, city, state, postal_code}}
+ * POST JSON: {booking_id, token, bin}
  * → {ok:true, operationId, amountArs} | {ok:false, error}
  */
 declare(strict_types=1);
@@ -13,51 +13,17 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/payway_lib.php';
 
-// Dirección fija del hostel — se usa como bill_to para tarjetas extranjeras,
-// ya que no tiene sentido pedirle al huésped su dirección real (no la vamos
-// a poder validar contra el banco emisor de todos modos) ni hace que el
-// pago sea más seguro. Payway/CyberSource solo necesita un bill_to válido.
-const HP_BILLING_STREET = 'Av Mitre 1237';
-const HP_BILLING_CITY   = 'Ciudad de Mendoza';
-const HP_BILLING_STATE  = 'M'; // Mendoza — ISO 3166-2:AR
-const HP_BILLING_ZIP    = '5500';
-
 $in = json_decode(file_get_contents('php://input'), true);
 if (!is_array($in)) $in = [];
 
 $bookingId = trim((string)($in['booking_id'] ?? ''));
 $token     = trim((string)($in['token'] ?? ''));
 $bin       = preg_replace('/\D/', '', (string)($in['bin'] ?? ''));
-$isForeign = (bool)($in['foreign'] ?? false);
-$billing   = is_array($in['billing'] ?? null) ? $in['billing'] : [];
 
 if ($bookingId === '' || $token === '' || strlen($bin) !== 6) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Datos incompletos.']);
     exit;
-}
-
-if ($isForeign) {
-    // Tarjeta extranjera: no le pedimos dirección al huésped, usamos la del hostel.
-    $billStreet  = HP_BILLING_STREET;
-    $billCity    = HP_BILLING_CITY;
-    $billState   = HP_BILLING_STATE;
-    $billZip     = HP_BILLING_ZIP;
-    $billCountry = 'AR';
-} else {
-    $billStreet  = trim((string)($billing['street'] ?? ''));
-    $billCity    = trim((string)($billing['city'] ?? ''));
-    $billState   = trim((string)($billing['state'] ?? ''));
-    $billZip     = trim((string)($billing['postal_code'] ?? ''));
-    $billCountry = 'AR';
-
-    // CyberSource (antifraude de Payway) rechaza sin esto — ver payway.log:
-    // "Bill To is required".
-    if ($billStreet === '' || $billCity === '' || $billState === '' || $billZip === '') {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => 'Falta la dirección de facturación.']);
-        exit;
-    }
 }
 
 $bookingsFile = __DIR__ . '/bookings.json';
@@ -103,26 +69,11 @@ if ($paymentMethodId === null) {
 // Alfanumérico, sin guiones ni otros símbolos — la API de Payway lo pide así.
 $siteTransactionId = substr(preg_replace('/[^A-Za-z0-9]/', '', $bookingId . bin2hex(random_bytes(4))), 0, 39);
 
-// Nombre/apellido para bill_to — CyberSource los pide separados.
-$nameParts = preg_split('/\s+/', trim((string)$booking['guestName']), 2);
-$firstName = $nameParts[0] ?? $booking['guestName'];
-$lastName  = $nameParts[1] ?? $nameParts[0] ?? '';
-
-// bill_to y ship_to tienen la misma forma — acá es "storepickup" (retiro en
-// el hostel), así que la dirección de envío es la misma que la de facturación.
-$addressTo = [
-    'first_name'   => $firstName,
-    'last_name'    => $lastName,
-    'email'        => $booking['email'] ?? '',
-    'phone_number' => preg_replace('/[^0-9+]/', '', (string)($booking['phone'] ?? '')),
-    'street1'      => $billStreet,
-    'city'         => $billCity,
-    'state'        => $billState,
-    'postal_code'  => $billZip,
-    'country'      => $billCountry,
-    'customer_id'  => $bookingId,
-];
-
+// Payload mínimo — igual al ejemplo oficial de Payway (sección "3. Pagos").
+// Ya probamos armar fraud_detection completo (bill_to/ship_to/retail_transaction_data)
+// y el resultado fue el mismo rechazo genérico (cybersource_error id:-1) que
+// sin nada de eso — así que no lo mandamos por ahora. sub_payments SÍ es
+// obligatorio (confirmado con un error real de Payway: "param_required").
 $payload = [
     'site_transaction_id' => $siteTransactionId,
     'token'               => $token,
@@ -131,45 +82,13 @@ $payload = [
         'email'      => $booking['email'] ?? '',
         'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
     ],
-    'payment_method_id'  => $paymentMethodId,
-    'bin'                => $bin,
-    'amount'             => $amountCents,
-    'currency'           => 'ARS',
-    'installments'       => 1,
-    'description'        => "Hostel Plaza - {$bookingId}",
-    'establishment_name' => 'Hostel Plaza',
-    'payment_type'       => 'single',
-    'sub_payments'       => [],
-    'fraud_detection'    => [
-        'send_to_cs' => true,
-        'channel'    => 'web',
-        'bill_to'    => $addressTo,
-        'ship_to'    => $addressTo,
-        'purchase_totals' => [
-            'currency' => 'ARS',
-            'amount'   => $amountCents,
-        ],
-        'customer_in_site' => [
-            'is_guest'            => true,
-            'days_in_site'        => 0,
-            'num_of_transactions' => 1,
-        ],
-        // No hay envío físico — es un depósito por 1 noche de hostel.
-        // "storepickup" (retiro en el local) es el que mejor encaja. Ambos
-        // van como string: el SDK de .NET confirma days_to_delivery="55" (string, no número).
-        'retail_transaction_data' => [
-            'dispatch_method'  => 'storepickup',
-            'days_to_delivery' => '0',
-            'items'            => [
-                [
-                    'id'          => 'HOSTEL-1NIGHT',
-                    'value'       => $amountCents,
-                    'description' => "Hostel Plaza - 1 noche ({$bookingId})",
-                    'quantity'    => 1,
-                ],
-            ],
-        ],
-    ],
+    'payment_method_id' => $paymentMethodId,
+    'bin'               => $bin,
+    'amount'            => $amountCents,
+    'currency'          => 'ARS',
+    'installments'      => 1,
+    'payment_type'      => 'single',
+    'sub_payments'      => [],
 ];
 
 $result = hp_payway_charge($payload);

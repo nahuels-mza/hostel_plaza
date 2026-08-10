@@ -38,37 +38,6 @@ $fNightlyARS = 'AR$ ' . number_format($nightlyARS, 0, ',', '.');
 
 $pwPublic = hp_payway_public_config();
 
-// Códigos de provincia ISO 3166-2:AR — CyberSource (antifraude de Payway)
-// exige este formato exacto para bill_to.state, no el nombre completo.
-$arProvinces = [
-    'C' => 'Ciudad Autónoma de Buenos Aires',
-    'B' => 'Buenos Aires',
-    'K' => 'Catamarca',
-    'H' => 'Chaco',
-    'U' => 'Chubut',
-    'X' => 'Córdoba',
-    'W' => 'Corrientes',
-    'E' => 'Entre Ríos',
-    'P' => 'Formosa',
-    'Y' => 'Jujuy',
-    'L' => 'La Pampa',
-    'F' => 'La Rioja',
-    'M' => 'Mendoza',
-    'N' => 'Misiones',
-    'Q' => 'Neuquén',
-    'R' => 'Río Negro',
-    'A' => 'Salta',
-    'J' => 'San Juan',
-    'D' => 'San Luis',
-    'Z' => 'Santa Cruz',
-    'S' => 'Santa Fe',
-    'G' => 'Santiago del Estero',
-    'V' => 'Tierra del Fuego',
-    'T' => 'Tucumán',
-];
-
-$isForeignGuest = ($booking['nationality'] ?? 'Argentina') !== 'Argentina';
-
 $t = $isEs ? [
     'title'        => 'Confirmá tu estadía',
     'notFound'     => 'No encontramos esa reserva. Usá el link de tu mail de confirmación.',
@@ -83,13 +52,6 @@ $t = $isEs ? [
     'holderName'   => 'Nombre del titular',
     'docType'      => 'Tipo de documento',
     'docNumber'    => 'Número de documento',
-    'billingTitle' => 'Dirección de facturación',
-    'foreignCard'  => 'Mi tarjeta fue emitida fuera de Argentina',
-    'street'       => 'Calle y número',
-    'city'         => 'Ciudad',
-    'state'        => 'Provincia',
-    'postalCode'   => 'Código postal',
-    'foreignNote'  => 'No necesitás completar tu dirección — usamos la del hostel para procesar el pago.',
     'submit'       => 'Pagar ' . $fNightlyARS,
     'processing'   => 'Procesando…',
     'unavailable'  => 'El pago online no está disponible en este momento. Podés pagar directamente en el check-in.',
@@ -110,13 +72,6 @@ $t = $isEs ? [
     'holderName'   => 'Cardholder name',
     'docType'      => 'ID type',
     'docNumber'    => 'ID number',
-    'billingTitle' => 'Billing address',
-    'foreignCard'  => 'My card was issued outside Argentina',
-    'street'       => 'Street and number',
-    'city'         => 'City',
-    'state'        => 'State / Province',
-    'postalCode'   => 'Postal code',
-    'foreignNote'  => "You don't need to fill in your address — we use the hostel's to process the payment.",
     'submit'       => 'Pay ' . $fNightlyARS,
     'processing'   => 'Processing…',
     'unavailable'  => 'Online payment is temporarily unavailable. You can pay directly at check-in.',
@@ -220,37 +175,6 @@ $t = $isEs ? [
                 </div>
             </div>
 
-            <div class="pt-1">
-                <p class="text-xs font-bold text-slate-500 mb-2"><?php echo htmlspecialchars($t['billingTitle']); ?></p>
-
-                <label class="flex items-center gap-2 mb-3 text-xs text-slate-600 cursor-pointer">
-                    <input type="checkbox" id="foreignToggle" <?php echo $isForeignGuest ? 'checked' : ''; ?> class="rounded border-slate-300 text-teal focus:ring-teal">
-                    <?php echo htmlspecialchars($t['foreignCard']); ?>
-                </label>
-
-                <div id="billingFields" class="space-y-3">
-                    <input type="text" id="billStreet" autocomplete="address-line1" required
-                           placeholder="<?php echo htmlspecialchars($t['street']); ?>"
-                           class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                    <div class="grid grid-cols-3 gap-3">
-                        <input type="text" id="billCity" autocomplete="address-level2" required
-                               placeholder="<?php echo htmlspecialchars($t['city']); ?>"
-                               class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                        <select id="billStateAR" required
-                                class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal bg-white">
-                            <option value="" disabled selected><?php echo htmlspecialchars($t['state']); ?></option>
-                            <?php foreach ($arProvinces as $code => $name): ?>
-                                <option value="<?php echo htmlspecialchars($code); ?>" <?php echo $code === 'M' ? 'selected' : ''; ?>><?php echo htmlspecialchars($name); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="text" id="billPostalCode" autocomplete="postal-code" required
-                               placeholder="<?php echo htmlspecialchars($t['postalCode']); ?>"
-                               class="col-span-1 w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                    </div>
-                </div>
-                <p id="foreignNote" class="hidden text-xs text-slate-400"><?php echo htmlspecialchars($t['foreignNote']); ?></p>
-            </div>
-
             <div id="payError" class="hidden text-red-600 text-xs bg-red-50 border border-red-200 rounded-xl p-3"></div>
 
             <button type="submit" id="paySubmit"
@@ -269,7 +193,9 @@ $t = $isEs ? [
         <script>
         (function () {
             const bookingId = <?php echo json_encode($bookingId); ?>;
-            const decidir = new Decidir(<?php echo json_encode($pwPublic['sdk_base_url']); ?>);
+            // 2do parámetro = deshabilita CyberSource (fraud_detection). Por default
+            // el SDK lo usa, y era lo que nos rechazaba con cybersource_error id:-1.
+            const decidir = new Decidir(<?php echo json_encode($pwPublic['sdk_base_url']); ?>, true);
             decidir.setPublishableKey(<?php echo json_encode($pwPublic['public_key']); ?>);
             decidir.setTimeout(5000);
 
@@ -282,21 +208,6 @@ $t = $isEs ? [
                 errorBox.textContent = msg;
                 errorBox.classList.remove('hidden');
             }
-
-            // Toggle argentino/extranjero: para tarjetas extranjeras no
-            // pedimos dirección — se usa la del hostel del lado del servidor.
-            const foreignToggle  = document.getElementById('foreignToggle');
-            const billingFields  = document.getElementById('billingFields');
-            const foreignNote    = document.getElementById('foreignNote');
-            const billingInputs  = billingFields.querySelectorAll('input, select');
-            function applyForeignToggle() {
-                const isForeign = foreignToggle.checked;
-                billingFields.classList.toggle('hidden', isForeign);
-                foreignNote.classList.toggle('hidden', !isForeign);
-                billingInputs.forEach(function (el) { el.required = !isForeign; });
-            }
-            foreignToggle.addEventListener('change', applyForeignToggle);
-            applyForeignToggle();
 
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -320,20 +231,10 @@ $t = $isEs ? [
                             console.warn('Decidir createToken response sin token/id:', response);
                             return;
                         }
-                        const isForeign = foreignToggle.checked;
                         fetch('payway_charge.php', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                booking_id: bookingId, token: tokenValue, bin: bin,
-                                foreign: isForeign,
-                                billing: isForeign ? null : {
-                                    street: document.getElementById('billStreet').value,
-                                    city: document.getElementById('billCity').value,
-                                    state: document.getElementById('billStateAR').value,
-                                    postal_code: document.getElementById('billPostalCode').value,
-                                },
-                            }),
+                            body: JSON.stringify({ booking_id: bookingId, token: tokenValue, bin: bin }),
                         })
                         .then(function (r) { return r.json(); })
                         .then(function (data) {
