@@ -768,7 +768,13 @@ function hp_handle_message(string $from, string $text, ?string $messageId = null
             if (!$adminSend['ok']) {
                 hp_log("Admin forward FAIL a +{$admin}: code={$adminSend['code']} body=" . substr((string)$adminSend['body'], 0, 500));
             } else {
-                hp_log("Admin forward OK a +{$admin}");
+                // Extraemos message_id y wa_id para trazabilidad. Si wa_id != admin,
+                // Meta puede no estar entregando aunque haya devuelto 200.
+                $body = json_decode((string)$adminSend['body'], true);
+                $msgId = $body['messages'][0]['id'] ?? '?';
+                $waId  = $body['contacts'][0]['wa_id'] ?? '?';
+                $match = ($waId === $admin) ? 'wa_id-match' : "wa_id-MISMATCH(got:{$waId})";
+                hp_log("Admin forward OK a +{$admin} · msgid={$msgId} · {$match}");
             }
         } else {
             hp_log("Admin forward SKIP: admin ({$admin}) === from ({$from})");
