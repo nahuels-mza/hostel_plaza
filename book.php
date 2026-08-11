@@ -442,14 +442,23 @@ $seo = [
                                            class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium outline-none cursor-not-allowed">
                                     <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room. To change it, use "Change dates" above.</p>
                                 </div>
-                                <div class="md:col-span-2">
+                                <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Full Legal Name *</label>
                                     <input type="text" name="guest_name" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal" placeholder="As it appears on your ID">
                                 </div>
-
                                 <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Email *</label>
                                     <input type="email" name="email" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal" placeholder="you@example.com">
+                                </div>
+
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Country *</label>
+                                    <select name="nationality" id="nationality_select" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal">
+                                        <option value="">Select country…</option>
+                                        <?php foreach ($countries as $c): ?>
+                                        <option value="<?= htmlspecialchars($c['name']) ?>"<?= $c['name'] === 'Argentina' ? ' selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Phone *</label>
@@ -466,15 +475,6 @@ $seo = [
                                 </div>
 
                                 <div>
-                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Country *</label>
-                                    <select name="nationality" id="nationality_select" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal">
-                                        <option value="">Select country…</option>
-                                        <?php foreach ($countries as $c): ?>
-                                        <option value="<?= htmlspecialchars($c['name']) ?>"<?= $c['name'] === 'Argentina' ? ' selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">ID Type *</label>
                                     <select name="id_type" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal">
                                         <option value="">Select…</option>
@@ -484,7 +484,7 @@ $seo = [
                                         <option value="Driver License">Driver License</option>
                                     </select>
                                 </div>
-                                <div class="md:col-span-2">
+                                <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">ID Number *</label>
                                     <input type="text" name="id_number" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal">
                                 </div>
