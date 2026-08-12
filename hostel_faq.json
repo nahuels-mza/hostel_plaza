@@ -94,6 +94,10 @@
                 {
                     "q": "What's special about the hostel building?",
                     "a": "Hostel Plaza occupies a beautifully preserved heritage house in the center of Mendoza. Learn more about the building and our history at https://hostelplaza.com.ar/history."
+                },
+                {
+                    "q": "Do you accept volunteers / work exchange?",
+                    "a": "Yes! We work with volunteers exclusively through the Worldpackers app (https://www.worldpackers.com)."
                 }
             ]
         }

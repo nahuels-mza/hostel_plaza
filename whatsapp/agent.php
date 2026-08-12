@@ -292,12 +292,37 @@ function hp_tools_definition(): array
                 'required' => [],
             ],
         ],
+        [
+            'name' => 'check_paso_cristo_redentor',
+            'description' => 'Estima el estado del Paso Cristo Redentor (frontera Argentina-Chile, altura ~3.200 m) según el pronóstico del clima. NO es el estado oficial — es una estimación heurística basada en nieve, viento y visibilidad. USAR cuando el huésped pregunta por: cruzar a Chile, ir a Santiago/Valparaíso/Viña, el paso, la cordillera, esquiar en Portillo, "Los Libertadores" (nombre chileno del paso), etc. Devuelve un juicio ("likely_open" / "at_risk" / "likely_closed") + los datos del pronóstico + un disclaimer para confirmar oficialmente antes de viajar.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'date' => ['type' => 'string', 'description' => 'Fecha YYYY-MM-DD (opcional, hasta hoy+16). Si se omite, usa HOY.'],
+                ],
+                'required' => [],
+            ],
+        ],
     ];
 }
 
 function hp_run_tool(string $name, array $input, string $phone): array
 {
     $cfg = hp_cfg();
+
+    if ($name === 'check_paso_cristo_redentor') {
+        $date = hp_normalize_date($input['date'] ?? '');
+        $today = date('Y-m-d');
+        if (!$date) $date = $today;
+        if ($date < $today) $date = $today;
+        $maxDate = date('Y-m-d', strtotime('+16 days'));
+        if ($date > $maxDate) {
+            return [
+                'error' => "El pronóstico solo llega hasta {$maxDate}. Para fechas más lejanas, sugerí consultar https://www.andesargentina.com.ar",
+            ];
+        }
+        return hp_paso_cristo_fetch($date, $cfg['paths']['cache']);
+    }
 
     if ($name === 'get_weather') {
         $checkIn  = hp_normalize_date($input['check_in']  ?? '');
@@ -442,7 +467,22 @@ function hp_system_prompt(string $phone): string
 {
     $cfg   = hp_cfg();
     $h     = $cfg['hostel'];
-    $today = date('Y-m-d');
+
+    // Fecha y hora en Mendoza (America/Argentina/Mendoza, UTC-3, no DST)
+    $mzaTz  = new DateTimeZone('America/Argentina/Mendoza');
+    $mzaNow = new DateTime('now', $mzaTz);
+    $today   = $mzaNow->format('Y-m-d');
+    $todayHr = (int)$mzaNow->format('G');   // 0-23
+    $todayHM = $mzaNow->format('H:i');
+    $todayDayName = $mzaNow->format('l');    // Monday, Tuesday...
+
+    // Horario de atención presencial del staff (para saber cuándo derivar al teléfono humano)
+    $staffOpenHr  = 8;   // 8am
+    $staffCloseHr = 22;  // 10pm
+    $staffOpenNow = ($todayHr >= $staffOpenHr && $todayHr < $staffCloseHr);
+    $staffStatus  = $staffOpenNow
+        ? "ABIERTO ahora (horario {$staffOpenHr}:00-{$staffCloseHr}:00)"
+        : "CERRADO ahora (horario {$staffOpenHr}:00-{$staffCloseHr}:00, reabre a las {$staffOpenHr}:00)";
 
     $slots = hp_get_slots($phone);
     $slotsDump = empty($slots)
@@ -458,7 +498,8 @@ DATOS BÁSICOS:
 - Sitio web: {$h['website']}
 - Check-in: {$h['check_in']} | Check-out: {$h['check_out']} | Desayuno incluido: {$h['breakfast']}
 - Tu WhatsApp (el del hostel): +54 9 261 259-2729
-- Hoy es {$today}.
+- Hoy es {$today} ({$todayDayName}), ahora son las {$todayHM} hora Argentina.
+- Staff humano: {$staffStatus}.
 
 TU TAREA PRINCIPAL:
 Ayudar al huésped en 3 tipos de consultas:
@@ -469,7 +510,8 @@ Ayudar al huésped en 3 tipos de consultas:
 2. **Reservas existentes** → Si mencionan un código HP-XXXX o preguntan por el estado
    de "su reserva", llamás `lookup_booking` con ese código. Contame la info que sabés
    (fechas, habitación, estado, total pendiente, notas) SIN mencionar teléfono/email/DNI.
-   Si quiere modificar o cancelar, derivá al staff (+54 9 2615 37-2767).
+   Si quiere modificar o cancelar, derivá al staff SOLO si está ABIERTO ahora
+   (ver status arriba). Fuera de horario, decí que el staff responde desde las {$staffOpenHr}:00 hs.
 
 3. **Consultas generales** (servicios, políticas, tours) → Respondés usando el FAQ de
    abajo. No inventes datos que no estén ahí.
@@ -508,7 +550,8 @@ ESTILO:
 - Si dan fechas raras (check-out antes que check-in, fechas pasadas), pedí aclaración
   con buena onda.
 - Si te preguntan algo que NO está en el FAQ ni es sobre reservas, decí que no sabés
-  y derivá a {$h['website']} o al staff en el mismo número.
+  y derivá a {$h['website']} — mencioná al staff (+54 9 2615 37-2767) SOLO si está
+  ABIERTO ahora según status; si no, ofrecé responder mañana o email/web.
 
 CONSULTAS SOBRE EL CLIMA:
 Si el huésped pregunta por el clima ("¿va a llover?", "how's the weather?", "que tiempo hace"):
@@ -519,14 +562,56 @@ Si el huésped pregunta por el clima ("¿va a llover?", "how's the weather?", "q
 - Si el pronóstico predice tormenta o lluvia fuerte, sugerí llevar algo abrigado/paraguas
   con buena onda.
 
+CONSULTAS SOBRE EL PASO CRISTO REDENTOR (frontera a Chile):
+Si el huésped pregunta sobre cruzar a Chile, ir a Santiago/Valparaíso/Portillo,
+el paso, "Los Libertadores", la cordillera, esquiar del lado chileno, etc.:
+- Llamá `check_paso_cristo_redentor` con la fecha del cruce (si la mencionaron)
+  o sin parámetros para HOY.
+- Presentá el estado estimado (abierto/riesgo/cerrado) con las razones concretas
+  (nevada X cm, viento Y km/h, etc.) de forma breve.
+- SIEMPRE aclará que es una estimación según pronóstico y NO el estado oficial.
+  Sugerí consultar https://www.andesargentina.com.ar/pasos-cordilleranos o
+  redes de Vialidad Nacional antes de viajar.
+- Si `likely_status` = "likely_closed" o "at_risk", sugerí planes B (quedarse
+  en Mendoza, wine tour, etc.) con buena onda.
+
 CONSULTAS SOBRE TOURS / EXCURSIONES / EVENTOS:
 Estos temas los maneja el equipo de tours del hostel, NO vos. Cuando el huésped
 pregunta sobre una actividad específica (wine tour, paragliding, rafting, bike rental,
 horse rides, city tour, cualquier excursión, etc.):
 - Confirmá brevemente que sí ofrecen ese tipo de actividades.
-- Derivalo SIEMPRE al número del equipo de tours: **+54 9 2615 37-2767**
-- También podés mencionarles el link {$h['website']}/tourist-events para ver el calendario.
+- Mencioná el link {$h['website']}/tourist-events para ver el calendario.
+- Si el staff está ABIERTO ahora, sugerí escribir a **+54 9 2615 37-2767** para info detallada.
+- Si el staff está CERRADO, NO sugieras el número. En su lugar, decí "el equipo de tours
+  te va a poder atender mañana desde las {$staffOpenHr}:00 hs" o similar. Podés ofrecer que
+  visite el sitio para reservar directamente cuando esté disponible.
 - NO inventes precios, horarios ni disponibilidad de tours — no tenés esa info.
+
+REGLA GENERAL SOBRE EL NÚMERO DE STAFF (+54 9 2615 37-2767):
+- Solo sugerí ese número cuando el staff esté ABIERTO (revisá el status en DATOS BÁSICOS arriba).
+- Fuera del horario, ofrecé alternativas: web ({$h['website']}), decí que responden a la
+  mañana, o resolvé lo que puedas vos mismo con el FAQ.
+- Esto vale para tours Y para cualquier otra derivación al staff humano.
+
+RESERVAS PARA "HOY" A LA NOCHE (EDGE CASE):
+El check-in del hostel es a partir de las {$h['check_in']}. Si el huésped consulta cerca
+de la medianoche ("¿tienen lugar para esta noche?", "quiero una cama ya") y la hora
+Argentina actual es tarde (después de las 20:00 aprox), tené en cuenta:
+- Es muy probable que ya no llegue a tiempo al check-in de HOY.
+- Aclarale: "Nuestro check-in es hasta las 23:30. Si llegás después, contá como
+  entrada mañana desde las {$h['check_in']}."
+- Ofrecé el link con check_in = MAÑANA (calculá la fecha correctamente), y comentá que
+  puede cambiarla en el sitio si prefiere otra.
+- Si es antes de las 20:00 y insiste con "hoy", generá el link con hoy pero avisá que
+  BananaDesk mostrará solo las habitaciones que efectivamente puedan recibirlo hoy.
+
+CONSULTAS SOBRE TRABAJO / VOLUNTARIADO:
+Si el huésped pregunta sobre trabajar en el hostel, voluntariado, "work exchange",
+"volunteer", intercambio, "puedo trabajar a cambio de alojamiento", etc.:
+- Explicá brevemente que las vacantes de voluntariado y work-exchange las manejamos
+  exclusivamente a través de la app **Worldpackers** (https://www.worldpackers.com).
+- Sugerí que busque "Hostel Plaza Mendoza" en Worldpackers y aplique desde ahí.
+- NO derives al staff humano para esto — Worldpackers es el único canal.
 
 ===== FAQ / INFO DEL HOSTEL (usá esto para responder consultas) =====
 {$faqText}
@@ -604,6 +689,116 @@ function hp_weather_fetch(string $startDate, string $endDate, string $cacheDir):
         'days'       => $days,
         'source'     => 'Open-Meteo',
         'cached'     => false,
+    ];
+
+    @mkdir($cacheDir, 0775, true);
+    @file_put_contents($cacheFile, json_encode($result, JSON_UNESCAPED_UNICODE));
+    return $result;
+}
+
+/**
+ * Estima el estado del Paso Cristo Redentor (frontera AR-CL, ~3.200 m)
+ * usando el pronóstico de Open-Meteo en las coordenadas del paso.
+ *
+ * NO es fuente oficial — es una estimación heurística. El estado oficial
+ * lo publica Gendarmería Nacional / Vialidad Argentina.
+ *
+ * Heurística:
+ *   - Nevada > 5 cm/día         → likely_closed
+ *   - Viento max > 70 km/h       → likely_closed (voladura de nieve)
+ *   - Nevada 1-5 cm o viento 50-70 → at_risk
+ *   - Weather code de tormenta (95-99) → at_risk
+ *   - Niebla densa (45,48)       → at_risk
+ *   - Nada de lo anterior        → likely_open
+ */
+function hp_paso_cristo_fetch(string $date, string $cacheDir): array
+{
+    // Coordenadas del paso (Cumbre): 32°49'38"S 70°05'32"O ≈ -32.8272, -70.0921
+    $ttl = 21600; // 6h
+    $cacheFile = rtrim($cacheDir, '/') . "/paso_cristo_{$date}.json";
+    if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
+        $c = json_decode(file_get_contents($cacheFile), true);
+        if (is_array($c)) { $c['cached'] = true; return $c; }
+    }
+
+    $url = 'https://api.open-meteo.com/v1/forecast'
+         . '?latitude=-32.8272&longitude=-70.0921'
+         . '&daily=weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,wind_speed_10m_max,precipitation_sum'
+         . '&timezone=America/Argentina/Mendoza'
+         . '&start_date=' . rawurlencode($date)
+         . '&end_date='   . rawurlencode($date);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => ['Accept: application/json', 'User-Agent: HostelPlaza-Bot/1.0'],
+        CURLOPT_TIMEOUT        => 12,
+        CURLOPT_FOLLOWLOCATION => true,
+    ]);
+    $body = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code < 200 || $code >= 300 || !$body) {
+        return ['ok' => false, 'error' => "Open-Meteo HTTP $code para paso", 'cached' => false];
+    }
+    $raw = json_decode($body, true);
+    if (!is_array($raw) || empty($raw['daily']['time'])) {
+        return ['ok' => false, 'error' => 'Respuesta no válida', 'cached' => false];
+    }
+
+    $d       = $raw['daily'];
+    $wc      = (int)($d['weather_code'][0]      ?? -1);
+    $tMax    = (float)($d['temperature_2m_max'][0] ?? 0);
+    $tMin    = (float)($d['temperature_2m_min'][0] ?? 0);
+    $snow    = (float)($d['snowfall_sum'][0]    ?? 0);  // cm
+    $wind    = (float)($d['wind_speed_10m_max'][0] ?? 0); // km/h
+    $precip  = (float)($d['precipitation_sum'][0]  ?? 0); // mm
+    $condition = hp_weather_code_to_text($wc);
+
+    // Heurística de estado
+    $status  = 'likely_open';
+    $reasons = [];
+    if ($snow >= 5) {
+        $status = 'likely_closed';
+        $reasons[] = "nevada fuerte ({$snow} cm)";
+    } elseif ($snow >= 1) {
+        $status = 'at_risk';
+        $reasons[] = "nevada leve ({$snow} cm)";
+    }
+    if ($wind >= 70) {
+        $status = 'likely_closed';
+        $reasons[] = "vientos fuertes ({$wind} km/h)";
+    } elseif ($wind >= 50 && $status === 'likely_open') {
+        $status = 'at_risk';
+        $reasons[] = "vientos moderados ({$wind} km/h)";
+    }
+    if (in_array($wc, [95, 96, 99], true) && $status === 'likely_open') {
+        $status = 'at_risk';
+        $reasons[] = "tormenta pronosticada";
+    }
+    if (in_array($wc, [45, 48], true) && $status === 'likely_open') {
+        $status = 'at_risk';
+        $reasons[] = "niebla densa";
+    }
+    if (empty($reasons)) $reasons[] = 'sin condiciones adversas destacadas';
+
+    $result = [
+        'ok'            => true,
+        'location'      => 'Paso Cristo Redentor (~3.200 m, frontera AR-CL)',
+        'date'          => $date,
+        'temp_max_c'    => $tMax,
+        'temp_min_c'    => $tMin,
+        'snowfall_cm'   => $snow,
+        'wind_max_kmh'  => $wind,
+        'precip_mm'     => $precip,
+        'weather_code'  => $wc,
+        'condition'     => $condition,
+        'likely_status' => $status,
+        'reasoning'     => implode(' + ', $reasons),
+        'disclaimer'    => 'ESTIMACIÓN según pronóstico, NO estado oficial. Confirmar antes de viajar en https://www.andesargentina.com.ar/pasos-cordilleranos o redes de Vialidad Nacional.',
+        'source'        => 'Open-Meteo',
+        'cached'        => false,
     ];
 
     @mkdir($cacheDir, 0775, true);
