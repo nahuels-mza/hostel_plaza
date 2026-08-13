@@ -195,8 +195,11 @@ $t = $isEs ? [
         <script>
         (function () {
             const bookingId = <?php echo json_encode($bookingId); ?>;
-            // 2do parámetro = deshabilita CyberSource (fraud_detection). Por default
-            // el SDK lo usa, y era lo que nos rechazaba con cybersource_error id:-1.
+            // 2do parámetro = evita que el SDK dispare el device fingerprint de
+            // CyberSource al tokenizar. OJO: esto NO alcanza para evitar el
+            // chequeo de fraud_detection del lado del servidor — confirmado con
+            // un error real de Payway ("Fraud Detection Data is required"), esta
+            // cuenta lo exige igual en el POST /payments (ver payway_charge.php).
             const decidir = new Decidir(<?php echo json_encode($pwPublic['sdk_base_url']); ?>, true);
             decidir.setPublishableKey(<?php echo json_encode($pwPublic['public_key']); ?>);
             decidir.setTimeout(5000);

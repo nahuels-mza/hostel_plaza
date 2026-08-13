@@ -69,11 +69,32 @@ if ($paymentMethodId === null) {
 // Alfanumérico, sin guiones ni otros símbolos — la API de Payway lo pide así.
 $siteTransactionId = substr(preg_replace('/[^A-Za-z0-9]/', '', $bookingId . bin2hex(random_bytes(4))), 0, 39);
 
-// Payload mínimo — igual al ejemplo oficial de Payway (sección "3. Pagos").
-// Ya probamos armar fraud_detection completo (bill_to/ship_to/retail_transaction_data)
-// y el resultado fue el mismo rechazo genérico (cybersource_error id:-1) que
-// sin nada de eso — así que no lo mandamos por ahora. sub_payments SÍ es
-// obligatorio (confirmado con un error real de Payway: "param_required").
+// Confirmado con un error real de Payway ("Fraud Detection Data is required"):
+// esta cuenta exige fraud_detection sí o sí, así que va siempre. Usamos la
+// dirección del hostel para bill_to/ship_to en vez de pedírsela al huésped
+// (no hay envío físico — es "storepickup" — y así no le pedimos dirección a
+// nadie, sea argentino o extranjero).
+$nameParts = preg_split('/\s+/', trim((string)$booking['guestName']), 2);
+$firstName = $nameParts[0] ?? $booking['guestName'];
+$lastName  = $nameParts[1] ?? $nameParts[0] ?? '';
+
+$addressTo = [
+    'first_name'   => $firstName,
+    'last_name'    => $lastName,
+    'email'        => $booking['email'] ?? '',
+    'phone_number' => preg_replace('/[^0-9+]/', '', (string)($booking['phone'] ?? '')) ?: '2612592729',
+    'street1'      => 'Av Mitre 1237',
+    'city'         => 'Ciudad de Mendoza',
+    'state'        => 'M', // Mendoza — ISO 3166-2:AR
+    'postal_code'  => '5500',
+    'country'      => 'AR',
+    'customer_id'  => $bookingId,
+];
+
+// Payload mínimo (site_transaction_id/token/customer/payment_method_id/bin/
+// amount/currency/installments/payment_type) es igual al ejemplo oficial de
+// Payway (sección "3. Pagos"). sub_payments es obligatorio (confirmado con
+// un error real: "param_required").
 $payload = [
     'site_transaction_id' => $siteTransactionId,
     'token'               => $token,
@@ -89,6 +110,33 @@ $payload = [
     'installments'      => 1,
     'payment_type'      => 'single',
     'sub_payments'      => [],
+    'fraud_detection'   => [
+        'send_to_cs' => true,
+        'channel'    => 'web',
+        'bill_to'    => $addressTo,
+        'ship_to'    => $addressTo,
+        'purchase_totals' => [
+            'currency' => 'ARS',
+            'amount'   => $amountCents,
+        ],
+        'customer_in_site' => [
+            'is_guest'            => true,
+            'days_in_site'        => 0,
+            'num_of_transactions' => 1,
+        ],
+        'retail_transaction_data' => [
+            'dispatch_method'  => 'storepickup',
+            'days_to_delivery' => '0',
+            'items'            => [
+                [
+                    'id'          => 'HOSTEL-1NIGHT',
+                    'value'       => $amountCents,
+                    'description' => "Hostel Plaza - 1 noche ({$bookingId})",
+                    'quantity'    => 1,
+                ],
+            ],
+        ],
+    ],
 ];
 
 $result = hp_payway_charge($payload);
