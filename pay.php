@@ -54,6 +54,7 @@ $t = $isEs ? [
     'docNumber'    => 'Número de documento',
     'submit'       => 'Pagar ' . $fNightlyARS,
     'processing'   => 'Procesando…',
+    'tooManyTries' => 'Ya intentaste varias veces y no pudimos procesar el pago. Para evitar cargos por reintentos, escribinos por WhatsApp o pagá directamente en el check-in.',
     'unavailable'  => 'El pago online no está disponible en este momento. Podés pagar directamente en el check-in.',
     'successTitle' => '✓ Pago confirmado',
     'successBody'  => '¡Gracias! Tu estadía quedó confirmada.',
@@ -74,6 +75,7 @@ $t = $isEs ? [
     'docNumber'    => 'ID number',
     'submit'       => 'Pay ' . $fNightlyARS,
     'processing'   => 'Processing…',
+    'tooManyTries' => "You've tried several times and we couldn't process the payment. To avoid retry fees, please reach us on WhatsApp or pay directly at check-in.",
     'unavailable'  => 'Online payment is temporarily unavailable. You can pay directly at check-in.',
     'successTitle' => '✓ Payment confirmed',
     'successBody'  => "Thank you! Your stay is now confirmed.",
@@ -209,9 +211,23 @@ $t = $isEs ? [
                 errorBox.classList.remove('hidden');
             }
 
+            // Visa/Mastercard penalizan (y pueden bloquear la tarjeta) más de
+            // ~7 reintentos en 24hs con la misma tarjeta — cortamos antes de
+            // llegar ahí y mandamos a un canal alternativo.
+            const MAX_ATTEMPTS = 3;
+            let attempts = 0;
+
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 errorBox.classList.add('hidden');
+
+                attempts++;
+                if (attempts > MAX_ATTEMPTS) {
+                    showError(<?php echo json_encode($t['tooManyTries']); ?>);
+                    submitBtn.disabled = true;
+                    return;
+                }
+
                 submitBtn.disabled = true;
                 submitBtn.textContent = <?php echo json_encode($t['processing']); ?>;
 

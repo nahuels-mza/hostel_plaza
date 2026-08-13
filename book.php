@@ -404,7 +404,7 @@ $seo = [
                                         <span class="flex items-center gap-1"><i data-lucide="moon" class="w-3.5 h-3.5"></i> <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?></span>
                                         <span class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?></span>
                                     </div>
-                                    <div class="mt-auto pt-4 flex items-end justify-between">
+                                    <div class="mt-auto pt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                                         <div class="flex items-center gap-2">
                                             <a href="book.php" class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
                                                 <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Change dates
@@ -414,7 +414,7 @@ $seo = [
                                                 <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Change room
                                             </a>
                                         </div>
-                                        <div class="text-right">
+                                        <div class="text-left sm:text-right">
                                             <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Total</p>
                                             <p id="display_total_ars" class="text-2xl font-bold text-teal">AR$ —</p>
                                         </div>

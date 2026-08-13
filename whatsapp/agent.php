@@ -569,9 +569,11 @@ el paso, "Los Libertadores", la cordillera, esquiar del lado chileno, etc.:
   o sin parámetros para HOY.
 - Presentá el estado estimado (abierto/riesgo/cerrado) con las razones concretas
   (nevada X cm, viento Y km/h, etc.) de forma breve.
-- SIEMPRE aclará que es una estimación según pronóstico y NO el estado oficial.
-  Sugerí consultar https://www.andesargentina.com.ar/pasos-cordilleranos o
-  redes de Vialidad Nacional antes de viajar.
+- Solo mencioná el viento si el tool devolvió `wind_max_kmh` con valor (si viene
+  `null` es porque es aire quieto y no aporta info).
+- SIEMPRE incluí el disclaimer del campo `disclaimer` del resultado. Si el tool
+  devolvió `official_url`, usá ESE link (ya está verificado que está vivo);
+  no inventes ni hardcodees otros.
 - Si `likely_status` = "likely_closed" o "at_risk", sugerí planes B (quedarse
   en Mendoza, wine tour, etc.) con buena onda.
 
@@ -620,80 +622,229 @@ PROMPT;
 }
 
 /**
+ * Chequea si una URL está viva (responde 2xx/3xx). Cachea el resultado
+ * por $ttl segundos (default 24 h) en whatsapp/cache/url_health.json.
+ *
+ * Uso pensado: verificar links que sugerimos al huésped, para no
+ * mandarle URLs rotas cuando la fuente externa cambió/desapareció.
+ */
+function hp_url_alive(string $url, string $cacheDir, int $ttl = 86400): bool
+{
+    static $memCache = [];
+    if (isset($memCache[$url])) return $memCache[$url];
+
+    $healthFile = rtrim($cacheDir, '/') . '/url_health.json';
+    $all = is_file($healthFile) ? (json_decode(file_get_contents($healthFile), true) ?: []) : [];
+    $entry = $all[$url] ?? null;
+
+    if ($entry && (time() - (int)$entry['checked_at']) < $ttl) {
+        return $memCache[$url] = (bool)$entry['alive'];
+    }
+
+    // Actualizar con HEAD (fallback a GET si HEAD no está permitido)
+    $alive = false;
+    foreach (['HEAD', 'GET'] as $method) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_NOBODY         => ($method === 'HEAD'),
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_TIMEOUT        => 6,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_HTTPHEADER     => ['User-Agent: HostelPlaza-Bot/1.0'],
+        ]);
+        curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code >= 200 && $code < 400) { $alive = true; break; }
+        if ($code >= 400 && $code < 500 && $method === 'HEAD') continue; // reintentar con GET
+        break;
+    }
+
+    $all[$url] = ['alive' => $alive, 'checked_at' => time()];
+    @mkdir($cacheDir, 0775, true);
+    @file_put_contents($healthFile, json_encode($all, JSON_UNESCAPED_UNICODE));
+    return $memCache[$url] = $alive;
+}
+
+/**
+ * Devuelve la primera URL de la lista que responda OK, o null si ninguna.
+ */
+function hp_first_alive_url(array $urls, string $cacheDir): ?string
+{
+    foreach ($urls as $u) {
+        if (hp_url_alive($u, $cacheDir)) return $u;
+    }
+    return null;
+}
+
+/**
+ * Redondea un valor numérico al múltiplo más cercano ("5.5 km/h" → "5",
+ * "62.4 km/h" → "60"). Devuelve int para display humano.
+ */
+function hp_round_to(float $value, int $step): int
+{
+    if ($step <= 0) return (int)round($value);
+    return (int)(round($value / $step) * $step);
+}
+
+/**
+ * Wrapper genérico a Open-Meteo con batch por rango + cache por día individual.
+ *
+ * @param array  $params   ['lat'=>..., 'lon'=>..., 'daily'=>'weather_code,...']
+ * @param string $needDate Fecha "central" que el caller quiere
+ * @param int    $windowBack Días hacia atrás desde needDate para incluir
+ * @param int    $windowFwd  Días hacia adelante desde needDate para incluir
+ * @param int    $ttl        TTL del cache por día individual (segundos)
+ * @param string $cacheDir   Ruta del cache
+ * @param string $cachePrefix Prefijo del nombre de archivo (ej "weather_mza")
+ * @return array Datos crudos de Open-Meteo (misma estructura {daily: {...}}) filtrados
+ *               a las fechas del rango pedido. cached=true si TODO viene de cache.
+ */
+function hp_openmeteo_batch(array $params, string $needDate, int $windowBack, int $windowFwd, int $ttl, string $cacheDir, string $cachePrefix): array
+{
+    $today   = date('Y-m-d');
+    $maxDate = date('Y-m-d', strtotime('+16 days'));
+
+    // Ventana efectiva, clampeada a [today, today+16]
+    $startWanted = date('Y-m-d', strtotime("{$needDate} -{$windowBack} days"));
+    $endWanted   = date('Y-m-d', strtotime("{$needDate} +{$windowFwd} days"));
+    if ($startWanted < $today)   $startWanted = $today;
+    if ($endWanted   > $maxDate) $endWanted   = $maxDate;
+
+    // Ver qué días ya están en cache
+    $daysInWindow = [];
+    $d = $startWanted;
+    while ($d <= $endWanted) {
+        $daysInWindow[] = $d;
+        $d = date('Y-m-d', strtotime("{$d} +1 day"));
+    }
+
+    $daysFromCache = [];
+    $missingDays   = [];
+    foreach ($daysInWindow as $day) {
+        $file = rtrim($cacheDir, '/') . "/{$cachePrefix}_{$day}.json";
+        if (is_file($file) && (time() - filemtime($file)) < $ttl) {
+            $c = json_decode(file_get_contents($file), true);
+            if (is_array($c)) { $daysFromCache[$day] = $c; continue; }
+        }
+        $missingDays[] = $day;
+    }
+
+    $allCached = empty($missingDays);
+
+    // Si hay días faltantes, hacemos UNA sola request para el rango missing[0]..missing[last]
+    if (!empty($missingDays)) {
+        $fetchStart = $missingDays[0];
+        $fetchEnd   = end($missingDays);
+        $url = 'https://api.open-meteo.com/v1/forecast'
+             . '?latitude='  . $params['lat']
+             . '&longitude=' . $params['lon']
+             . '&daily='     . rawurlencode($params['daily'])
+             . '&timezone=America/Argentina/Mendoza'
+             . '&start_date=' . rawurlencode($fetchStart)
+             . '&end_date='   . rawurlencode($fetchEnd);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => ['Accept: application/json', 'User-Agent: HostelPlaza-Bot/1.0'],
+            CURLOPT_TIMEOUT        => 12,
+            CURLOPT_FOLLOWLOCATION => true,
+        ]);
+        $body = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($code < 200 || $code >= 300 || !$body) {
+            // Fallback: si el fetch falla y no hay nada en cache, devolver error;
+            // si hay algo en cache al menos, usar lo cacheado
+            if ($allCached === false && empty($daysFromCache)) {
+                return ['ok' => false, 'error' => "Open-Meteo HTTP $code", 'cached' => false];
+            }
+        } else {
+            $raw = json_decode($body, true);
+            if (is_array($raw) && !empty($raw['daily']['time'])) {
+                @mkdir($cacheDir, 0775, true);
+                $times = $raw['daily']['time'];
+                foreach ($times as $i => $day) {
+                    $perDay = ['date' => $day];
+                    foreach ($raw['daily'] as $k => $arr) {
+                        if ($k === 'time') continue;
+                        $perDay[$k] = $arr[$i] ?? null;
+                    }
+                    $file = rtrim($cacheDir, '/') . "/{$cachePrefix}_{$day}.json";
+                    @file_put_contents($file, json_encode($perDay, JSON_UNESCAPED_UNICODE));
+                    $daysFromCache[$day] = $perDay;
+                }
+            }
+        }
+    }
+
+    // Devolver solo los días de la ventana pedida, en orden
+    $out = [];
+    foreach ($daysInWindow as $day) {
+        if (isset($daysFromCache[$day])) $out[] = $daysFromCache[$day];
+    }
+    return ['ok' => !empty($out), 'days' => $out, 'cached' => $allCached];
+}
+
+/**
  * Consulta el pronóstico del clima en Mendoza ciudad vía Open-Meteo.
- * Gratis, sin API key. Ver https://open-meteo.com/en/docs
+ * Ahora usa batch fetch con cache por día individual: si el bot itera
+ * sobre fechas cercanas, hits cache el 99% de las veces.
+ *
+ * Ventana: pide siempre 6 días alrededor de la fecha central, para
+ * cubrir "¿y mañana?", "¿y pasado?" sin nuevas API calls.
  *
  * @param string $startDate Fecha inicial YYYY-MM-DD (>= hoy)
  * @param string $endDate   Fecha final YYYY-MM-DD (<= hoy+16)
  * @param string $cacheDir  Dónde cachear
- * @return array {ok, days: [{date, temp_max, temp_min, precip_probability, weather_code, condition}]}
  */
 function hp_weather_fetch(string $startDate, string $endDate, string $cacheDir): array
 {
-    // Cache: 1h para hoy, 6h para forecasts. Key por (start, end).
-    $isToday   = ($startDate === date('Y-m-d') && $endDate === date('Y-m-d'));
-    $ttl       = $isToday ? 3600 : 21600; // 1h vs 6h
-    $cacheFile = rtrim($cacheDir, '/') . "/weather_{$startDate}_{$endDate}.json";
+    $isTodayOnly = ($startDate === date('Y-m-d') && $endDate === date('Y-m-d'));
+    $ttl = $isTodayOnly ? 3600 : 21600;
 
-    if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
-        $c = json_decode(file_get_contents($cacheFile), true);
-        if (is_array($c)) { $c['cached'] = true; return $c; }
+    // Ventana adaptativa: si es solo hoy, cachear también los próximos 5 días
+    // para las siguientes consultas del bot; si es un rango, cubrir el rango + 2 días extra a cada lado.
+    $windowBack = 0;
+    $windowFwd  = (int)((strtotime($endDate) - strtotime($startDate)) / 86400) + 2;
+
+    $batch = hp_openmeteo_batch([
+        'lat'   => '-32.8908',
+        'lon'   => '-68.8272',
+        'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+    ], $startDate, $windowBack, $windowFwd, $ttl, $cacheDir, 'weather_mza');
+
+    if (!$batch['ok']) {
+        return ['ok' => false, 'error' => $batch['error'] ?? 'sin datos', 'cached' => false];
     }
 
-    // Mendoza ciudad: lat -32.8908, lon -68.8272
-    $url = 'https://api.open-meteo.com/v1/forecast'
-         . '?latitude=-32.8908&longitude=-68.8272'
-         . '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max'
-         . '&timezone=America/Argentina/Mendoza'
-         . '&start_date=' . rawurlencode($startDate)
-         . '&end_date='   . rawurlencode($endDate);
-
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json', 'User-Agent: HostelPlaza-Bot/1.0'],
-        CURLOPT_TIMEOUT        => 12,
-        CURLOPT_FOLLOWLOCATION => true,
-    ]);
-    $body = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($code < 200 || $code >= 300 || !$body) {
-        return ['ok' => false, 'error' => "Open-Meteo HTTP $code", 'cached' => false];
-    }
-    $raw = json_decode($body, true);
-    if (!is_array($raw) || empty($raw['daily'])) {
-        return ['ok' => false, 'error' => 'Respuesta no válida de Open-Meteo', 'cached' => false];
-    }
-
-    $d = $raw['daily'];
+    // Filtrar solo el rango pedido
     $days = [];
-    for ($i = 0, $n = count($d['time'] ?? []); $i < $n; $i++) {
-        $wc = (int)($d['weather_code'][$i] ?? -1);
+    foreach ($batch['days'] as $d) {
+        if ($d['date'] < $startDate || $d['date'] > $endDate) continue;
+        $wc = (int)($d['weather_code'] ?? -1);
         $days[] = [
-            'date'               => $d['time'][$i],
-            'temp_max_c'         => $d['temperature_2m_max'][$i] ?? null,
-            'temp_min_c'         => $d['temperature_2m_min'][$i] ?? null,
-            'precip_probability' => $d['precipitation_probability_max'][$i] ?? null,
+            'date'               => $d['date'],
+            'temp_max_c'         => $d['temperature_2m_max'] ?? null,
+            'temp_min_c'         => $d['temperature_2m_min'] ?? null,
+            'precip_probability' => $d['precipitation_probability_max'] ?? null,
             'weather_code'       => $wc,
             'condition'          => hp_weather_code_to_text($wc),
         ];
     }
 
-    $result = [
+    return [
         'ok'         => true,
         'location'   => 'Mendoza, Argentina',
         'start_date' => $startDate,
         'end_date'   => $endDate,
         'days'       => $days,
         'source'     => 'Open-Meteo',
-        'cached'     => false,
+        'cached'     => $batch['cached'],
     ];
-
-    @mkdir($cacheDir, 0775, true);
-    @file_put_contents($cacheFile, json_encode($result, JSON_UNESCAPED_UNICODE));
-    return $result;
 }
 
 /**
@@ -714,62 +865,57 @@ function hp_weather_fetch(string $startDate, string $endDate, string $cacheDir):
 function hp_paso_cristo_fetch(string $date, string $cacheDir): array
 {
     // Coordenadas del paso (Cumbre): 32°49'38"S 70°05'32"O ≈ -32.8272, -70.0921
-    $ttl = 21600; // 6h
-    $cacheFile = rtrim($cacheDir, '/') . "/paso_cristo_{$date}.json";
-    if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
-        $c = json_decode(file_get_contents($cacheFile), true);
-        if (is_array($c)) { $c['cached'] = true; return $c; }
+    // Usamos batch (±2 días) para cachear la ventana y no repetir API calls
+    // cuando el bot pregunta por días vecinos.
+    $ttl = 21600; // 6h por día
+
+    $batch = hp_openmeteo_batch([
+        'lat'   => '-32.8272',
+        'lon'   => '-70.0921',
+        'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,wind_speed_10m_max,precipitation_sum',
+    ], $date, 2, 3, $ttl, $cacheDir, 'paso_cristo');
+
+    if (!$batch['ok']) {
+        return ['ok' => false, 'error' => $batch['error'] ?? 'sin datos', 'cached' => false];
     }
 
-    $url = 'https://api.open-meteo.com/v1/forecast'
-         . '?latitude=-32.8272&longitude=-70.0921'
-         . '&daily=weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,wind_speed_10m_max,precipitation_sum'
-         . '&timezone=America/Argentina/Mendoza'
-         . '&start_date=' . rawurlencode($date)
-         . '&end_date='   . rawurlencode($date);
-
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json', 'User-Agent: HostelPlaza-Bot/1.0'],
-        CURLOPT_TIMEOUT        => 12,
-        CURLOPT_FOLLOWLOCATION => true,
-    ]);
-    $body = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($code < 200 || $code >= 300 || !$body) {
-        return ['ok' => false, 'error' => "Open-Meteo HTTP $code para paso", 'cached' => false];
+    // Buscar el día pedido dentro del batch
+    $found = null;
+    foreach ($batch['days'] as $d) {
+        if ($d['date'] === $date) { $found = $d; break; }
     }
-    $raw = json_decode($body, true);
-    if (!is_array($raw) || empty($raw['daily']['time'])) {
-        return ['ok' => false, 'error' => 'Respuesta no válida', 'cached' => false];
+    if (!$found) {
+        return ['ok' => false, 'error' => "sin datos para {$date}", 'cached' => $batch['cached']];
     }
 
-    $d       = $raw['daily'];
-    $wc      = (int)($d['weather_code'][0]      ?? -1);
-    $tMax    = (float)($d['temperature_2m_max'][0] ?? 0);
-    $tMin    = (float)($d['temperature_2m_min'][0] ?? 0);
-    $snow    = (float)($d['snowfall_sum'][0]    ?? 0);  // cm
-    $wind    = (float)($d['wind_speed_10m_max'][0] ?? 0); // km/h
-    $precip  = (float)($d['precipitation_sum'][0]  ?? 0); // mm
+    $wc     = (int)($found['weather_code']         ?? -1);
+    $tMax   = (float)($found['temperature_2m_max'] ?? 0);
+    $tMin   = (float)($found['temperature_2m_min'] ?? 0);
+    $snow   = (float)($found['snowfall_sum']       ?? 0);   // cm
+    $windRaw = (float)($found['wind_speed_10m_max'] ?? 0);  // km/h
+    $precip = (float)($found['precipitation_sum']  ?? 0);   // mm
+
+    // Redondear viento a múltiplos de 5 para no mostrar falsa precisión
+    // (el modelo digital de elevación es aproximado a 3.200 m)
+    $wind = hp_round_to($windRaw, 5);
+    $snowInt = (int)round($snow); // nevada en cm entera
+
     $condition = hp_weather_code_to_text($wc);
 
-    // Heurística de estado
+    // Heurística de estado (basada en $windRaw, no en $wind redondeado)
     $status  = 'likely_open';
     $reasons = [];
     if ($snow >= 5) {
         $status = 'likely_closed';
-        $reasons[] = "nevada fuerte ({$snow} cm)";
+        $reasons[] = "nevada fuerte ({$snowInt} cm)";
     } elseif ($snow >= 1) {
         $status = 'at_risk';
-        $reasons[] = "nevada leve ({$snow} cm)";
+        $reasons[] = "nevada leve ({$snowInt} cm)";
     }
-    if ($wind >= 70) {
+    if ($windRaw >= 70) {
         $status = 'likely_closed';
         $reasons[] = "vientos fuertes ({$wind} km/h)";
-    } elseif ($wind >= 50 && $status === 'likely_open') {
+    } elseif ($windRaw >= 50 && $status === 'likely_open') {
         $status = 'at_risk';
         $reasons[] = "vientos moderados ({$wind} km/h)";
     }
@@ -783,27 +929,41 @@ function hp_paso_cristo_fetch(string $date, string $cacheDir): array
     }
     if (empty($reasons)) $reasons[] = 'sin condiciones adversas destacadas';
 
-    $result = [
+    // Fuente oficial: intentamos primero gubernamental, después el aggregator.
+    // Health-check cacheado 24h, así no hacemos HEAD por cada mensaje.
+    $officialUrls = [
+        'https://www.argentina.gob.ar/seguridad/pasosinternacionales/detalle/ruta/29/Sistema-Cristo-Redentor',
+        'https://www.andesargentina.com.ar/pasos-cordilleranos',
+    ];
+    $officialUrl = hp_first_alive_url($officialUrls, $cacheDir);
+
+    if ($officialUrl) {
+        $disclaimer = "ESTIMACIÓN según pronóstico, NO estado oficial. Confirmar antes de viajar en {$officialUrl} o en las redes de Vialidad Nacional.";
+    } else {
+        // Fuentes offline hoy — sugerimos solo canales sociales
+        $disclaimer = "ESTIMACIÓN según pronóstico, NO estado oficial. Confirmar antes de viajar en las redes de Vialidad Nacional (@VialidadArg) o Gendarmería Nacional.";
+    }
+
+    return [
         'ok'            => true,
         'location'      => 'Paso Cristo Redentor (~3.200 m, frontera AR-CL)',
         'date'          => $date,
         'temp_max_c'    => $tMax,
         'temp_min_c'    => $tMin,
-        'snowfall_cm'   => $snow,
-        'wind_max_kmh'  => $wind,
+        'snowfall_cm'   => $snowInt,
+        // Solo mostramos viento cuando es relevante (>= 20 km/h). Debajo de eso
+        // es aire quieto en términos prácticos y solo suma ruido.
+        'wind_max_kmh'  => ($wind >= 20 ? $wind : null),
         'precip_mm'     => $precip,
         'weather_code'  => $wc,
         'condition'     => $condition,
         'likely_status' => $status,
         'reasoning'     => implode(' + ', $reasons),
-        'disclaimer'    => 'ESTIMACIÓN según pronóstico, NO estado oficial. Confirmar antes de viajar en https://www.andesargentina.com.ar/pasos-cordilleranos o redes de Vialidad Nacional.',
+        'disclaimer'    => $disclaimer,
+        'official_url'  => $officialUrl,
         'source'        => 'Open-Meteo',
-        'cached'        => false,
+        'cached'        => $batch['cached'],
     ];
-
-    @mkdir($cacheDir, 0775, true);
-    @file_put_contents($cacheFile, json_encode($result, JSON_UNESCAPED_UNICODE));
-    return $result;
 }
 
 /**
