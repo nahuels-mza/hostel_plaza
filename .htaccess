@@ -10,11 +10,13 @@ RewriteCond %{REQUEST_FILENAME}/index.php -f
 RewriteRule ^admin/?$ admin/index.php [L]
 
 # 3. Remove .php extension from URLs (External Redirect)
-# Excluir whatsapp/ y payway_charge.php — reciben POST con body y un 301
-# los redirige a GET, perdiendo el body (el navegador no reenvía el POST).
+# Excluir whatsapp/ y los endpoints que reciben POST con body — un 301 los
+# redirige a GET, perdiendo el body (el navegador no reenvía el POST).
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.php
 RewriteCond %{REQUEST_URI} !^/whatsapp/
 RewriteCond %{REQUEST_URI} !^/payway_charge\.php$
+RewriteCond %{REQUEST_URI} !^/paypal_create_order\.php$
+RewriteCond %{REQUEST_URI} !^/paypal_capture_order\.php$
 RewriteRule ^/?(.*)\.php$ /$1 [L,R=301]
 
 # 4. Map the dynamic Room URLs (MUST be placed before the generic .php rule)

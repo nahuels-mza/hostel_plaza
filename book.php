@@ -555,9 +555,9 @@ $seo = [
                     'backHome' => 'Volver al inicio',
                     'chat'     => 'Escribinos',
                     'code'     => 'Código de reserva',
-                    'payTitle' => '¿Deseas confirmar tu estadía con el pago de 1 noche?',
-                    'payDesc'  => 'Es opcional, pero asegura tu lugar. Pago único y seguro con tarjeta.',
-                    'payCta'   => 'Pagar 1 noche ahora',
+                    'payTitle' => '¿Deseas confirmar tu estadía pagándola por completo?',
+                    'payDesc'  => 'Es opcional, pero asegura tu lugar. Pago único y seguro con tarjeta o PayPal.',
+                    'payCta'   => 'Pagar mi estadía ahora',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
                     'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
@@ -566,9 +566,9 @@ $seo = [
                     'code'     => 'Booking code',
                     'backHome' => 'Back to home',
                     'chat'     => 'Chat with us',
-                    'payTitle' => 'Want to confirm your stay by paying for 1 night?',
-                    'payDesc'  => "It's optional, but it secures your spot. One single, secure card payment.",
-                    'payCta'   => 'Pay 1 night now',
+                    'payTitle' => 'Want to confirm your stay by paying it in full?',
+                    'payDesc'  => "It's optional, but it secures your spot. One single, secure payment by card or PayPal.",
+                    'payCta'   => 'Pay for my stay now',
                 ];
             ?>
                 <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-10 text-center">

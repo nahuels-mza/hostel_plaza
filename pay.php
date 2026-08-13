@@ -1,21 +1,24 @@
 <?php
 /**
- * Página de pago con Payway — el huésped confirma su estadía pagando 1
- * noche con tarjeta, sin salir del sitio. Opcional: la reserva ya existe
- * y es válida sin este pago (se puede pagar en el check-in).
+ * Página de pago con PayPal — el huésped confirma su estadía pagando el
+ * total con tarjeta o cuenta de PayPal, sin salir del sitio. Opcional: la
+ * reserva ya existe y es válida sin este pago (se puede pagar en el check-in).
  *
  * URL: /pay.php?booking_id=HP-XXXX
+ *
+ * Nota: hay una integración de Payway/Decidir (payway_lib.php,
+ * payway_charge.php) que quedó sin usar acá — su cuenta exige un flujo de
+ * antifraude de CyberSource (device fingerprint) que no pudimos completar
+ * del todo lado cliente/servidor. Queda el código por si soporte de Payway
+ * lo resuelve más adelante.
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/payway_lib.php';
+require_once __DIR__ . '/paypal_lib.php';
 require_once __DIR__ . '/mail_booking.php'; // hp_detect_lang()
 
 $guestLang = hp_detect_lang();
 $isEs      = $guestLang === 'es';
-
-$config          = is_file(__DIR__ . '/config.json') ? json_decode(file_get_contents(__DIR__ . '/config.json'), true) : [];
-$exchangeRateARS = $config['exchangeRateARS'] ?? 1370;
 
 $bookingId = trim((string)($_GET['booking_id'] ?? ''));
 
@@ -26,60 +29,37 @@ foreach ($bookings as $b) {
     if ($b['id'] === $bookingId) { $booking = $b; break; }
 }
 
-$alreadyPaid = $booking && ($booking['paymentMethod'] ?? '') === 'Payway' && (float)($booking['amountPaid'] ?? 0) > 0;
+$totalUsd = $booking ? (float)$booking['totalPrice'] : 0;
+$paidUsd  = $booking ? (float)($booking['amountPaid'] ?? 0) : 0;
+$alreadyPaid = $booking && $paidUsd >= $totalUsd && $totalUsd > 0;
+$fTotalUsd = '$' . number_format($totalUsd, 2) . ' USD';
 
-$nightlyARS = 0;
-if ($booking) {
-    $nights     = max(1, (int)round((strtotime($booking['checkOut']) - strtotime($booking['checkIn'])) / 86400));
-    $nightlyUSD = (float)$booking['totalPrice'] / $nights;
-    $nightlyARS = round($nightlyUSD * $exchangeRateARS);
-}
-$fNightlyARS = 'AR$ ' . number_format($nightlyARS, 0, ',', '.');
-
-$pwPublic = hp_payway_public_config();
+$ppPublic = hp_paypal_public_config();
 
 $t = $isEs ? [
     'title'        => 'Confirmá tu estadía',
     'notFound'     => 'No encontramos esa reserva. Usá el link de tu mail de confirmación.',
-    'alreadyPaid'  => '✓ Esta reserva ya fue confirmada con pago.',
+    'alreadyPaid'  => '✓ Esta reserva ya fue pagada por completo.',
     'guestLabel'   => 'Huésped',
-    'amountLabel'  => '1 noche',
-    'singleNote'   => 'Pago único, sin cuotas.',
-    'cardNumber'   => 'Número de tarjeta',
-    'expMonth'     => 'Mes (MM)',
-    'expYear'      => 'Año (AA)',
-    'cvv'          => 'Código de seguridad',
-    'holderName'   => 'Nombre del titular',
-    'docType'      => 'Tipo de documento',
-    'docNumber'    => 'Número de documento',
-    'submit'       => 'Pagar ' . $fNightlyARS,
-    'processing'   => 'Procesando…',
-    'tooManyTries' => 'Ya intentaste varias veces y no pudimos procesar el pago. Para evitar cargos por reintentos, escribinos por WhatsApp o pagá directamente en el check-in.',
+    'amountLabel'  => 'Total de la estadía',
+    'singleNote'   => 'Pago único, en dólares, con tarjeta o cuenta de PayPal.',
     'unavailable'  => 'El pago online no está disponible en este momento. Podés pagar directamente en el check-in.',
     'successTitle' => '✓ Pago confirmado',
-    'successBody'  => '¡Gracias! Tu estadía quedó confirmada.',
+    'successBody'  => '¡Gracias! Tu estadía quedó pagada por completo.',
     'backHome'     => 'Volver al inicio',
+    'error'        => 'No pudimos procesar el pago. Podés intentar de nuevo o pagar directamente en el check-in.',
 ] : [
     'title'        => 'Confirm Your Stay',
     'notFound'     => "We couldn't find that booking. Please use the link from your confirmation email.",
-    'alreadyPaid'  => '✓ This booking has already been confirmed with payment.',
+    'alreadyPaid'  => '✓ This booking has already been paid in full.',
     'guestLabel'   => 'Guest',
-    'amountLabel'  => '1 night',
-    'singleNote'   => 'Single payment, no installments.',
-    'cardNumber'   => 'Card number',
-    'expMonth'     => 'Exp. month (MM)',
-    'expYear'      => 'Exp. year (YY)',
-    'cvv'          => 'Security code',
-    'holderName'   => 'Cardholder name',
-    'docType'      => 'ID type',
-    'docNumber'    => 'ID number',
-    'submit'       => 'Pay ' . $fNightlyARS,
-    'processing'   => 'Processing…',
-    'tooManyTries' => "You've tried several times and we couldn't process the payment. To avoid retry fees, please reach us on WhatsApp or pay directly at check-in.",
+    'amountLabel'  => 'Total stay',
+    'singleNote'   => 'One-time payment, in USD, by card or PayPal account.',
     'unavailable'  => 'Online payment is temporarily unavailable. You can pay directly at check-in.',
     'successTitle' => '✓ Payment confirmed',
-    'successBody'  => "Thank you! Your stay is now confirmed.",
+    'successBody'  => 'Thank you! Your stay is now paid in full.',
     'backHome'     => 'Back to home',
+    'error'        => "We couldn't process the payment. You can try again or pay directly at check-in.",
 ];
 ?>
 <!DOCTYPE html>
@@ -117,7 +97,7 @@ $t = $isEs ? [
             <a href="/" class="inline-block px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all"><?php echo htmlspecialchars($t['backHome']); ?></a>
         </div>
 
-    <?php elseif (!$pwPublic['public_key']): ?>
+    <?php elseif (!$ppPublic['client_id']): ?>
         <p class="text-center text-amber-700 text-sm"><?php echo htmlspecialchars($t['unavailable']); ?></p>
 
     <?php else: ?>
@@ -128,62 +108,13 @@ $t = $isEs ? [
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-teal/70"><?php echo htmlspecialchars($t['amountLabel']); ?></span>
-                <span class="font-bold text-teal"><?php echo htmlspecialchars($fNightlyARS); ?></span>
+                <span class="font-bold text-teal"><?php echo htmlspecialchars($fTotalUsd); ?></span>
             </div>
             <p class="text-xs text-teal/60 mt-2"><?php echo htmlspecialchars($t['singleNote']); ?></p>
         </div>
 
-        <form id="payForm" class="space-y-3">
-            <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['cardNumber']); ?></label>
-                <input type="text" inputmode="numeric" autocomplete="cc-number" data-decidir="card_number" required
-                       class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['expMonth']); ?></label>
-                    <input type="text" inputmode="numeric" maxlength="2" placeholder="MM" autocomplete="cc-exp-month" data-decidir="card_expiration_month" required
-                           class="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['expYear']); ?></label>
-                    <input type="text" inputmode="numeric" maxlength="2" placeholder="AA" autocomplete="cc-exp-year" data-decidir="card_expiration_year" required
-                           class="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['cvv']); ?></label>
-                    <input type="text" inputmode="numeric" maxlength="4" autocomplete="cc-csc" data-decidir="security_code" required
-                           class="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['holderName']); ?></label>
-                <input type="text" autocomplete="cc-name" data-decidir="card_holder_name" required
-                       value="<?php echo htmlspecialchars($booking['guestName']); ?>"
-                       class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['docType']); ?></label>
-                    <input type="text" data-decidir="card_holder_doc_type"
-                           value="<?php echo htmlspecialchars($booking['idType'] ?? ''); ?>"
-                           class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1"><?php echo htmlspecialchars($t['docNumber']); ?></label>
-                    <input type="text" data-decidir="card_holder_doc_number"
-                           value="<?php echo htmlspecialchars($booking['idNumber'] ?? ''); ?>"
-                           class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
-                </div>
-            </div>
-
-            <div id="payError" class="hidden text-red-600 text-xs bg-red-50 border border-red-200 rounded-xl p-3"></div>
-
-            <button type="submit" id="paySubmit"
-                    class="w-full bg-teal hover:bg-teal-hover text-white font-bold py-3.5 rounded-xl transition-all mt-2">
-                <?php echo htmlspecialchars($t['submit']); ?>
-            </button>
-        </form>
+        <div id="paypal-button-container"></div>
+        <div id="payError" class="hidden text-red-600 text-xs bg-red-50 border border-red-200 rounded-xl p-3 mt-3"></div>
 
         <div id="paySuccess" class="hidden text-center">
             <p class="text-emerald-600 text-lg font-bold mb-2"><?php echo htmlspecialchars($t['successTitle']); ?></p>
@@ -191,94 +122,61 @@ $t = $isEs ? [
             <a href="/" class="inline-block px-6 py-3 bg-teal text-white rounded-xl font-bold hover:bg-teal-hover transition-all"><?php echo htmlspecialchars($t['backHome']); ?></a>
         </div>
 
-        <script src="https://ventasonline.payway.com.ar/static/v2.6.4/decidir.js"></script>
+        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo urlencode($ppPublic['client_id']); ?>&currency=USD&intent=capture"></script>
         <script>
         (function () {
             const bookingId = <?php echo json_encode($bookingId); ?>;
-            // 2do parámetro = evita que el SDK dispare el device fingerprint de
-            // CyberSource al tokenizar. OJO: esto NO alcanza para evitar el
-            // chequeo de fraud_detection del lado del servidor — confirmado con
-            // un error real de Payway ("Fraud Detection Data is required"), esta
-            // cuenta lo exige igual en el POST /payments (ver payway_charge.php).
-            const decidir = new Decidir(<?php echo json_encode($pwPublic['sdk_base_url']); ?>, true);
-            decidir.setPublishableKey(<?php echo json_encode($pwPublic['public_key']); ?>);
-            decidir.setTimeout(5000);
-
-            const form      = document.getElementById('payForm');
-            const submitBtn = document.getElementById('paySubmit');
             const errorBox  = document.getElementById('payError');
-            const submitLabel = submitBtn.textContent;
 
             function showError(msg) {
                 errorBox.textContent = msg;
                 errorBox.classList.remove('hidden');
             }
 
-            // Visa/Mastercard penalizan (y pueden bloquear la tarjeta) más de
-            // ~7 reintentos en 24hs con la misma tarjeta — cortamos antes de
-            // llegar ahí y mandamos a un canal alternativo.
-            const MAX_ATTEMPTS = 3;
-            let attempts = 0;
+            if (typeof paypal === 'undefined') {
+                showError(<?php echo json_encode($t['unavailable']); ?>);
+                return;
+            }
 
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                errorBox.classList.add('hidden');
-
-                attempts++;
-                if (attempts > MAX_ATTEMPTS) {
-                    showError(<?php echo json_encode($t['tooManyTries']); ?>);
-                    submitBtn.disabled = true;
-                    return;
-                }
-
-                submitBtn.disabled = true;
-                submitBtn.textContent = <?php echo json_encode($t['processing']); ?>;
-
-                const cardNumberEl = form.querySelector('[data-decidir="card_number"]');
-                const bin = cardNumberEl.value.replace(/\D/g, '').slice(0, 6);
-
-                decidir.createToken(form, function (status, response) {
-                    if (status === 200 || status === 201) {
-                        // La doc de Payway dice "response.token", pero algunos ejemplos
-                        // reales de su propio SDK devuelven "response.id" en su lugar —
-                        // aceptamos cualquiera de los dos.
-                        const tokenValue = response && (response.token || response.id);
-                        if (!tokenValue) {
-                            showError('No se pudo tokenizar la tarjeta (respuesta inesperada del SDK).');
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = submitLabel;
-                            console.warn('Decidir createToken response sin token/id:', response);
-                            return;
-                        }
-                        fetch('payway_charge.php', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ booking_id: bookingId, token: tokenValue, bin: bin }),
-                        })
-                        .then(function (r) { return r.json(); })
-                        .then(function (data) {
-                            if (data.ok) {
-                                form.classList.add('hidden');
-                                document.getElementById('paySuccess').classList.remove('hidden');
-                            } else {
-                                showError(data.error || 'Error');
-                                submitBtn.disabled = false;
-                                submitBtn.textContent = submitLabel;
-                            }
-                        })
-                        .catch(function () {
-                            showError('Network error');
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = submitLabel;
-                        });
-                    } else {
-                        const msgs = (response && response.length) ? response.map(function (e) { return e.message; }).join(' ') : 'Card validation error';
-                        showError(msgs);
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = submitLabel;
-                    }
-                });
-            });
+            paypal.Buttons({
+                style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
+                createOrder: function () {
+                    errorBox.classList.add('hidden');
+                    return fetch('paypal_create_order.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ booking_id: bookingId }),
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (!data.ok) throw new Error(data.error || 'Error');
+                        return data.orderId;
+                    })
+                    .catch(function (err) {
+                        showError(err.message || <?php echo json_encode($t['error']); ?>);
+                        throw err;
+                    });
+                },
+                onApprove: function (data) {
+                    return fetch('paypal_capture_order.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ booking_id: bookingId, order_id: data.orderID }),
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (result) {
+                        if (!result.ok) { showError(result.error || <?php echo json_encode($t['error']); ?>); return; }
+                        document.getElementById('paypal-button-container').classList.add('hidden');
+                        document.getElementById('paySuccess').classList.remove('hidden');
+                    })
+                    .catch(function () {
+                        showError(<?php echo json_encode($t['error']); ?>);
+                    });
+                },
+                onError: function () {
+                    showError(<?php echo json_encode($t['error']); ?>);
+                },
+            }).render('#paypal-button-container');
         })();
         </script>
     <?php endif; ?>

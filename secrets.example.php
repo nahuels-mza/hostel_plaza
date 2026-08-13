@@ -29,4 +29,13 @@ return [
     'payway_prod_private_key' => '',
     'payway_prod_site_id'     => '',      // Portal Payway → "Site ID" de Producción
     'payway_prod_template_id' => '',      // Portal Payway → "Template ID" de Producción
+
+    // PayPal — usado por paypal_lib.php / pay.php / paypal_create_order.php /
+    // paypal_capture_order.php. 'paypal_env' es la ÚNICA variable a cambiar
+    // para pasar de sandbox a producción.
+    'paypal_env'                 => 'sandbox',  // 'sandbox' | 'live'
+    'paypal_sandbox_client_id'   => '',         // developer.paypal.com → Apps & Credentials → Sandbox
+    'paypal_sandbox_secret'      => '',
+    'paypal_live_client_id'      => '',         // developer.paypal.com → Apps & Credentials → Live
+    'paypal_live_secret'         => '',
 ];
