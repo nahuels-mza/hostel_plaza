@@ -233,11 +233,15 @@ function changeLanguage(langCode, btnElement, isMobile) {
     try { localStorage.setItem('hp_lang', langCode); } catch(e) {}
 }
 
-// On load: sync button state from localStorage (survives across pages)
+// On load: resolve language → localStorage → googtrans cookie → navigator.language
 (function () {
+    var SUPPORTED = ['en', 'es', 'pt', 'fr', 'de'];
     var lang = '';
+
+    // 1. Preferencia guardada por el usuario
     try { lang = localStorage.getItem('hp_lang') || ''; } catch(e) {}
-    // Fallback: read googtrans cookie set by Google Translate
+
+    // 2. Cookie de Google Translate (navegación entre páginas)
     if (!lang) {
         var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]*)/);
         if (match) {
@@ -245,18 +249,42 @@ function changeLanguage(langCode, btnElement, isMobile) {
             lang = parts[parts.length - 1] || '';
         }
     }
-    if (!lang || lang === 'en') return;
-    // Desktop
+
+    // 3. Primera visita: auto-detectar desde el navegador.
+    //    Si el idioma del navegador no está soportado → español por defecto.
+    if (!lang) {
+        var nav = ((navigator.language || navigator.userLanguage || 'en')
+                    .toLowerCase().split('-')[0]);
+        lang = SUPPORTED.indexOf(nav) !== -1 ? nav : 'es';
+        try { localStorage.setItem('hp_lang', lang); } catch(e) {}
+    }
+
+    // Inglés es el idioma base de la página: sin traducción, solo sincronizar botón
+    if (lang === 'en') return;
+
+    // Actualizar botones (desktop + mobile)
     document.querySelectorAll('.lang-btn').forEach(function (btn) { btn.classList.remove('active'); });
     var d = document.querySelector('.lang-btn[onclick*="\'' + lang + '\'"]');
     if (d) d.classList.add('active');
-    // Mobile
     document.querySelectorAll('.lang-btn-mob').forEach(function (btn) {
         btn.classList.remove('bg-teal', 'text-white');
         btn.classList.add('text-slate-500');
     });
     var m = document.querySelector('.lang-btn-mob[onclick*="\'' + lang + '\'"]');
     if (m) { m.classList.remove('text-slate-500'); m.classList.add('bg-teal', 'text-white'); }
+
+    // Disparar Google Translate (carga async: reintentar hasta que el widget esté listo)
+    function tryTranslate(attempts) {
+        var sel = document.querySelector('#google_translate_element select')
+               || document.querySelector('.goog-te-combo');
+        if (sel) {
+            sel.value = lang;
+            sel.dispatchEvent(new Event('change'));
+        } else if (attempts > 0) {
+            setTimeout(function () { tryTranslate(attempts - 1); }, 300);
+        }
+    }
+    tryTranslate(15); // hasta ~4.5 s de espera
 })();
 
 // Kill the Google Translate top bar (it tries to shift the document down)

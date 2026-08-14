@@ -505,12 +505,27 @@ $seo = [
                                 </div>
                             </div>
 
-                            <div class="pt-2 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                                <p class="text-xs text-slate-500">Payment is collected upon arrival in Mendoza.</p>
-                                <button type="submit" id="submit_btn"
-                                        class="w-full sm:w-auto bg-teal text-white font-bold px-8 py-4 rounded-2xl hover:bg-teal-hover transition-all shadow-md flex items-center justify-center gap-2">
-                                    Confirm Prebooking <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                </button>
+                            <!-- Términos + botón -->
+                            <div class="pt-2 space-y-4">
+                                <label class="flex items-start gap-3 cursor-pointer select-none">
+                                    <input type="checkbox" id="terms_checkbox" checked
+                                           class="mt-0.5 w-4 h-4 accent-teal cursor-pointer shrink-0">
+                                    <span class="text-sm text-slate-600">
+                                        To complete your booking you must accept our
+                                        <button type="button" id="terms_open_btn"
+                                                class="text-teal font-semibold underline underline-offset-2 hover:text-teal-hover focus:outline-none">
+                                            booking conditions
+                                        </button>.
+                                    </span>
+                                </label>
+
+                                <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                                    <p class="text-xs text-slate-500">Payment is collected upon arrival in Mendoza.</p>
+                                    <button type="submit" id="submit_btn"
+                                            class="w-full sm:w-auto bg-teal text-white font-bold px-8 py-4 rounded-2xl hover:bg-teal-hover transition-all shadow-md flex items-center justify-center gap-2">
+                                        Confirm Prebooking <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -881,6 +896,130 @@ $seo = [
                 if (phoneHidden) phoneHidden.value = code ? code + ' ' + local : local;
             }, true); // capture phase so it runs before the stash listener
         <?php endif; ?>
+
+        // ── Términos y condiciones ────────────────────────────────────────────
+        // El modal vive *después* de este <script>, así que esperamos al DOM completo.
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkbox  = document.getElementById('terms_checkbox');
+            const submitBtn = document.getElementById('submit_btn');
+            const openBtn   = document.getElementById('terms_open_btn');
+            const modal     = document.getElementById('terms_modal');
+            const closeBtn  = document.getElementById('terms_modal_close');
+
+            function syncButton() {
+                if (!checkbox || !submitBtn) return;
+                const accepted = checkbox.checked;
+                submitBtn.disabled = !accepted;
+                submitBtn.classList.toggle('opacity-50',          !accepted);
+                submitBtn.classList.toggle('cursor-not-allowed',  !accepted);
+                submitBtn.classList.toggle('hover:bg-teal-hover',  accepted);
+            }
+
+            if (checkbox) checkbox.addEventListener('change', syncButton);
+            syncButton(); // estado inicial
+
+            // Abrir modal
+            if (openBtn && modal) {
+                openBtn.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+                });
+            }
+            // Cerrar: botón X, click en el backdrop
+            function closeModal() {
+                if (!modal) return;
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (modal) modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            // Cerrar con Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+        });
     </script>
+
+    <!-- ── Modal: Condiciones de reserva ──────────────────────────────────── -->
+    <div id="terms_modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4"
+         style="background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
+                <h2 class="text-lg font-bold text-slate-900">Booking Conditions</h2>
+                <button id="terms_modal_close" type="button"
+                        class="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Condiciones de reserva -->
+            <div class="overflow-y-auto px-6 py-5 text-sm text-slate-700 leading-relaxed space-y-5">
+
+                <!-- Horarios -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">🕐 Horarios</h3>
+                    <ul class="space-y-1 pl-1">
+                        <li><span class="font-semibold">Check-in:</span> De 15:00 a 23:30</li>
+                        <li><span class="font-semibold">Check-out:</span> Antes de las 11:00</li>
+                        <li><span class="font-semibold">Consigna de equipaje gratuita:</span> De 7:30 a 20:00</li>
+                    </ul>
+                </div>
+
+                <!-- Desayuno -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">☕ Desayuno</h3>
+                    <p>Incluido en nuestra cafetería: infusión, tostadas con dulce y fruta.</p>
+                </div>
+
+                <!-- Tarifas -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">💵 Tarifas</h3>
+                    <ul class="space-y-1.5 pl-1">
+                        <li><span class="font-semibold">Huéspedes extranjeros:</span> Las tarifas indicadas están exentas de impuestos para quienes presenten un pasaporte válido y el sello de inmigración al registrarse.</li>
+                        <li><span class="font-semibold">Huéspedes nacionales:</span> Los ciudadanos argentinos están sujetos a un 21% de IVA que se añadirá a las tarifas indicadas.</li>
+                        <li><span class="font-semibold">Medios de pago:</span> Efectivo en pesos argentinos o tarjeta de crédito/débito con un recargo bancario del 10%.</li>
+                    </ul>
+                </div>
+
+                <!-- Condiciones generales -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">📋 Condiciones Generales</h3>
+                    <ul class="space-y-1.5 pl-1">
+                        <li>Las reservas superiores a 7 días estarán sujetas a revisión. Se aceptarán exclusivamente reservas de no residentes del Gran Mendoza.</li>
+                        <li>Cancelaciones sin penalidad dentro de los plazos indicados.</li>
+                    </ul>
+                </div>
+
+                <!-- Conducta -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">🤝 Conducta de los huéspedes</h3>
+                    <p>Esperamos que todos los huéspedes respeten las normas del hostal, al personal y a los demás huéspedes. Cualquier infracción puede resultar en la expulsión sin reembolso.</p>
+                </div>
+
+                <!-- Cancelaciones -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">❌ No Show y Cancelaciones</h3>
+                    <ul class="space-y-1.5 pl-1">
+                        <li><span class="font-semibold">Reserva Flexible:</span> Podés cancelar sin costo hasta 48 hs antes del check-in. Si cancelás dentro de las 48 hs previas se cobrará el valor de la primera noche; si no te presentás o cancelás a último momento, se cobrará el total de la reserva.</li>
+                        <li><span class="font-semibold">Reserva No reembolsable:</span> Se cobrará el total de la estadía al momento de cancelar o en caso de no presentarse el día de check-in.</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-200 shrink-0 flex justify-end">
+                <button type="button" id="terms_modal_close_footer"
+                        onclick="document.getElementById('terms_modal').classList.add('hidden');document.body.classList.remove('overflow-hidden')"
+                        class="bg-teal text-white font-bold px-6 py-2.5 rounded-xl hover:bg-teal-hover transition-all">
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
