@@ -233,9 +233,8 @@ function changeLanguage(langCode, btnElement, isMobile) {
     try { localStorage.setItem('hp_lang', langCode); } catch(e) {}
 }
 
-// On load: resolve language → localStorage → googtrans cookie → navigator.language
+// On load: resolve language → localStorage → googtrans cookie → español por defecto
 (function () {
-    var SUPPORTED = ['en', 'es', 'pt', 'fr', 'de'];
     var lang = '';
 
     // 1. Preferencia guardada por el usuario
@@ -250,12 +249,11 @@ function changeLanguage(langCode, btnElement, isMobile) {
         }
     }
 
-    // 3. Primera visita: auto-detectar desde el navegador.
-    //    Si el idioma del navegador no está soportado → español por defecto.
+    // 3. Primera visita: la página siempre arranca en español. El usuario
+    //    elige otro idioma desde la barra del header (no se autodetecta
+    //    el idioma del navegador).
     if (!lang) {
-        var nav = ((navigator.language || navigator.userLanguage || 'en')
-                    .toLowerCase().split('-')[0]);
-        lang = SUPPORTED.indexOf(nav) !== -1 ? nav : 'es';
+        lang = 'es';
         try { localStorage.setItem('hp_lang', lang); } catch(e) {}
     }
 

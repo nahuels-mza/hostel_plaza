@@ -959,53 +959,53 @@ $seo = [
             <!-- Condiciones de reserva -->
             <div class="overflow-y-auto px-6 py-5 text-sm text-slate-700 leading-relaxed space-y-5">
 
-                <!-- Horarios -->
+                <!-- Hours -->
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-1">🕐 Horarios</h3>
+                    <h3 class="font-bold text-slate-900 mb-1">🕐 Hours</h3>
                     <ul class="space-y-1 pl-1">
-                        <li><span class="font-semibold">Check-in:</span> De 15:00 a 23:30</li>
-                        <li><span class="font-semibold">Check-out:</span> Antes de las 11:00</li>
-                        <li><span class="font-semibold">Consigna de equipaje gratuita:</span> De 7:30 a 20:00</li>
+                        <li><span class="font-semibold">Check-in:</span> 3:00 PM to 11:30 PM</li>
+                        <li><span class="font-semibold">Check-out:</span> Before 11:00 AM</li>
+                        <li><span class="font-semibold">Free luggage storage:</span> 7:30 AM to 8:00 PM</li>
                     </ul>
                 </div>
 
-                <!-- Desayuno -->
+                <!-- Breakfast -->
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-1">☕ Desayuno</h3>
-                    <p>Incluido en nuestra cafetería: infusión, tostadas con dulce y fruta.</p>
+                    <h3 class="font-bold text-slate-900 mb-1">☕ Breakfast</h3>
+                    <p>Included in our café: coffee/tea, toast with jam, and fruit.</p>
                 </div>
 
-                <!-- Tarifas -->
+                <!-- Rates -->
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-1">💵 Tarifas</h3>
+                    <h3 class="font-bold text-slate-900 mb-1">💵 Rates</h3>
                     <ul class="space-y-1.5 pl-1">
-                        <li><span class="font-semibold">Huéspedes extranjeros:</span> Las tarifas indicadas están exentas de impuestos para quienes presenten un pasaporte válido y el sello de inmigración al registrarse.</li>
-                        <li><span class="font-semibold">Huéspedes nacionales:</span> Los ciudadanos argentinos están sujetos a un 21% de IVA que se añadirá a las tarifas indicadas.</li>
-                        <li><span class="font-semibold">Medios de pago:</span> Efectivo en pesos argentinos o tarjeta de crédito/débito con un recargo bancario del 10%.</li>
+                        <li><span class="font-semibold">Foreign guests:</span> Listed rates are tax-exempt for guests who present a valid passport and immigration entry stamp at check-in.</li>
+                        <li><span class="font-semibold">Argentine nationals:</span> Argentine citizens are subject to 21% VAT, added to the listed rates.</li>
+                        <li><span class="font-semibold">Payment methods:</span> Cash in Argentine pesos, or credit/debit card with a 10% surcharge.</li>
                     </ul>
                 </div>
 
-                <!-- Condiciones generales -->
+                <!-- General conditions -->
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-1">📋 Condiciones Generales</h3>
+                    <h3 class="font-bold text-slate-900 mb-1">📋 General Conditions</h3>
                     <ul class="space-y-1.5 pl-1">
-                        <li>Las reservas superiores a 7 días estarán sujetas a revisión. Se aceptarán exclusivamente reservas de no residentes del Gran Mendoza.</li>
-                        <li>Cancelaciones sin penalidad dentro de los plazos indicados.</li>
+                        <li>Bookings longer than 7 days are subject to review. We only accept bookings from guests who do not reside in the Greater Mendoza area.</li>
+                        <li>Cancellations within the stated deadlines incur no penalty.</li>
                     </ul>
                 </div>
 
-                <!-- Conducta -->
+                <!-- Conduct -->
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-1">🤝 Conducta de los huéspedes</h3>
-                    <p>Esperamos que todos los huéspedes respeten las normas del hostal, al personal y a los demás huéspedes. Cualquier infracción puede resultar en la expulsión sin reembolso.</p>
+                    <h3 class="font-bold text-slate-900 mb-1">🤝 Guest Conduct</h3>
+                    <p>We expect all guests to respect the hostel's rules, staff, and fellow guests. Any violation may result in expulsion without a refund.</p>
                 </div>
 
-                <!-- Cancelaciones -->
+                <!-- Cancellations -->
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-1">❌ No Show y Cancelaciones</h3>
+                    <h3 class="font-bold text-slate-900 mb-1">❌ No-Shows &amp; Cancellations</h3>
                     <ul class="space-y-1.5 pl-1">
-                        <li><span class="font-semibold">Reserva Flexible:</span> Podés cancelar sin costo hasta 48 hs antes del check-in. Si cancelás dentro de las 48 hs previas se cobrará el valor de la primera noche; si no te presentás o cancelás a último momento, se cobrará el total de la reserva.</li>
-                        <li><span class="font-semibold">Reserva No reembolsable:</span> Se cobrará el total de la estadía al momento de cancelar o en caso de no presentarse el día de check-in.</li>
+                        <li><span class="font-semibold">Flexible Booking:</span> Cancel free of charge up to 48 hours before check-in. Cancelling within 48 hours of check-in incurs a charge for the first night; no-shows or last-minute cancellations are charged the full reservation amount.</li>
+                        <li><span class="font-semibold">Non-refundable Booking:</span> The full stay is charged at the time of cancellation, or in the event of a no-show on the check-in date.</li>
                     </ul>
                 </div>
 
