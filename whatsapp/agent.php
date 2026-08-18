@@ -27,11 +27,8 @@ function hp_cfg(): array
 
 function hp_log(string $msg): void
 {
-    $cfg = hp_cfg();
-    $path = $cfg['paths']['log'];
-    @mkdir(dirname($path), 0775, true);
-    $line = '[' . date('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL;
-    @file_put_contents($path, $line, FILE_APPEND);
+    require_once dirname(__DIR__) . '/logger.php';
+    hp_write_log('whatsapp', $msg);
 }
 
 /* ---------- room_mapping reverse lookup ---------- */

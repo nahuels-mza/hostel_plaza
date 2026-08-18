@@ -86,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
     // Un solo mail para todos los huéspedes, sin datos de pago — se paga en el
     // check-in. Idioma según el browser, no según nacionalidad.
+    require_once __DIR__ . '/logger.php';
     require_once __DIR__ . '/send_mail.php';
     require_once __DIR__ . '/mail_booking.php';
     $guestLang = hp_detect_lang();
@@ -103,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     require_once __DIR__ . '/bananadesk_reserve.php';
     $bdRoomTypeId  = (int)($roomMap[$newBooking['roomId']] ?? 0);
     $bdBookingUnit = $bookedRoomMeta['bookingUnit'] ?? 'room';
+    $bdResult      = null;
     if ($bdRoomTypeId > 0) {
         $bdResult = hp_bananadesk_reserve(
             $newBooking['checkIn'],
@@ -127,15 +129,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         }
         unset($b);
         file_put_contents($bookingsFile, json_encode($bookingsNow, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-        $bdStatus = $bdResult['ok'] ? 'OK' : 'ERROR';
-        $bdLog    = "[" . date('Y-m-d H:i:s') . "] BANANADESK {$bdStatus}\n";
-        $bdLog   .= "Booking:   {$newReservationId}\n";
-        $bdLog   .= "RoomType:  {$bdRoomTypeId} | Unit: {$bdBookingUnit} | Qty: {$newBooking['guestsCount']}\n";
-        if (!$bdResult['ok']) $bdLog .= "Error:     " . ($bdResult['error'] ?? 'unknown error') . "\n";
-        $bdLog   .= str_repeat('=', 60) . "\n\n";
-        file_put_contents(__DIR__ . '/logs/mail.log', $bdLog, FILE_APPEND);
     }
+
+    // --- Log unificado: una sola entrada por reserva con mail + BananaDesk +
+    //     datos del cliente (IP/UA/referer), para poder detectar duplicados
+    //     (mismo booking/datos, mismo o distinto cliente, segundos de diferencia). ---
+    $entryLines = [];
+    $entryLines[] = "BOOKING {$newReservationId}";
+    $entryLines[] = "Guest:      {$newBooking['guestName']} <{$newBooking['email']}> | {$newBooking['phone']}";
+    $entryLines[] = "Room:       {$bookedRoomName} (id {$postedRoomId}" . ($bdRoomTypeId > 0 ? ", BananaDesk type {$bdRoomTypeId}" : ', sin mapeo BananaDesk') . ") | Unit: {$bdBookingUnit} | Qty: {$newBooking['guestsCount']}";
+    $entryLines[] = "Dates:      {$newBooking['checkIn']} -> {$newBooking['checkOut']} ({$mailNights}n)";
+    $entryLines[] = "Client:     " . hp_client_info();
+    $entryLines[] = "Mail:       " . ($mailResult['ok'] ? 'OK' : 'ERROR — ' . $mailResult['error']);
+    if (!$mailResult['ok'] && !empty($mailResult['debug'])) {
+        $entryLines[] = "Mail debug: " . str_replace("\n", ' / ', trim($mailResult['debug']));
+    }
+    if ($bdRoomTypeId > 0) {
+        $entryLines[] = "BananaDesk: " . ($bdResult['ok'] ? 'OK' : 'ERROR — ' . ($bdResult['error'] ?? 'unknown error'));
+    } else {
+        $entryLines[] = "BananaDesk: SKIP (sin mapeo en room_mapping.json)";
+    }
+    $entryLines[] = str_repeat('=', 60);
+    hp_write_log('mail', implode("\n", $entryLines));
 
     $bookingSuccess = true;
 }
@@ -256,14 +271,14 @@ $seo = [
             <!-- ========== HEADER + STEP INDICATOR ========== -->
             <div class="text-center mb-10">
                 <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
-                    <?php if ($step === 'success'): ?><?php echo ($guestLang ?? 'en') === 'es' ? '¡Gracias por tu Reserva!' : 'Thank You for Your Reservation!'; ?>
+                    <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? '¡Gracias por tu Reserva!' : 'Thank You for Your Reservation!'; ?></span>
                     <?php elseif ($step === 1):   ?>When are you coming?
                     <?php elseif ($step === 2):   ?>Choose Your Room
                     <?php else:                   ?>Last Step — Your Details
                     <?php endif; ?>
                 </h1>
                 <p class="text-slate-500 text-lg">
-                    <?php if ($step === 'success'): ?><?php echo ($guestLang ?? 'en') === 'es' ? 'Te enviamos un mail con la confirmación y los detalles de tu estadía.' : "We've sent you a confirmation email with all your stay details."; ?>
+                    <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? 'Te enviamos un mail con la confirmación y los detalles de tu reserva.' : "We've sent you a confirmation email with all your booking details."; ?></span>
                     <?php elseif ($step === 1):   ?>Pick your check-in &amp; check-out dates to see live availability.
                     <?php elseif ($step === 2):   ?>Real-time availability for <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?> · <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?>
                     <?php else:                   ?>You're booking <strong class="text-teal"><?php echo htmlspecialchars($selectedRoom['name'] ?? ''); ?></strong>.
@@ -570,9 +585,9 @@ $seo = [
                     'backHome' => 'Volver al inicio',
                     'chat'     => 'Escribinos',
                     'code'     => 'Código de reserva',
-                    'payTitle' => '¿Deseas confirmar tu estadía pagándola por completo?',
+                    'payTitle' => '¿Deseas confirmar tu reserva pagándola por completo?',
                     'payDesc'  => 'Es opcional, pero asegura tu lugar. Pago único y seguro con tarjeta o PayPal.',
-                    'payCta'   => 'Pagar mi estadía ahora',
+                    'payCta'   => 'Pagar mi reserva ahora',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
                     'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
@@ -581,12 +596,12 @@ $seo = [
                     'code'     => 'Booking code',
                     'backHome' => 'Back to home',
                     'chat'     => 'Chat with us',
-                    'payTitle' => 'Want to confirm your stay by paying it in full?',
+                    'payTitle' => 'Want to confirm your booking by paying it in full?',
                     'payDesc'  => "It's optional, but it secures your spot. One single, secure payment by card or PayPal.",
-                    'payCta'   => 'Pay for my stay now',
+                    'payCta'   => 'Pay for my booking now',
                 ];
             ?>
-                <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-10 text-center">
+                <div class="notranslate max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-10 text-center">
                     <div class="w-16 h-16 mx-auto bg-teal-light text-teal rounded-full flex items-center justify-center mb-6">
                         <i data-lucide="check" class="w-8 h-8"></i>
                     </div>

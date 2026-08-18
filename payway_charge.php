@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/logger.php';
 require_once __DIR__ . '/payway_lib.php';
 
 $in = json_decode(file_get_contents('php://input'), true);
@@ -141,15 +142,13 @@ $payload = [
 
 $result = hp_payway_charge($payload);
 
-$logDir = __DIR__ . '/logs';
-if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
-file_put_contents(
-    $logDir . '/payway.log',
-    date('c') . ' ' . ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} amount_ars={$nightlyARS} payment_method_id={$paymentMethodId}\n"
-        . 'request: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n"
-        . 'response: ' . json_encode($result['response'], JSON_UNESCAPED_UNICODE) . "\n"
-        . ($result['ok'] ? '' : "error: {$result['error']}\n"),
-    FILE_APPEND
+hp_write_log('payway',
+    ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} amount_ars={$nightlyARS} payment_method_id={$paymentMethodId}\n"
+        . 'Client:   ' . hp_client_info() . "\n"
+        . 'Request:  ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n"
+        . 'Response: ' . json_encode($result['response'], JSON_UNESCAPED_UNICODE) . "\n"
+        . ($result['ok'] ? '' : "Error:    {$result['error']}\n")
+        . str_repeat('=', 60)
 );
 
 if (!$result['ok']) {

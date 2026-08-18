@@ -5,7 +5,7 @@
  */
 
 /**
- * @return array{ok: bool, error: string|null}
+ * @return array{ok: bool, error: string|null, debug: string}
  */
 function hp_send_mail(string $toEmail, string $toName, string $subject, string $body, string $altBody, string $logId = ''): array
 {
@@ -58,20 +58,10 @@ function hp_send_mail(string $toEmail, string $toName, string $subject, string $
 
         $mail->send();
 
-        file_put_contents(
-            __DIR__ . '/mail_debug.log',
-            date('c') . " OK {$logId} to={$toEmail}\n" . $smtpDebugLog . "\n",
-            FILE_APPEND
-        );
-        return ['ok' => true, 'error' => null];
+        return ['ok' => true, 'error' => null, 'debug' => $smtpDebugLog];
     } catch (\Exception $e) {
         $error = $e->getMessage() . ($mail->ErrorInfo ? " | {$mail->ErrorInfo}" : '');
-        file_put_contents(
-            __DIR__ . '/mail_debug.log',
-            date('c') . " ERROR {$logId} to={$toEmail}\n{$error}\n{$smtpDebugLog}\n",
-            FILE_APPEND
-        );
         error_log("[Hostel Plaza] Mail error {$logId}: {$error}");
-        return ['ok' => false, 'error' => $error];
+        return ['ok' => false, 'error' => $error, 'debug' => $smtpDebugLog];
     }
 }

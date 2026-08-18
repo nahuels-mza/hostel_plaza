@@ -48,7 +48,8 @@ return [
     'paths' => [
         'rooms'         => __DIR__ . '/../rooms.json',     // opcional: enriquecer
         'config_site'   => __DIR__ . '/../config.json',
-        'log'           => __DIR__ . '/logs/whatsapp.log',
+        // Carpeta de logs (un archivo por día, ver logger.php en la raíz)
+        'log_dir'       => __DIR__ . '/../logs/whatsapp',
         'conversations' => __DIR__ . '/conversations.json',
         'cache'         => __DIR__ . '/cache',
     ],

@@ -2,15 +2,15 @@
 
 # Secrets — nunca subir al repo
 secrets.php
-mail_debug.log
-logs/*.log
 test_mail.php
 # whatsapp/diag.php
+
+# Logs — un archivo por día y por canal, ver logger.php
+logs/*/*.log
 
 # Datos de producción (se generan en el server)
 bookings.json
 conversations.json
-whatsapp/logs/*.log
 whatsapp/cache/
 
 do_not_upload/*

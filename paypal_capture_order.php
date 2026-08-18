@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/logger.php';
 require_once __DIR__ . '/paypal_lib.php';
 
 $in = json_decode(file_get_contents('php://input'), true);
@@ -46,14 +47,12 @@ if ((float)($booking['amountPaid'] ?? 0) >= $totalUsd) {
 
 $result = hp_paypal_capture_order($orderId);
 
-$logDir = __DIR__ . '/logs';
-if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
-file_put_contents(
-    $logDir . '/paypal.log',
-    date('c') . ' ' . ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} order={$orderId}\n"
-        . 'response: ' . json_encode($result['response'], JSON_UNESCAPED_UNICODE) . "\n"
-        . ($result['ok'] ? '' : "error: {$result['error']}\n"),
-    FILE_APPEND
+hp_write_log('paypal',
+    ($result['ok'] ? 'OK' : 'ERROR') . " booking={$bookingId} order={$orderId}\n"
+        . 'Client:   ' . hp_client_info() . "\n"
+        . 'Response: ' . json_encode($result['response'], JSON_UNESCAPED_UNICODE) . "\n"
+        . ($result['ok'] ? '' : "Error:    {$result['error']}\n")
+        . str_repeat('=', 60)
 );
 
 if (!$result['ok']) {

@@ -3,9 +3,9 @@
     Require all denied
 </FilesMatch>
 
-# Bloquear acceso a las carpetas de logs y cache
+# Bloquear acceso a la carpeta de cache
+# (los logs ya no viven acá — ver /logs/whatsapp/, protegida por /logs/.htaccess)
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^logs/  - [F,L]
     RewriteRule ^cache/ - [F,L]
 </IfModule>

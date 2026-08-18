@@ -54,23 +54,31 @@ foreach ($files as $f) {
 
 // ─── 3. Directorios escribibles ───────────────────────────────
 echo "\n── 3. Directorios ──\n";
-foreach (['logs', 'cache'] as $d) {
-    $path = __DIR__ . '/' . $d;
+$dirsToCheck = [
+    'logs/whatsapp' => $cfg['paths']['log_dir'],
+    'cache'         => __DIR__ . '/cache',
+];
+foreach ($dirsToCheck as $label => $path) {
     $exists   = is_dir($path);
     $writable = $exists && is_writable($path);
-    echo ($writable ? "✓" : "✗") . " $d/ " . (!$exists ? "(no existe)" : (!$writable ? "(sin escritura)" : "")) . "\n";
+    echo ($writable ? "✓" : "✗") . " $label/ " . (!$exists ? "(no existe)" : (!$writable ? "(sin escritura)" : "")) . "\n";
 }
 
 // ─── 4. Log reciente ─────────────────────────────────────────
 echo "\n── 4. Log reciente (últimas 30 líneas) ──\n";
-$logPath = $cfg['paths']['log'];
-if (!file_exists($logPath) || filesize($logPath) === 0) {
-    echo "⚠ El log está vacío. Esto significa que el webhook aún no recibió ningún POST de Meta.\n";
+$logDir = $cfg['paths']['log_dir'];
+$logFiles = is_dir($logDir) ? glob($logDir . '/*.log') : [];
+sort($logFiles); // los nombres son AAAA-MM-DD.log → orden cronológico
+$logPath = $logFiles ? end($logFiles) : null;
+
+if (!$logPath || filesize($logPath) === 0) {
+    echo "⚠ No hay log de hoy (o está vacío). Esto puede significar que el webhook aún no recibió ningún POST de Meta.\n";
     echo "  Causas probables:\n";
     echo "  a) El webhook no está registrado/verificado en Meta.\n";
     echo "  b) El .htaccess estaba redirigiendo webhook.php (ya corregido).\n";
     echo "  c) La suscripción al número no está activa.\n";
 } else {
+    echo "Archivo: " . basename($logPath) . "\n\n";
     $lines = file($logPath);
     $recent = array_slice($lines, -30);
     echo implode('', $recent);

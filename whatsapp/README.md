@@ -31,10 +31,13 @@ whatsapp/
 ├── claude_client.php    # cliente API de Anthropic
 ├── config.php           # credenciales (NO subir a git)
 ├── config.example.php   # plantilla con placeholders
-├── .htaccess            # bloquea acceso web a config / logs / cache
-├── cache/               # respuestas cacheadas de BananaDesk (TTL 5 min)
-└── logs/                # logs rotables
+├── .htaccess            # bloquea acceso web a config / cache
+└── cache/               # respuestas cacheadas de BananaDesk (TTL 5 min)
 ```
+
+Los logs del bot NO viven acá — van a `/logs/whatsapp/AAAA-MM-DD.log`
+(carpeta compartida en la raíz del sitio, junto con mail/payway/paypal),
+un archivo por día, protegida por `/logs/.htaccess`. Ver `logger.php`.
 
 ---
 
@@ -140,8 +143,8 @@ php -r '
 ```bash
 chmod 600 whatsapp/config.php
 chmod 600 whatsapp/conversations.json   # se crea al primer mensaje
-chmod 775 whatsapp/logs
 chmod 775 whatsapp/cache
+chmod 775 logs/whatsapp    # se crea sola al primer mensaje (ver logger.php)
 ```
 
 ## 7. Seguridad
@@ -151,8 +154,8 @@ chmod 775 whatsapp/cache
   ```
   whatsapp/config.php
   whatsapp/conversations.json
-  whatsapp/logs/
   whatsapp/cache/
+  logs/*/*.log
   ```
 - Opcional: validar la firma `X-Hub-Signature-256` que envía Meta usando
   un `App Secret` (recomendado para producción).

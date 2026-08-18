@@ -37,27 +37,27 @@ $fTotalUsd = '$' . number_format($totalUsd, 2) . ' USD';
 $ppPublic = hp_paypal_public_config();
 
 $t = $isEs ? [
-    'title'        => 'Confirmá tu estadía',
+    'title'        => 'Confirmá tu reserva',
     'notFound'     => 'No encontramos esa reserva. Usá el link de tu mail de confirmación.',
     'alreadyPaid'  => '✓ Esta reserva ya fue pagada por completo.',
     'guestLabel'   => 'Huésped',
-    'amountLabel'  => 'Total de la estadía',
+    'amountLabel'  => 'Total de la reserva',
     'singleNote'   => 'Pago único, en dólares, con tarjeta o cuenta de PayPal.',
     'unavailable'  => 'El pago online no está disponible en este momento. Podés pagar directamente en el check-in.',
     'successTitle' => '✓ Pago confirmado',
-    'successBody'  => '¡Gracias! Tu estadía quedó pagada por completo.',
+    'successBody'  => '¡Gracias! Tu reserva quedó pagada por completo.',
     'backHome'     => 'Volver al inicio',
     'error'        => 'No pudimos procesar el pago. Podés intentar de nuevo o pagar directamente en el check-in.',
 ] : [
-    'title'        => 'Confirm Your Stay',
+    'title'        => 'Confirm Your Booking',
     'notFound'     => "We couldn't find that booking. Please use the link from your confirmation email.",
     'alreadyPaid'  => '✓ This booking has already been paid in full.',
     'guestLabel'   => 'Guest',
-    'amountLabel'  => 'Total stay',
+    'amountLabel'  => 'Booking total',
     'singleNote'   => 'One-time payment, in USD, by card or PayPal account.',
     'unavailable'  => 'Online payment is temporarily unavailable. You can pay directly at check-in.',
     'successTitle' => '✓ Payment confirmed',
-    'successBody'  => 'Thank you! Your stay is now paid in full.',
+    'successBody'  => 'Thank you! Your booking is now paid in full.',
     'backHome'     => 'Back to home',
     'error'        => "We couldn't process the payment. You can try again or pay directly at check-in.",
 ];
@@ -82,7 +82,7 @@ $t = $isEs ? [
 <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
 
 <div class="flex-1 w-full flex items-center justify-center pt-20">
-<div class="w-full max-w-md bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+<div class="notranslate w-full max-w-md bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
     <div class="text-center mb-6">
         <img src="H.png" alt="Hostel Plaza" style="height:44px;width:auto;" class="mx-auto mb-3">
         <h1 class="text-xl font-bold text-slate-900"><?php echo htmlspecialchars($t['title']); ?></h1>
