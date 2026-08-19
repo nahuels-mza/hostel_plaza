@@ -26,6 +26,8 @@ $newReservationId = '';
 $mailError        = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
+    require_once __DIR__ . '/logger.php';
+
     $bookingsFile = 'bookings.json';
 
     $bookings = [];
@@ -73,6 +75,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     $totalPriceARS = (float)($_POST['total_price_ars'] ?? ($newBooking['totalPrice'] * $exchangeRateARS));
     $formattedARS  = number_format($totalPriceARS, 0, ',', '.');
 
+    // --- Detección (no bloqueante) de doble-submit ---
+    // Mismo email + fechas + habitación llegando de nuevo a los pocos segundos
+    // ≈ doble-click en "Confirm Prebooking" u otro reintento del mismo submit.
+    // Sólo lo dejamos anotado en el log — no bloquea la creación de la reserva.
+    $dupFingerprint = md5(strtolower(trim($newBooking['email'])) . '|' . $newBooking['checkIn'] . '|' . $newBooking['checkOut'] . '|' . $newBooking['roomId']);
+    $dupCheck = hp_dedupe_check('mail', $dupFingerprint, ['booking' => $newReservationId, 'client' => hp_client_info()], 30);
+    if ($dupCheck['duplicate']) {
+        hp_write_log('mail',
+            "POSSIBLE DUPLICATE POST\n" .
+            "New booking:      {$newReservationId} — llegó {$dupCheck['seconds_since']}s después de {$dupCheck['previous']['booking']}\n" .
+            "Guest:            {$newBooking['guestName']} <{$newBooking['email']}>\n" .
+            "Dates/Room:       {$newBooking['checkIn']} -> {$newBooking['checkOut']} | room {$newBooking['roomId']}\n" .
+            "Client now:       " . hp_client_info() . "\n" .
+            "Client previous:  " . ($dupCheck['previous']['client'] ?? '-') . "\n" .
+            str_repeat('=', 60)
+        );
+    }
+
     array_unshift($bookings, $newBooking);
     file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT));
 
@@ -86,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
     // Un solo mail para todos los huéspedes, sin datos de pago — se paga en el
     // check-in. Idioma según el browser, no según nacionalidad.
-    require_once __DIR__ . '/logger.php';
     require_once __DIR__ . '/send_mail.php';
     require_once __DIR__ . '/mail_booking.php';
     $guestLang = hp_detect_lang();
