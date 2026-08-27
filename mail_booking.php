@@ -4,8 +4,11 @@
  * (ya no se distingue por nacionalidad). Sin datos de pago ni transferencia:
  * se paga directamente en el check-in.
  *
- * Idioma: se detecta del header Accept-Language del browser (hp_detect_lang),
- * no de la nacionalidad del huésped.
+ * Idioma: se toma el idioma que el huésped ya eligió en el selector del sitio
+ * (cookie `hp_lang`, seteada por header.php) — no la nacionalidad del huésped.
+ * Si no hay cookie (ej. llamada directa a la API), se cae al header
+ * Accept-Language del browser, y en última instancia a español (mismo
+ * criterio que el resto del sitio, ver header.php).
  *
  * Uso:
  *   require_once __DIR__ . '/mail_booking.php';
@@ -13,14 +16,27 @@
  */
 
 /**
- * Detecta 'es' o 'en' a partir del header Accept-Language del browser.
- * Cualquier otro idioma cae a inglés.
+ * Detecta 'es' o 'en' para el contenido del mail y las páginas de
+ * confirmación. Sólo esos dos idiomas tienen copy propio — pt/fr/de del
+ * selector caen a inglés acá y se traducen client-side vía Google Translate.
  */
 function hp_detect_lang(): string
 {
-    $header  = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
-    $primary = strtolower(substr(trim(explode(',', $header)[0] ?? ''), 0, 2));
-    return $primary === 'es' ? 'es' : 'en';
+    // 1. Idioma elegido por el huésped en el selector del sitio (fuente de verdad).
+    $cookie = strtolower(trim((string)($_COOKIE['hp_lang'] ?? '')));
+    if ($cookie === 'es') return 'es';
+    if ($cookie === 'en') return 'en';
+
+    // 2. Sin cookie (ej. request sin JS): header Accept-Language del browser.
+    if ($cookie === '') {
+        $header  = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        $primary = strtolower(substr(trim(explode(',', $header)[0] ?? ''), 0, 2));
+        if ($primary === 'es') return 'es';
+        if ($primary === 'en') return 'en';
+    }
+
+    // 3. Default: español (consistente con el resto del sitio).
+    return 'es';
 }
 
 /**

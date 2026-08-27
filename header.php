@@ -98,7 +98,7 @@ $hasHero = isset($hasHero) ? (bool)$hasHero : false;
         </a>
 
         <div id="desktopMenu" class="hidden md:flex items-center space-x-6 font-medium <?php echo $hasHero ? 'text-white' : 'text-slate-900'; ?> transition-colors">
-            <a href="/"               class="nav-link transition-colors">Home</a>
+            <a href="/"               class="nav-link notranslate transition-colors" data-nav-home>Home</a>
             <a href="about"           class="nav-link transition-colors">About Us</a>
             <a href="rooms"           class="nav-link transition-colors">Rooms</a>
             <a href="tourist-events"  class="nav-link transition-colors">Tourist Events</a>
@@ -122,7 +122,7 @@ $hasHero = isset($hasHero) ? (bool)$hasHero : false;
     </div>
 
     <div id="mobileMenu" class="hidden absolute top-full left-0 w-full glass p-6 flex-col space-y-4 shadow-xl text-slate-900">
-        <a href="index.php"          class="text-left text-lg font-medium block hover:text-teal">Home</a>
+        <a href="index.php"          class="notranslate text-left text-lg font-medium block hover:text-teal" data-nav-home>Home</a>
         <a href="about"              class="text-left text-lg font-medium block hover:text-teal">About Us</a>
         <a href="rooms.php"          class="text-left text-lg font-medium block hover:text-teal">Rooms</a>
         <a href="tourist-events.php" class="text-left text-lg font-medium block hover:text-teal">Tourist Events</a>
@@ -235,9 +235,38 @@ function hpApplyTranslation(lang, attemptsLeft) {
     }, 500);
 }
 
+// Google Translate, al traducir palabras sueltas sin contexto de frase,
+// produce traducciones literales que no tienen sentido en la UI:
+//   "Home"      (link de navegación) → "Hogar" (la casa)   en vez de "Inicio"
+//   "Check In"  (label del form)     → "Registrarse"       en vez de "Check-in" / fecha de llegada
+//   "Check Out" (label del form)     → "Verificar"         en vez de "Check-out" / fecha de salida
+// Para estos casos puntuales se traduce a mano (marcados con [data-hp-i18n]
+// + "notranslate" en el HTML) en vez de dejarlo en manos de Google.
+var HP_I18N_LABELS = {
+    navHome:  { en: 'Home',      es: 'Inicio',       pt: 'Início',     fr: 'Accueil',       de: 'Startseite' },
+    checkIn:  { en: 'Check In',  es: 'Check-in',     pt: 'Check-in',   fr: 'Arrivée',       de: 'Anreise' },
+    checkOut: { en: 'Check Out', es: 'Check-out',    pt: 'Check-out',  fr: 'Départ',        de: 'Abreise' },
+};
+function hpApplyI18nLabels(langCode) {
+    Object.keys(HP_I18N_LABELS).forEach(function (key) {
+        var dict  = HP_I18N_LABELS[key];
+        var label = dict[langCode] || dict.en;
+        document.querySelectorAll('[data-hp-i18n="' + key + '"]').forEach(function (el) {
+            el.textContent = label;
+        });
+    });
+    // Retrocompat: el link de "Home" del nav usaba data-nav-home antes de
+    // sumarse al diccionario genérico de arriba.
+    var homeLabel = HP_I18N_LABELS.navHome[langCode] || HP_I18N_LABELS.navHome.en;
+    document.querySelectorAll('[data-nav-home]').forEach(function (el) {
+        el.textContent = homeLabel;
+    });
+}
+
 function changeLanguage(langCode, btnElement, isMobile) {
     isMobile = isMobile || false;
     hpApplyTranslation(langCode);
+    hpApplyI18nLabels(langCode);
     var btnClass = isMobile ? '.lang-btn-mob' : '.lang-btn';
     document.querySelectorAll(btnClass).forEach(function (btn) {
         if (isMobile) {
@@ -256,6 +285,18 @@ function changeLanguage(langCode, btnElement, isMobile) {
     // Se guarda para siempre (no solo esta sesión) — si el usuario ya eligió
     // un idioma, no le volvemos a preguntar en la próxima visita.
     try { localStorage.setItem('hp_lang', langCode); } catch(e) {}
+    hpSetLangCookie(langCode);
+}
+
+// Cookie espejo de localStorage: localStorage no es visible desde PHP, y
+// algunas páginas (ej. la confirmación de reserva) necesitan saber en qué
+// idioma está el sitio para elegir su propio copy en vez de dejarlo en manos
+// de Google Translate (que se corta con "notranslate" en contenido dinámico
+// como el código de reserva).
+function hpSetLangCookie(langCode) {
+    try {
+        document.cookie = 'hp_lang=' + langCode + ';path=/;max-age=' + (60 * 60 * 24 * 365) + ';SameSite=Lax';
+    } catch (e) {}
 }
 
 // On load: español por default SOLO si el usuario nunca eligió nada antes.
@@ -269,6 +310,8 @@ function changeLanguage(langCode, btnElement, isMobile) {
         lang = 'es';
         try { localStorage.setItem('hp_lang', lang); } catch(e) {}
     }
+    hpSetLangCookie(lang);
+    hpApplyI18nLabels(lang);
 
     // OJO: no cortamos acá aunque lang === 'en'. Google Translate guarda su
     // propia cookie y puede re-traducir la página al inglés-base por su

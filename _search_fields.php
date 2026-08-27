@@ -35,14 +35,14 @@ $sf_guestsInputClass = $sf_isHero
     : 'w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-900 outline-none focus:ring-2 focus:ring-teal font-medium';
 ?>
 <div<?php echo $sf_wrapClass ? ' class="' . $sf_wrapClass . '"' : ''; ?>>
-    <label class="<?php echo $sf_labelClass; ?>"><?php if ($sf_isHero): ?><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> <?php endif; ?>Check In</label>
+    <label class="<?php echo $sf_labelClass; ?>"><?php if ($sf_isHero): ?><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> <?php endif; ?><span class="notranslate" data-hp-i18n="checkIn">Check In</span></label>
     <input type="text" name="check_in" id="<?php echo htmlspecialchars($sf_check_in_id); ?>"
            value="<?php echo htmlspecialchars($sf_check_in); ?>"
            <?php echo $sf_isHero ? 'placeholder="Check-in date" readonly' : ''; ?> required
            class="<?php echo $sf_dateInputClass; ?>" />
 </div>
 <div<?php echo $sf_wrapClass ? ' class="' . $sf_wrapClass . '"' : ''; ?>>
-    <label class="<?php echo $sf_labelClass; ?>"><?php if ($sf_isHero): ?><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> <?php endif; ?>Check Out</label>
+    <label class="<?php echo $sf_labelClass; ?>"><?php if ($sf_isHero): ?><i data-lucide="calendar" class="w-4 h-4 text-teal"></i> <?php endif; ?><span class="notranslate" data-hp-i18n="checkOut">Check Out</span></label>
     <input type="text" name="check_out" id="<?php echo htmlspecialchars($sf_check_out_id); ?>"
            value="<?php echo htmlspecialchars($sf_check_out); ?>"
            <?php echo $sf_isHero ? 'placeholder="Check-out date" readonly' : ''; ?> required
