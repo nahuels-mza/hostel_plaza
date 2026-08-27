@@ -207,13 +207,37 @@ $hasHero = isset($hasHero) ? (bool)$hasHero : false;
     }
 })();
 
+// Dispara la traducción de Google Translate y VERIFICA que realmente se haya
+// aplicado (mirando la clase que Google le agrega a <html>), reintentando si
+// no. Antes solo chequeábamos que el <select> existiera y disparábamos una
+// vez — pero el <select> puede existir en el DOM antes de que el widget
+// termine de enganchar su propio listener interno, y el evento sintético se
+// perdía en silencio (pasaba sobre todo en el "español por default" de la
+// primera carga, nunca en un click manual porque para ese entonces el widget
+// ya llevaba rato inicializado).
+function hpApplyTranslation(lang, attemptsLeft) {
+    if (attemptsLeft === undefined) attemptsLeft = 15;
+    var sel = document.querySelector('#google_translate_element select')
+           || document.querySelector('.goog-te-combo');
+    if (!sel) {
+        if (attemptsLeft > 0) setTimeout(function () { hpApplyTranslation(lang, attemptsLeft - 1); }, 300);
+        return;
+    }
+    sel.value = lang;
+    sel.dispatchEvent(new Event('change'));
+    setTimeout(function () {
+        var isTranslated = document.documentElement.classList.contains('translated-ltr')
+                         || document.documentElement.classList.contains('translated-rtl');
+        var applied = (lang === 'en') ? !isTranslated : isTranslated;
+        if (!applied && attemptsLeft > 0) {
+            hpApplyTranslation(lang, attemptsLeft - 1);
+        }
+    }, 500);
+}
+
 function changeLanguage(langCode, btnElement, isMobile) {
     isMobile = isMobile || false;
-    var selectField = document.querySelector("#google_translate_element select") || document.querySelector(".goog-te-combo");
-    if (selectField) {
-        selectField.value = langCode;
-        selectField.dispatchEvent(new Event('change'));
-    }
+    hpApplyTranslation(langCode);
     var btnClass = isMobile ? '.lang-btn-mob' : '.lang-btn';
     document.querySelectorAll(btnClass).forEach(function (btn) {
         if (isMobile) {
@@ -229,36 +253,28 @@ function changeLanguage(langCode, btnElement, isMobile) {
     } else {
         btnElement.classList.add('active');
     }
-    // Persist selection in localStorage so it survives page navigation
+    // Se guarda para siempre (no solo esta sesión) — si el usuario ya eligió
+    // un idioma, no le volvemos a preguntar en la próxima visita.
     try { localStorage.setItem('hp_lang', langCode); } catch(e) {}
 }
 
-// On load: resolve language → localStorage → googtrans cookie → español por defecto
+// On load: español por default SOLO si el usuario nunca eligió nada antes.
+// Si ya eligió un idioma alguna vez, se respeta esa elección para siempre.
 (function () {
     var lang = '';
 
-    // 1. Preferencia guardada por el usuario
     try { lang = localStorage.getItem('hp_lang') || ''; } catch(e) {}
 
-    // 2. Cookie de Google Translate (navegación entre páginas)
-    if (!lang) {
-        var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]*)/);
-        if (match) {
-            var parts = decodeURIComponent(match[1]).split('/');
-            lang = parts[parts.length - 1] || '';
-        }
-    }
-
-    // 3. Primera visita: la página siempre arranca en español. El usuario
-    //    elige otro idioma desde la barra del header (no se autodetecta
-    //    el idioma del navegador).
     if (!lang) {
         lang = 'es';
         try { localStorage.setItem('hp_lang', lang); } catch(e) {}
     }
 
-    // Inglés es el idioma base de la página: sin traducción, solo sincronizar botón
-    if (lang === 'en') return;
+    // OJO: no cortamos acá aunque lang === 'en'. Google Translate guarda su
+    // propia cookie y puede re-traducir la página al inglés-base por su
+    // cuenta en el próximo load (ej: si el usuario había elegido inglés
+    // antes) — hpApplyTranslation('en') fuerza a deshacerlo si hace falta;
+    // si la página ya está en inglés, dispatchear 'en' de nuevo no hace nada.
 
     // Actualizar botones (desktop + mobile)
     document.querySelectorAll('.lang-btn').forEach(function (btn) { btn.classList.remove('active'); });
@@ -271,18 +287,7 @@ function changeLanguage(langCode, btnElement, isMobile) {
     var m = document.querySelector('.lang-btn-mob[onclick*="\'' + lang + '\'"]');
     if (m) { m.classList.remove('text-slate-500'); m.classList.add('bg-teal', 'text-white'); }
 
-    // Disparar Google Translate (carga async: reintentar hasta que el widget esté listo)
-    function tryTranslate(attempts) {
-        var sel = document.querySelector('#google_translate_element select')
-               || document.querySelector('.goog-te-combo');
-        if (sel) {
-            sel.value = lang;
-            sel.dispatchEvent(new Event('change'));
-        } else if (attempts > 0) {
-            setTimeout(function () { tryTranslate(attempts - 1); }, 300);
-        }
-    }
-    tryTranslate(15); // hasta ~4.5 s de espera
+    hpApplyTranslation(lang);
 })();
 
 // Kill the Google Translate top bar (it tries to shift the document down)

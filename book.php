@@ -604,9 +604,6 @@ $seo = [
                     'backHome' => 'Volver al inicio',
                     'chat'     => 'Escribinos',
                     'code'     => 'Código de reserva',
-                    'payTitle' => '¿Deseas confirmar tu reserva pagándola por completo?',
-                    'payDesc'  => 'Es opcional, pero asegura tu lugar. Pago único y seguro con tarjeta o PayPal.',
-                    'payCta'   => 'Pagar mi reserva ahora',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
                     'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
@@ -615,9 +612,6 @@ $seo = [
                     'code'     => 'Booking code',
                     'backHome' => 'Back to home',
                     'chat'     => 'Chat with us',
-                    'payTitle' => 'Want to confirm your booking by paying it in full?',
-                    'payDesc'  => "It's optional, but it secures your spot. One single, secure payment by card or PayPal.",
-                    'payCta'   => 'Pay for my booking now',
                 ];
             ?>
                 <div class="notranslate max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-10 text-center">
@@ -640,15 +634,6 @@ $seo = [
                     <?php else: ?>
                         <p class="text-xs text-green-600 mb-4"><?php echo htmlspecialchars($successCopy['mailOk']); ?> <?php echo htmlspecialchars($newBooking['email']); ?></p>
                     <?php endif; ?>
-
-                    <div class="bg-teal-light rounded-2xl p-6 mb-6 text-left">
-                        <p class="font-bold text-teal mb-1"><?php echo htmlspecialchars($successCopy['payTitle']); ?></p>
-                        <p class="text-sm text-teal/80 mb-4"><?php echo htmlspecialchars($successCopy['payDesc']); ?></p>
-                        <a href="pay.php?booking_id=<?php echo urlencode($newReservationId); ?>"
-                           class="inline-flex items-center gap-2 bg-teal text-white font-bold px-6 py-3 rounded-xl hover:bg-teal-hover transition-all">
-                            <i data-lucide="credit-card" class="w-4 h-4"></i> <?php echo htmlspecialchars($successCopy['payCta']); ?>
-                        </a>
-                    </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <a href="/" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"><?php echo htmlspecialchars($successCopy['backHome']); ?></a>
@@ -728,8 +713,6 @@ $seo = [
                         const ppn = Number(info.price_per_night_ars || 0);
                         const tot = Number(info.total_ars || 0);
 
-                        // Mostrar SIEMPRE el precio cuando lo tenemos
-                        // (ya sea desde BananaDesk o desde rooms.json como fallback).
                         if (ppn > 0) {
                             price.textContent = 'AR$ ' + ppn.toLocaleString('es-AR', { maximumFractionDigits: 0 });
                             total.textContent = 'Total ' + data.nights + 'n: AR$ ' + tot.toLocaleString('es-AR', { maximumFractionDigits: 0 });
@@ -810,7 +793,7 @@ $seo = [
                     const room = data.rooms.find(x => String(x.id) === String(roomId));
                     if (!room) return;
 
-                    const totalARS = Number(room.total_ars || 0); // ya escalado por huéspedes en dormitorios compartidos
+                    const totalARS = Number(room.total_ars || 0);
                     const usdMultiplier = (room.booking_unit === 'bed') ? guestsCount : 1;
                     const totalUSD = room.price_usd_from ? (Number(room.price_usd_from) * nights * usdMultiplier) : 0;
                     document.getElementById('display_total_ars').textContent = 'AR$ ' + totalARS.toLocaleString('es-AR', { maximumFractionDigits: 0 });
