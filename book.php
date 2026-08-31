@@ -290,14 +290,14 @@ $seo = [
             <!-- ========== HEADER + STEP INDICATOR ========== -->
             <div class="text-center mb-10">
                 <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
-                    <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? '¡Gracias por tu Reserva!' : 'Thank You for Your Reservation!'; ?></span>
+                    <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? '¡Solicitud Recibida!' : 'Request Received!'; ?></span>
                     <?php elseif ($step === 1):   ?>When are you coming?
                     <?php elseif ($step === 2):   ?>Choose Your Room
                     <?php else:                   ?>Last Step — Your Details
                     <?php endif; ?>
                 </h1>
                 <p class="text-slate-500 text-lg">
-                    <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? 'Te enviamos un mail con la confirmación y los detalles de tu reserva.' : "We've sent you a confirmation email with all your booking details."; ?></span>
+                    <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? 'Revisá los detalles de tu solicitud a continuación.' : 'Check the details of your request below.'; ?></span>
                     <?php elseif ($step === 1):   ?>Pick your check-in &amp; check-out dates to see live availability.
                     <?php elseif ($step === 2):   ?>Real-time availability for <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?> · <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?>
                     <?php else:                   ?>You're booking <strong class="text-teal"><?php echo htmlspecialchars($selectedRoom['name'] ?? ''); ?></strong>.
@@ -363,7 +363,7 @@ $seo = [
             <?php if ($step === 2): ?>
                 <div class="flex justify-between items-center mb-6">
                     <a href="book.php" class="text-slate-500 hover:text-teal flex items-center gap-2 text-sm font-medium">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Change dates
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="notranslate" data-hp-i18n="changeDates">Change dates</span>
                     </a>
                     <p id="rooms_status" class="text-sm text-slate-500">Loading availability…</p>
                 </div>
@@ -441,11 +441,11 @@ $seo = [
                                     <div class="mt-auto pt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                                         <div class="flex items-center gap-2">
                                             <a href="book.php" class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
-                                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Change dates
+                                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> <span class="notranslate" data-hp-i18n="changeDates">Change dates</span>
                                             </a>
                                             <a id="change_room_link" href="book.php?check_in=<?php echo urlencode($getCheckIn); ?>&check_out=<?php echo urlencode($getCheckOut); ?>&guests_count=<?php echo urlencode((string)$getGuestsCount); ?>"
                                                class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
-                                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Change room
+                                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span class="notranslate" data-hp-i18n="changeRoom">Change room</span>
                                             </a>
                                         </div>
                                         <div class="text-left sm:text-right">
@@ -474,7 +474,7 @@ $seo = [
                                     <input type="text" name="guests_count" id="guests_count_input" readonly
                                            value="<?php echo max(1, (int)$getGuestsCount); ?>"
                                            class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium outline-none cursor-not-allowed">
-                                    <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room. To change it, use "Change dates" above.</p>
+                                    <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room. To change it, use "<span class="notranslate" data-hp-i18n="changeDates">Change dates</span>" above.</p>
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Full Legal Name *</label>
@@ -597,7 +597,7 @@ $seo = [
             <?php if ($step === 'success'):
                 $successCopy = ($guestLang ?? 'en') === 'es' ? [
                     'title'    => '¡Gracias por tu reserva!',
-                    'subtitle' => 'Ya la tenemos registrada y nuestro equipo va a estar esperándote. Te mandamos una copia de los detalles por mail.',
+                    'subtitle' => 'Tu solicitud de reserva será evaluada y nuestro equipo se pondrá en contacto con vos para confirmar tu estadía desde el número +54 9 2615 37-2767. Te mandamos una copia de los detalles por mail.',
                     'mailErr'  => 'No se pudo enviar el email de confirmación.',
                     'mailOk'   => '✓ Email de confirmación enviado a',
                     'backHome' => 'Volver al inicio',
@@ -605,7 +605,7 @@ $seo = [
                     'code'     => 'Código de reserva',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
-                    'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details.",
+                    'subtitle' => "Your booking request will be reviewed, and our team will contact you to confirm your stay from +54 9 2615 37-2767. We've emailed you a copy of the details.",
                     'mailErr'  => 'No se pudo enviar el email de confirmación.',
                     'mailOk'   => '✓ Confirmation email sent to',
                     'code'     => 'Booking code',

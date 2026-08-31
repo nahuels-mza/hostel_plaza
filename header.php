@@ -243,9 +243,11 @@ function hpApplyTranslation(lang, attemptsLeft) {
 // Para estos casos puntuales se traduce a mano (marcados con [data-hp-i18n]
 // + "notranslate" en el HTML) en vez de dejarlo en manos de Google.
 var HP_I18N_LABELS = {
-    navHome:  { en: 'Home',      es: 'Inicio',       pt: 'Início',     fr: 'Accueil',       de: 'Startseite' },
-    checkIn:  { en: 'Check In',  es: 'Check-in',     pt: 'Check-in',   fr: 'Arrivée',       de: 'Anreise' },
-    checkOut: { en: 'Check Out', es: 'Check-out',    pt: 'Check-out',  fr: 'Départ',        de: 'Abreise' },
+    navHome:     { en: 'Home',        es: 'Inicio',              pt: 'Início',        fr: 'Accueil',         de: 'Startseite' },
+    checkIn:     { en: 'Check In',    es: 'Check-in',            pt: 'Check-in',      fr: 'Arrivée',         de: 'Anreise' },
+    checkOut:    { en: 'Check Out',   es: 'Check-out',           pt: 'Check-out',     fr: 'Départ',          de: 'Abreise' },
+    changeDates: { en: 'Change dates', es: 'Cambiar las fechas', pt: 'Alterar as datas', fr: 'Modifier les dates', de: 'Daten ändern' },
+    changeRoom:  { en: 'Change room',  es: 'Cambiar habitaciones', pt: 'Alterar quarto', fr: 'Changer de chambre', de: 'Zimmer wechseln' },
 };
 function hpApplyI18nLabels(langCode) {
     Object.keys(HP_I18N_LABELS).forEach(function (key) {
