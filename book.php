@@ -75,103 +75,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     $totalPriceARS = (float)($_POST['total_price_ars'] ?? ($newBooking['totalPrice'] * $exchangeRateARS));
     $formattedARS  = number_format($totalPriceARS, 0, ',', '.');
 
-    // --- Detección (no bloqueante) de doble-submit ---
+    // --- Detección + bloqueo de doble-submit ---
     // Mismo email + fechas + habitación llegando de nuevo a los pocos segundos
-    // ≈ doble-click en "Confirm Prebooking" u otro reintento del mismo submit.
-    // Sólo lo dejamos anotado en el log — no bloquea la creación de la reserva.
+    // ≈ doble-click en "Confirm Prebooking" u otro reintento del mismo submit
+    // (ver también el guard del lado del cliente que deshabilita el botón).
+    // Si pasa, NO creamos una segunda reserva/mail/BananaDesk: mostramos el
+    // success de la reserva que ya se creó momentos antes.
+    $dupWindowSeconds = 30;
     $dupFingerprint = md5(strtolower(trim($newBooking['email'])) . '|' . $newBooking['checkIn'] . '|' . $newBooking['checkOut'] . '|' . $newBooking['roomId']);
-    $dupCheck = hp_dedupe_check('mail', $dupFingerprint, ['booking' => $newReservationId, 'client' => hp_client_info()], 30);
+    $dupCheck = hp_dedupe_check('mail', $dupFingerprint, ['booking' => $newReservationId, 'client' => hp_client_info()], $dupWindowSeconds);
+
+    // Idioma del success screen — se resuelve siempre (incluso si el submit
+    // se bloquea por duplicado) para no mostrarlo en inglés a un guest ES.
+    require_once __DIR__ . '/mail_booking.php';
+    $guestLang = hp_detect_lang();
+
     if ($dupCheck['duplicate']) {
         hp_write_log('mail',
-            "POSSIBLE DUPLICATE POST\n" .
-            "New booking:      {$newReservationId} — llegó {$dupCheck['seconds_since']}s después de {$dupCheck['previous']['booking']}\n" .
+            "DUPLICATE POST BLOQUEADO\n" .
+            "New booking:      {$newReservationId} — llegó {$dupCheck['seconds_since']}s después de {$dupCheck['previous']['booking']} (ventana {$dupWindowSeconds}s)\n" .
             "Guest:            {$newBooking['guestName']} <{$newBooking['email']}>\n" .
             "Dates/Room:       {$newBooking['checkIn']} -> {$newBooking['checkOut']} | room {$newBooking['roomId']}\n" .
             "Client now:       " . hp_client_info() . "\n" .
             "Client previous:  " . ($dupCheck['previous']['client'] ?? '-') . "\n" .
+            "Acción:           no se creó reserva/mail/BananaDesk nuevos; se reutiliza {$dupCheck['previous']['booking']}\n" .
             str_repeat('=', 60)
         );
-    }
 
-    array_unshift($bookings, $newBooking);
-    file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT));
+        // Reusamos la reserva anterior para el success screen — no se toca
+        // bookings.json, no se manda mail, no se pega a BananaDesk de nuevo.
+        $newReservationId = $dupCheck['previous']['booking'];
+        $bookingSuccess   = true;
 
-    // Room name for the email (ya resuelto arriba junto con $bookedRoomMeta)
-    $bookedRoomName = $bookedRoomMeta['name'] ?? '';
-
-    // Calcular noches para el template de mail
-    $mailNights = max(1, (int)round(
-        (strtotime($newBooking['checkOut']) - strtotime($newBooking['checkIn'])) / 86400
-    ));
-
-    // Un solo mail para todos los huéspedes, sin datos de pago — se paga en el
-    // check-in. Idioma según el browser, no según nacionalidad.
-    require_once __DIR__ . '/send_mail.php';
-    require_once __DIR__ . '/mail_booking.php';
-    $guestLang = hp_detect_lang();
-    [$mailSubject, $mailBody, $mailAlt] = hp_mail_booking(
-        $newBooking, $bookedRoomName, $totalPriceARS, $mailNights, $guestLang
-    );
-    $mailResult = hp_send_mail(
-        $newBooking['email'], $newBooking['guestName'],
-        $mailSubject, $mailBody, $mailAlt,
-        "booking={$newReservationId}"
-    );
-    if (!$mailResult['ok']) $mailError = $mailResult['error'];
-
-    // --- Auto-crear reserva en BananaDesk ---
-    require_once __DIR__ . '/bananadesk_reserve.php';
-    $bdRoomTypeId  = (int)($roomMap[$newBooking['roomId']] ?? 0);
-    $bdBookingUnit = $bookedRoomMeta['bookingUnit'] ?? 'room';
-    $bdResult      = null;
-    if ($bdRoomTypeId > 0) {
-        $bdResult = hp_bananadesk_reserve(
-            $newBooking['checkIn'],
-            $newBooking['checkOut'],
-            $bdRoomTypeId,
-            $newBooking['guestName'],
-            $newBooking['email'],
-            $newBooking['phone'],
-            (int)$newBooking['guestsCount'],
-            $bdBookingUnit
-        );
-
-        // Guardar el resultado en bookings.json para trazabilidad
-        $bookingsNow = json_decode(file_get_contents($bookingsFile), true) ?: [];
-        foreach ($bookingsNow as &$b) {
-            if ($b['id'] === $newReservationId) {
-                $b['bananadesk'] = $bdResult['ok']
-                    ? ['synced' => true,  'response' => $bdResult['response']]
-                    : ['synced' => false, 'error'    => $bdResult['error']];
-                break;
-            }
-        }
-        unset($b);
-        file_put_contents($bookingsFile, json_encode($bookingsNow, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-
-    // --- Log unificado: una sola entrada por reserva con mail + BananaDesk +
-    //     datos del cliente (IP/UA/referer), para poder detectar duplicados
-    //     (mismo booking/datos, mismo o distinto cliente, segundos de diferencia). ---
-    $entryLines = [];
-    $entryLines[] = "BOOKING {$newReservationId}";
-    $entryLines[] = "Guest:      {$newBooking['guestName']} <{$newBooking['email']}> | {$newBooking['phone']}";
-    $entryLines[] = "Room:       {$bookedRoomName} (id {$postedRoomId}" . ($bdRoomTypeId > 0 ? ", BananaDesk type {$bdRoomTypeId}" : ', sin mapeo BananaDesk') . ") | Unit: {$bdBookingUnit} | Qty: {$newBooking['guestsCount']}";
-    $entryLines[] = "Dates:      {$newBooking['checkIn']} -> {$newBooking['checkOut']} ({$mailNights}n)";
-    $entryLines[] = "Client:     " . hp_client_info();
-    $entryLines[] = "Mail:       " . ($mailResult['ok'] ? 'OK' : 'ERROR — ' . $mailResult['error']);
-    if (!$mailResult['ok'] && !empty($mailResult['debug'])) {
-        $entryLines[] = "Mail debug: " . str_replace("\n", ' / ', trim($mailResult['debug']));
-    }
-    if ($bdRoomTypeId > 0) {
-        $entryLines[] = "BananaDesk: " . ($bdResult['ok'] ? 'OK' : 'ERROR — ' . ($bdResult['error'] ?? 'unknown error'));
     } else {
-        $entryLines[] = "BananaDesk: SKIP (sin mapeo en room_mapping.json)";
-    }
-    $entryLines[] = str_repeat('=', 60);
-    hp_write_log('mail', implode("\n", $entryLines));
+        array_unshift($bookings, $newBooking);
+        file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT));
 
-    $bookingSuccess = true;
+        // Room name for the email (ya resuelto arriba junto con $bookedRoomMeta)
+        $bookedRoomName = $bookedRoomMeta['name'] ?? '';
+
+        // Calcular noches para el template de mail
+        $mailNights = max(1, (int)round(
+            (strtotime($newBooking['checkOut']) - strtotime($newBooking['checkIn'])) / 86400
+        ));
+
+        // Un solo mail para todos los huéspedes, sin datos de pago — se paga en el
+        // check-in. Idioma según el browser, no según nacionalidad ($guestLang
+        // ya se resolvió más arriba, antes del chequeo de duplicado).
+        require_once __DIR__ . '/send_mail.php';
+        [$mailSubject, $mailBody, $mailAlt] = hp_mail_booking(
+            $newBooking, $bookedRoomName, $totalPriceARS, $mailNights, $guestLang
+        );
+        $mailResult = hp_send_mail(
+            $newBooking['email'], $newBooking['guestName'],
+            $mailSubject, $mailBody, $mailAlt,
+            "booking={$newReservationId}"
+        );
+        if (!$mailResult['ok']) $mailError = $mailResult['error'];
+
+        // --- Auto-crear reserva en BananaDesk ---
+        require_once __DIR__ . '/bananadesk_reserve.php';
+        $bdRoomTypeId  = (int)($roomMap[$newBooking['roomId']] ?? 0);
+        $bdBookingUnit = $bookedRoomMeta['bookingUnit'] ?? 'room';
+        $bdResult      = null;
+        if ($bdRoomTypeId > 0) {
+            $bdResult = hp_bananadesk_reserve(
+                $newBooking['checkIn'],
+                $newBooking['checkOut'],
+                $bdRoomTypeId,
+                $newBooking['guestName'],
+                $newBooking['email'],
+                $newBooking['phone'],
+                (int)$newBooking['guestsCount'],
+                $bdBookingUnit
+            );
+
+            // Guardar el resultado en bookings.json para trazabilidad
+            $bookingsNow = json_decode(file_get_contents($bookingsFile), true) ?: [];
+            foreach ($bookingsNow as &$b) {
+                if ($b['id'] === $newReservationId) {
+                    $b['bananadesk'] = $bdResult['ok']
+                        ? ['synced' => true,  'response' => $bdResult['response']]
+                        : ['synced' => false, 'error'    => $bdResult['error']];
+                    break;
+                }
+            }
+            unset($b);
+            file_put_contents($bookingsFile, json_encode($bookingsNow, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        }
+
+        // --- Log unificado: una sola entrada por reserva con mail + BananaDesk +
+        //     datos del cliente (IP/UA/referer), para poder detectar duplicados
+        //     (mismo booking/datos, mismo o distinto cliente, segundos de diferencia). ---
+        $entryLines = [];
+        $entryLines[] = "BOOKING {$newReservationId}";
+        $entryLines[] = "Guest:      {$newBooking['guestName']} <{$newBooking['email']}> | {$newBooking['phone']}";
+        $entryLines[] = "Room:       {$bookedRoomName} (id {$postedRoomId}" . ($bdRoomTypeId > 0 ? ", BananaDesk type {$bdRoomTypeId}" : ', sin mapeo BananaDesk') . ") | Unit: {$bdBookingUnit} | Qty: {$newBooking['guestsCount']}";
+        $entryLines[] = "Dates:      {$newBooking['checkIn']} -> {$newBooking['checkOut']} ({$mailNights}n)";
+        $entryLines[] = "Client:     " . hp_client_info();
+        $entryLines[] = "Mail:       " . ($mailResult['ok'] ? 'OK' : 'ERROR — ' . $mailResult['error']);
+        if (!$mailResult['ok'] && !empty($mailResult['debug'])) {
+            $entryLines[] = "Mail debug: " . str_replace("\n", ' / ', trim($mailResult['debug']));
+        }
+        if ($bdRoomTypeId > 0) {
+            $entryLines[] = "BananaDesk: " . ($bdResult['ok'] ? 'OK' : 'ERROR — ' . ($bdResult['error'] ?? 'unknown error'));
+        } else {
+            $entryLines[] = "BananaDesk: SKIP (sin mapeo en room_mapping.json)";
+        }
+        $entryLines[] = str_repeat('=', 60);
+        hp_write_log('mail', implode("\n", $entryLines));
+
+        $bookingSuccess = true;
+    }
 }
 
 // --- 2. URL params (and backward-compat with old ?room=NAME) ---
@@ -772,6 +787,26 @@ $seo = [
             // ---- Persistencia de datos del formulario al cambiar de habitación ----
             const formEl = document.getElementById('booking_form');
             const stashKey = 'hp_booking_form_v1';
+
+            // ── Anti doble-submit ────────────────────────────────────────────
+            // Un doble-click en "Confirm Prebooking" dispara dos submits reales
+            // antes de que la página navegue, y cada uno crea una reserva +
+            // mail + reserva en BananaDesk por separado. Al primer submit,
+            // deshabilitamos el botón: como los listeners corren en orden de
+            // registro y este es el primero en fase de captura, cualquier
+            // segundo submit (doble-click, Enter repetido, etc.) se cancela acá
+            // antes de llegar al resto de los listeners.
+            let hpSubmitting = false;
+            formEl.addEventListener('submit', (ev) => {
+                if (hpSubmitting) { ev.preventDefault(); ev.stopImmediatePropagation(); return; }
+                hpSubmitting = true;
+                const btn = document.getElementById('submit_btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> ' + (btn.textContent.trim() || 'Enviando…');
+                }
+            }, true);
 
             // Restaurar si veníamos de otra habitación
             try {
