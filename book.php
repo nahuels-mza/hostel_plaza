@@ -598,7 +598,7 @@ $seo = [
             <?php if ($step === 'success'):
                 $successCopy = ($guestLang ?? 'en') === 'es' ? [
                     'title'    => '¡Gracias por tu reserva!',
-                    'subtitle' => 'Ya la tenemos registrada y nuestro equipo va a estar esperándote. Te mandamos una copia de los detalles por mail — el pago se hace directamente en el check-in.',
+                    'subtitle' => 'Ya la tenemos registrada y nuestro equipo va a estar esperándote. Te mandamos una copia de los detalles por mail.',
                     'mailErr'  => 'No se pudo enviar el email de confirmación.',
                     'mailOk'   => '✓ Email de confirmación enviado a',
                     'backHome' => 'Volver al inicio',
@@ -606,7 +606,7 @@ $seo = [
                     'code'     => 'Código de reserva',
                 ] : [
                     'title'    => 'Thank You for Your Reservation!',
-                    'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details — payment is made directly at check-in.",
+                    'subtitle' => "We've got it on file and our team will be ready for you. We've emailed you a copy of the details.",
                     'mailErr'  => 'No se pudo enviar el email de confirmación.',
                     'mailOk'   => '✓ Confirmation email sent to',
                     'code'     => 'Booking code',
@@ -997,7 +997,6 @@ $seo = [
                     <h3 class="font-bold text-slate-900 mb-1">💵 Rates</h3>
                     <ul class="space-y-1.5 pl-1">
                         <li><span class="font-semibold">Foreign guests:</span> Listed rates are tax-exempt for guests who present a valid passport and immigration entry stamp at check-in.</li>
-                        <li><span class="font-semibold">Argentine nationals:</span> Argentine citizens are subject to 21% VAT, added to the listed rates.</li>
                         <li><span class="font-semibold">Payment methods:</span> Cash in Argentine pesos, or credit/debit card with a 10% surcharge.</li>
                     </ul>
                 </div>
