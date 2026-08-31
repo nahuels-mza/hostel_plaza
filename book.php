@@ -554,7 +554,6 @@ $seo = [
                                 </label>
 
                                 <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                                    <p class="text-xs text-slate-500">Payment is collected upon arrival in Mendoza.</p>
                                     <button type="submit" id="submit_btn"
                                             class="w-full sm:w-auto bg-teal text-white font-bold px-8 py-4 rounded-2xl hover:bg-teal-hover transition-all shadow-md flex items-center justify-center gap-2">
                                         Confirm Prebooking <i data-lucide="check-circle" class="w-4 h-4"></i>
