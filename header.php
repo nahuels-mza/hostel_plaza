@@ -248,8 +248,24 @@ var HP_I18N_LABELS = {
     checkOut:    { en: 'Check Out',   es: 'Check-out',           pt: 'Check-out',     fr: 'Départ',          de: 'Abreise' },
     changeDates: { en: 'Change dates', es: 'Cambiar las fechas', pt: 'Alterar as datas', fr: 'Modifier les dates', de: 'Daten ändern' },
     changeRoom:  { en: 'Change room',  es: 'Cambiar habitaciones', pt: 'Alterar quarto', fr: 'Changer de chambre', de: 'Zimmer wechseln' },
+    available:   { en: 'Available',    es: 'Disponible',         pt: 'Disponível',    fr: 'Disponible',      de: 'Verfügbar' },
+    unavailable: { en: 'Unavailable',  es: 'No disponible',      pt: 'Não disponível', fr: 'Indisponible',   de: 'Nicht verfügbar' },
 };
+// Diccionario + idioma actual expuestos globalmente para que otras páginas
+// (ej. el grid de habitaciones de book.php, que arma texto dinámicamente por
+// JS después de un fetch) puedan traducir a mano sin depender de que Google
+// Translate re-escanee contenido agregado al DOM después de cargar — ahí es
+// donde produce cosas como "Indisponible" para "Unavailable" sin más contexto.
+window.HP_I18N_LABELS = HP_I18N_LABELS;
+window.HP_LANG = 'es';
+function hpText(key, fallback) {
+    var dict = HP_I18N_LABELS[key];
+    if (!dict) return fallback;
+    return dict[window.HP_LANG] || dict.en || fallback;
+}
+window.hpText = hpText;
 function hpApplyI18nLabels(langCode) {
+    window.HP_LANG = langCode;
     Object.keys(HP_I18N_LABELS).forEach(function (key) {
         var dict  = HP_I18N_LABELS[key];
         var label = dict[langCode] || dict.en;

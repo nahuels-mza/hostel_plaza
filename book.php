@@ -390,7 +390,7 @@ $seo = [
                             <div class="relative h-56 overflow-hidden bg-slate-100">
                                 <img src="<?php echo htmlspecialchars($r['image'] ?? ''); ?>" alt="<?php echo htmlspecialchars($r['name']); ?>"
                                      class="w-full h-full object-cover">
-                                <div class="room-badge absolute top-3 right-3 bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                <div class="room-badge notranslate absolute top-3 right-3 bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                                     Checking…
                                 </div>
                             </div>
@@ -407,7 +407,7 @@ $seo = [
                                         <p class="room-price text-2xl font-bold text-slate-900">—</p>
                                         <p class="room-total text-xs text-slate-500">—</p>
                                     </div>
-                                    <a class="room-cta opacity-50 pointer-events-none bg-teal text-white font-bold px-5 py-3 rounded-xl text-sm transition-all"
+                                    <a class="room-cta notranslate opacity-50 pointer-events-none bg-teal text-white font-bold px-5 py-3 rounded-xl text-sm transition-all"
                                        href="#">Select</a>
                                 </div>
                             </div>
@@ -737,9 +737,15 @@ $seo = [
                             total.textContent = '';
                         }
 
+                        // room-badge/room-cta llevan "notranslate" en su className: son
+                        // llenados acá con hpText() (header.php) en vez de dejar que
+                        // Google Translate re-escanee texto agregado al DOM después de
+                        // cargar — para "Unavailable" suelto, sin contexto de frase,
+                        // produce traducciones como "Indisponible" en vez de
+                        // "No disponible" / "Não disponível".
                         if (info.available) {
-                            badge.textContent = 'Available';
-                            badge.className = 'room-badge absolute top-3 right-3 bg-teal-light text-teal text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
+                            badge.textContent = hpText('available', 'Available');
+                            badge.className = 'room-badge notranslate absolute top-3 right-3 bg-teal-light text-teal text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
                             cta.classList.remove('opacity-50', 'pointer-events-none');
                             cta.textContent = 'Select';
                             cta.href = `book.php?check_in=${encodeURIComponent(checkIn)}&check_out=${encodeURIComponent(checkOut)}&guests_count=${encodeURIComponent(guestsCount)}&room_id=${encodeURIComponent(info.id)}`;
@@ -747,14 +753,14 @@ $seo = [
                             if (footer) footer.classList.remove('justify-center');
                             if (footer) footer.classList.add('justify-between');
                         } else {
-                            let badgeMsg = 'Not available';
+                            let badgeMsg = hpText('unavailable', 'Not available');
                             if (info.reason === 'min_stay')            badgeMsg = `Min stay ${info.min_stay} nights`;
                             else if (info.reason === 'not_enough_beds') badgeMsg = `Not enough beds (${info.availability_count} left)`;
                             else if (info.reason === 'over_capacity')   badgeMsg = `Fits up to ${info.capacity}`;
                             badge.textContent = badgeMsg;
-                            badge.className = 'room-badge absolute top-3 right-3 bg-slate-200 text-slate-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
+                            badge.className = 'room-badge notranslate absolute top-3 right-3 bg-slate-200 text-slate-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
                             cta.classList.add('opacity-50', 'pointer-events-none');
-                            cta.textContent = 'Unavailable';
+                            cta.textContent = hpText('unavailable', 'Unavailable');
                             if (priceWrap) priceWrap.classList.add('hidden');
                             if (footer) footer.classList.remove('justify-between');
                             if (footer) footer.classList.add('justify-center');
