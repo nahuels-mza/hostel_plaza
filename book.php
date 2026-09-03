@@ -401,8 +401,8 @@ $seo = [
                                 <div class="flex items-center gap-3 text-xs text-slate-500 mb-4">
                                     <span class="flex items-center gap-1"><i data-lucide="users" class="w-4 h-4"></i> Up to <?php echo (int)($r['capacity'] ?? 1); ?></span>
                                 </div>
-                                <div class="mt-auto flex items-end justify-between">
-                                    <div>
+                                <div class="room-card-footer mt-auto flex items-end justify-between">
+                                    <div class="room-price-wrap">
                                         <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Per night</p>
                                         <p class="room-price text-2xl font-bold text-slate-900">—</p>
                                         <p class="room-total text-xs text-slate-500">—</p>
@@ -719,10 +719,12 @@ $seo = [
                         const info = data.rooms.find(x => String(x.id) === String(id));
                         if (!info) return;
 
-                        const badge = card.querySelector('.room-badge');
-                        const price = card.querySelector('.room-price');
-                        const total = card.querySelector('.room-total');
-                        const cta   = card.querySelector('.room-cta');
+                        const badge     = card.querySelector('.room-badge');
+                        const price     = card.querySelector('.room-price');
+                        const total     = card.querySelector('.room-total');
+                        const cta       = card.querySelector('.room-cta');
+                        const priceWrap = card.querySelector('.room-price-wrap');
+                        const footer    = card.querySelector('.room-card-footer');
 
                         const ppn = Number(info.price_per_night_ars || 0);
                         const tot = Number(info.total_ars || 0);
@@ -741,6 +743,9 @@ $seo = [
                             cta.classList.remove('opacity-50', 'pointer-events-none');
                             cta.textContent = 'Select';
                             cta.href = `book.php?check_in=${encodeURIComponent(checkIn)}&check_out=${encodeURIComponent(checkOut)}&guests_count=${encodeURIComponent(guestsCount)}&room_id=${encodeURIComponent(info.id)}`;
+                            if (priceWrap) priceWrap.classList.remove('hidden');
+                            if (footer) footer.classList.remove('justify-center');
+                            if (footer) footer.classList.add('justify-between');
                         } else {
                             let badgeMsg = 'Not available';
                             if (info.reason === 'min_stay')            badgeMsg = `Min stay ${info.min_stay} nights`;
@@ -750,6 +755,9 @@ $seo = [
                             badge.className = 'room-badge absolute top-3 right-3 bg-slate-200 text-slate-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
                             cta.classList.add('opacity-50', 'pointer-events-none');
                             cta.textContent = 'Unavailable';
+                            if (priceWrap) priceWrap.classList.add('hidden');
+                            if (footer) footer.classList.remove('justify-between');
+                            if (footer) footer.classList.add('justify-center');
                         }
                     });
                     // Sort: available cards first, then unavailable
