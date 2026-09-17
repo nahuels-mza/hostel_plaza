@@ -69,6 +69,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } catch (Throwable $e) {
                         hp_log('Exception: ' . $e->getMessage());
                     }
+                } elseif ($type === 'interactive') {
+                    // Respuesta a un botón interactivo. Tratamos como texto
+                    // con formato "[BTN:btn_id] título_visible" para que el
+                    // agente pueda entender qué botón se apretó.
+                    $ia = $msg['interactive'] ?? [];
+                    $btnId    = $ia['button_reply']['id']    ?? '';
+                    $btnTitle = $ia['button_reply']['title'] ?? '';
+                    if ($btnId === '' && !empty($ia['list_reply']['id'])) {
+                        $btnId    = $ia['list_reply']['id'];
+                        $btnTitle = $ia['list_reply']['title'] ?? '';
+                    }
+                    $syntheticText = "[BTN:{$btnId}] {$btnTitle}";
+                    try {
+                        hp_handle_message($from, $syntheticText, $id);
+                    } catch (Throwable $e) {
+                        hp_log('Exception interactive: ' . $e->getMessage());
+                    }
                 } else {
                     // audio, imagen, ubicación, etc. → respuesta cordial genérica
                     $fallback = "¡Hola! Soy el asistente virtual de Hostel Plaza. "

@@ -76,6 +76,7 @@ $t = $isEs ? [
         teal: '#1c5457', 'teal-hover': '#144042', 'teal-light': '#e6f0f0',
     } } } };
 </script>
+<?php include_once __DIR__ . '/_ga.php'; ?>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 font-sans">
 
@@ -168,6 +169,11 @@ $t = $isEs ? [
                         if (!result.ok) { showError(result.error || <?php echo json_encode($t['error']); ?>); return; }
                         document.getElementById('paypal-button-container').classList.add('hidden');
                         document.getElementById('paySuccess').classList.remove('hidden');
+                        gtag('event', 'pago_confirmado', {
+                            booking_id: bookingId,
+                            value: <?php echo json_encode($totalUsd); ?>,
+                            currency: 'USD'
+                        });
                     })
                     .catch(function () {
                         showError(<?php echo json_encode($t['error']); ?>);

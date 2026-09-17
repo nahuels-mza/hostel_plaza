@@ -383,7 +383,7 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
                         </div>
                         <div>
                             <p class="font-bold text-slate-900 mb-1">WhatsApp</p>
-                            <a href="https://api.whatsapp.com/send/?phone=5492612592729" class="text-slate-500 hover:text-teal transition-colors">+54 9 2612 59-2729</a>
+                            <a href="https://api.whatsapp.com/send/?phone=5492612592729" onclick="gtag('event','whatsapp_click',{location:'home_contact'})" class="text-slate-500 hover:text-teal transition-colors">+54 9 2612 59-2729</a>
                         </div>
                     </div>
                     <div class="flex items-start gap-4">

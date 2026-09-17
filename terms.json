@@ -1,0 +1,53 @@
+{
+    "_comment": "Condiciones de reserva. Fuente única para book.php (renderiza HTML) y el bot de WhatsApp (envía texto).",
+    "sections": [
+        {
+            "title": "Hours",
+            "icon": "clock",
+            "items": [
+                "Check-in: 3:00 PM to 11:30 PM",
+                "Check-out: Before 11:00 AM",
+                "Free luggage storage: 7:30 AM to 8:00 PM"
+            ]
+        },
+        {
+            "title": "Breakfast",
+            "icon": "coffee",
+            "items": [
+                "Included in our café: coffee/tea, toast with jam, and fruit."
+            ]
+        },
+        {
+            "title": "Rates",
+            "icon": "money",
+            "items": [
+                "Foreign guests: Listed rates are tax-exempt for guests who present a valid passport and immigration entry stamp at check-in.",
+                "Argentine nationals: Argentine citizens are subject to 21% VAT, added to the listed rates.",
+                "Payment methods: Cash in Argentine pesos, or credit/debit card with a 10% surcharge."
+            ]
+        },
+        {
+            "title": "General Conditions",
+            "icon": "document",
+            "items": [
+                "Bookings longer than 7 days are subject to review. We only accept bookings from guests who do not reside in the Greater Mendoza area.",
+                "Cancellations within the stated deadlines incur no penalty."
+            ]
+        },
+        {
+            "title": "Guest Conduct",
+            "icon": "handshake",
+            "items": [
+                "We expect all guests to respect the hostel's rules, staff, and fellow guests. Any violation may result in expulsion without a refund."
+            ]
+        },
+        {
+            "title": "No-Shows & Cancellations",
+            "icon": "cross",
+            "items": [
+                "Flexible Booking: Cancel free of charge up to 48 hours before check-in. Cancelling within 48 hours of check-in incurs a charge for the first night; no-shows or last-minute cancellations are charged the full reservation amount.",
+                "Non-refundable Booking: The full stay is charged at the time of cancellation, or in the event of a no-show on the check-in date."
+            ]
+        }
+    ]
+}

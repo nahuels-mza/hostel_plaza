@@ -290,6 +290,108 @@ function hp_tools_definition(): array
             ],
         ],
         [
+            'name' => 'save_guest_reservation_data',
+            'description' => 'Guarda incrementalmente los datos del huésped para una reserva asistida. Se llama VARIAS veces durante el slot-filling (después de cada respuesta del huésped). Cada parámetro es opcional: pasás solo los que el huésped acaba de dar. NO crea la reserva — solo persiste los datos. Devuelve el estado actual completo de los slots del huésped para que sepas qué falta.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'guest_name' => ['type' => 'string', 'description' => 'Nombre y apellido completos.'],
+                    'country'    => ['type' => 'string', 'description' => 'País del huésped.'],
+                    'phone'      => ['type' => 'string', 'description' => 'Teléfono con código de país en E.164 (ej: +5492611234567) o formato humano.'],
+                    'id_type'    => ['type' => 'string', 'description' => 'Tipo de documento: "DNI", "Passport", "Driver License", "National ID", etc.'],
+                    'id_number'  => ['type' => 'string', 'description' => 'Número de documento.'],
+                    'email'      => ['type' => 'string', 'description' => 'Email del huésped (opcional pero recomendado para confirmación).'],
+                ],
+                'required' => [],
+            ],
+        ],
+        [
+            'name' => 'send_terms_and_conditions',
+            'description' => 'Envía las condiciones de reserva completas al huésped como mensaje de WhatsApp. Usar cuando el huésped elige "Quiero leer primero" ante la propuesta de aceptar T&C. Después de esto, preguntá si acepta con dos botones (Sí, acepto / No, cancelar).',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => new stdClass(),
+            ],
+        ],
+        [
+            'name' => 'create_bananadesk_reservation',
+            'description' => 'Crea la reserva en BananaDesk (motor real). SOLO usar cuando: (1) tenés todos los slots requeridos: check_in, check_out, guests_count, guest_name, phone, id_type, id_number, room_id; (2) el huésped ya vio el resumen y confirmó; (3) el huésped ya aceptó las T&C (slot terms_accepted). Devuelve {ok:true, reservation_id} o {ok:false, error}. Si falla, sugerí al huésped usar el link web como fallback.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => new stdClass(),
+            ],
+        ],
+        [
+            'name' => 'list_available_rooms',
+            'description' => 'Consulta BananaDesk y devuelve las habitaciones disponibles para las fechas y cantidad de huéspedes indicadas. Devuelve un array con room_type_id, nombre, precio, moneda, disponibilidad, capacidad. Usar en el flujo asistido apenas el huésped confirma que quiere reservar por WhatsApp. Si no pasás fechas ni huéspedes, uso los slots guardados.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'check_in'     => ['type' => 'string',  'description' => 'YYYY-MM-DD (opcional, default = slot check_in)'],
+                    'check_out'    => ['type' => 'string',  'description' => 'YYYY-MM-DD (opcional, default = slot check_out)'],
+                    'guests_count' => ['type' => 'integer', 'description' => 'Cantidad de huéspedes (opcional, default = slot guests_count)'],
+                ],
+                'required' => [],
+            ],
+        ],
+        [
+            'name' => 'select_room',
+            'description' => 'Registra la habitación elegida por el huésped en el flujo asistido. Pasás el room_type_id de BananaDesk (obtenido de list_available_rooms o del botón [BTN:ROOM_<id>]). Persiste room_id (local) y room_type_id para el POST final a BananaDesk.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'room_type_id' => ['type' => 'integer', 'description' => 'ID de BananaDesk del room_type elegido.'],
+                ],
+                'required' => ['room_type_id'],
+            ],
+        ],
+        [
+            'name' => 'send_room_buttons',
+            'description' => 'Manda un mensaje interactivo de WhatsApp con hasta 3 botones de elección de habitación. Cada botón dispara [BTN:ROOM_<room_type_id>]. Los títulos de los botones deben ser cortos (≤ 20 chars). Usar después de list_available_rooms para que el huésped elija con un tap.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'body'    => ['type' => 'string', 'description' => 'Texto del mensaje, ej: "Elegí tu habitación:"'],
+                    'options' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'room_type_id' => ['type' => 'integer'],
+                                'title'        => ['type' => 'string', 'description' => 'Etiqueta del botón, ≤ 20 chars. Ej: "Doble $15k" o "Dorm 6 $8k"'],
+                            ],
+                            'required' => ['room_type_id', 'title'],
+                        ],
+                    ],
+                ],
+                'required' => ['body', 'options'],
+            ],
+        ],
+        [
+            'name' => 'send_terms_buttons',
+            'description' => 'Manda mensaje interactivo con dos botones para T&C: "Acepto" (ID=TERMS_ACCEPT) / "Leer primero" (ID=TERMS_READ). Usar cuando terminaste de recolectar los datos del huésped y necesitás su aceptación de las condiciones.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => new stdClass(),
+            ],
+        ],
+        [
+            'name' => 'mark_terms_accepted',
+            'description' => 'Marca en los slots que el huésped aceptó las T&C (setea terms_accepted_at). Llamar cuando llegue [BTN:TERMS_ACCEPT], antes de mostrar el resumen final.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => new stdClass(),
+            ],
+        ],
+        [
+            'name' => 'send_reservation_summary',
+            'description' => 'Manda un mensaje interactivo con el resumen completo de la reserva (fechas, noches, habitación, huéspedes, datos del huésped) y dos botones: "Confirmar" (ID=CONFIRM_YES) / "Cancelar" (ID=CONFIRM_NO). Toma los datos de los slots. Devuelve error si falta algún dato requerido. Usar en el paso 4 del flujo asistido, después de que el huésped aceptó T&C.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => new stdClass(),
+            ],
+        ],
+        [
             'name' => 'check_paso_cristo_redentor',
             'description' => 'Estima el estado del Paso Cristo Redentor (frontera Argentina-Chile, altura ~3.200 m) según el pronóstico del clima. NO es el estado oficial — es una estimación heurística basada en nieve, viento y visibilidad. USAR cuando el huésped pregunta por: cruzar a Chile, ir a Santiago/Valparaíso/Viña, el paso, la cordillera, esquiar en Portillo, "Los Libertadores" (nombre chileno del paso), etc. Devuelve un juicio ("likely_open" / "at_risk" / "likely_closed") + los datos del pronóstico + un disclaimer para confirmar oficialmente antes de viajar.',
             'input_schema' => [
@@ -438,21 +540,316 @@ function hp_run_tool(string $name, array $input, string $phone): array
               . '&check_out='    . rawurlencode($checkOut)
               . '&guests_count=' . rawurlencode((string)$guestsCount);
 
-        // Persistir en slots para que el admin lo vea
+        // Persistir en slots
         $slots = hp_get_slots($phone);
         $slots['check_in']      = $checkIn;
         $slots['check_out']     = $checkOut;
         $slots['guests_count']  = $guestsCount;
         $slots['proposed_link'] = $url;
+        $slots['link_sent_at']  = date('c');
+        hp_save_slots($phone, $slots);
+
+        // Después de que Claude mande el mensaje con el link, encolamos un
+        // segundo mensaje con botones ofreciendo asistencia. Se envía DESPUÉS
+        // de la respuesta principal del bot (ver hp_handle_message).
+        hp_schedule_assistance_offer($phone);
+
+        return [
+            'booking_link'         => $url,
+            'check_in'             => $checkIn,
+            'check_out'            => $checkOut,
+            'guests_count'         => $guestsCount,
+            'nights'               => (int)((strtotime($checkOut) - strtotime($checkIn)) / 86400),
+            'assistance_scheduled' => true,
+            'note'                 => 'Después de que envíes tu mensaje con el link, el bot le va a mandar automáticamente un segundo mensaje con botones ofreciendo asistencia para reservar. NO menciones esos botones en tu respuesta — solo pasá el link con cordialidad.',
+        ];
+    }
+
+    if ($name === 'save_guest_reservation_data') {
+        $slots = hp_get_slots($phone);
+        if (!isset($slots['guest_data']) || !is_array($slots['guest_data'])) {
+            $slots['guest_data'] = [];
+        }
+        $fields = ['guest_name','country','phone','id_type','id_number','email'];
+        foreach ($fields as $f) {
+            if (isset($input[$f]) && trim((string)$input[$f]) !== '') {
+                $slots['guest_data'][$f] = trim((string)$input[$f]);
+            }
+        }
+        hp_save_slots($phone, $slots);
+
+        // Reportar qué falta todavía
+        $required = ['guest_name','country','phone','id_type','id_number'];
+        $missing  = array_values(array_filter($required, fn($f) => empty($slots['guest_data'][$f])));
+
+        return [
+            'ok'          => true,
+            'guest_data'  => $slots['guest_data'],
+            'missing'     => $missing,
+            'complete'    => empty($missing),
+            'terms_accepted' => !empty($slots['terms_accepted_at']),
+        ];
+    }
+
+    if ($name === 'send_terms_and_conditions') {
+        $text = hp_terms_as_text();
+        $send = wa_send_text($cfg, $phone, $text);
+        if (!$send['ok']) {
+            hp_log("send_terms FAIL: code={$send['code']} body=" . substr((string)$send['body'], 0, 300));
+            return ['ok' => false, 'error' => "No pude enviar las T&C: HTTP {$send['code']}"];
+        }
+        $slots = hp_get_slots($phone);
+        $slots['terms_shown_at'] = date('c');
+        hp_save_slots($phone, $slots);
+        return ['ok' => true, 'note' => 'Las T&C ya fueron enviadas al huésped como un mensaje aparte. En tu respuesta preguntá si acepta con dos botones.'];
+    }
+
+    if ($name === 'create_bananadesk_reservation') {
+        $slots = hp_get_slots($phone);
+        $gd    = $slots['guest_data'] ?? [];
+
+        // Validaciones defensivas
+        $required = ['check_in','check_out','guests_count','room_id'];
+        foreach ($required as $r) {
+            if (empty($slots[$r])) {
+                return ['ok' => false, 'error' => "Falta el slot obligatorio: {$r}."];
+            }
+        }
+        foreach (['guest_name','phone','id_type','id_number'] as $r) {
+            if (empty($gd[$r])) {
+                return ['ok' => false, 'error' => "Falta el dato del huésped: {$r}."];
+            }
+        }
+        if (empty($slots['terms_accepted_at'])) {
+            return ['ok' => false, 'error' => 'El huésped todavía no aceptó las T&C. No podés crear la reserva.'];
+        }
+
+        // Mapear a BananaDesk room_type_id
+        $map = hp_room_map();
+        $localRoomId = (string)$slots['room_id'];
+        $bdRoomTypeId = (int)($map[$localRoomId] ?? 0);
+        if (!$bdRoomTypeId) {
+            return ['ok' => false, 'error' => "El room_id {$localRoomId} no tiene mapeo BananaDesk."];
+        }
+
+        // Ver bookingUnit de rooms.json
+        $rooms = hp_load_rooms(__DIR__ . '/../rooms.json');
+        $bookingUnit = 'room';
+        foreach ($rooms as $r) {
+            if ((string)$r['id'] === $localRoomId) {
+                $bookingUnit = $r['bookingUnit'] ?? 'room';
+                break;
+            }
+        }
+
+        require_once __DIR__ . '/../bananadesk_reserve.php';
+        $result = hp_bananadesk_reserve(
+            $slots['check_in'],
+            $slots['check_out'],
+            $bdRoomTypeId,
+            $gd['guest_name'],
+            $gd['email']  ?? 'sin-email@hostelplaza.com.ar',
+            $gd['phone'],
+            (int)$slots['guests_count'],
+            $bookingUnit
+        );
+
+        if (!$result['ok']) {
+            hp_log("create_bananadesk_reservation FAIL: " . ($result['error'] ?? 'unknown'));
+            $slots['bd_error'] = $result['error'];
+            hp_save_slots($phone, $slots);
+            return [
+                'ok'    => false,
+                'error' => $result['error'],
+                'hint'  => "Sugerí al huésped que use el link web para completar la reserva a mano: " . ($slots['proposed_link'] ?? $cfg['hostel']['booking_url']),
+            ];
+        }
+
+        // Éxito: generar un HP-XXXX local, guardar en bookings.json también,
+        // para tener trazabilidad como cualquier otra reserva.
+        $reservationId = 'HP-' . date('ym') . '-' . strtoupper(substr(md5(uniqid((string)mt_rand(), true)), 0, 5));
+        $bookingsFile = __DIR__ . '/../bookings.json';
+        $bookings = is_file($bookingsFile) ? (json_decode(file_get_contents($bookingsFile), true) ?: []) : [];
+        array_unshift($bookings, [
+            'id'          => $reservationId,
+            'roomId'      => $localRoomId,
+            'checkIn'     => $slots['check_in'],
+            'checkOut'    => $slots['check_out'],
+            'guestsCount' => (string)$slots['guests_count'],
+            'guestName'   => $gd['guest_name'],
+            'age'         => '',
+            'gender'      => '',
+            'nationality' => $gd['country']    ?? '',
+            'idType'      => $gd['id_type']    ?? '',
+            'idNumber'    => $gd['id_number']  ?? '',
+            'phone'       => $gd['phone']      ?? '',
+            'email'       => $gd['email']      ?? '',
+            'notes'       => 'Reserva creada vía WhatsApp bot',
+            'totalPrice'  => 0,
+            'amountPaid'  => 0,
+            'source'      => 'WhatsApp Bot',
+            'status'      => 'Confirmed',
+            'bananadesk'  => ['synced' => true, 'response' => $result['response']],
+        ]);
+        @file_put_contents($bookingsFile, json_encode($bookings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        $slots['bd_reservation_id']   = $reservationId;
+        $slots['bd_confirmed_at']     = date('c');
         hp_save_slots($phone, $slots);
 
         return [
-            'booking_link' => $url,
-            'check_in'     => $checkIn,
-            'check_out'    => $checkOut,
-            'guests_count' => $guestsCount,
-            'nights'       => (int)((strtotime($checkOut) - strtotime($checkIn)) / 86400),
+            'ok'             => true,
+            'reservation_id' => $reservationId,
+            'guest_name'     => $gd['guest_name'],
+            'check_in'       => $slots['check_in'],
+            'check_out'      => $slots['check_out'],
         ];
+    }
+
+    if ($name === 'list_available_rooms') {
+        $slots = hp_get_slots($phone);
+        $ci = hp_normalize_date($input['check_in']  ?? '') ?: ($slots['check_in']  ?? null);
+        $co = hp_normalize_date($input['check_out'] ?? '') ?: ($slots['check_out'] ?? null);
+        $gc = (int)($input['guests_count'] ?? ($slots['guests_count'] ?? 0));
+        if (!$ci || !$co) return ['error' => 'Faltan fechas. Necesito check_in y check_out para consultar disponibilidad.'];
+        if ($gc < 1) $gc = 1;
+
+        $bdCfg = $cfg['bananadesk'] ?? [];
+        $avail = hp_bananadesk_fetch($bdCfg, $ci, $co, $cfg['paths']['cache']);
+        if (empty($avail['ok'])) {
+            return ['error' => 'BananaDesk devolvió error: ' . ($avail['error'] ?? 'desconocido')];
+        }
+
+        $rooms = [];
+        foreach ($avail['rooms'] as $r) {
+            if (empty($r['is_available'])) continue;
+            $rooms[] = [
+                'room_type_id' => (int)$r['room_type_id'],
+                'name'         => $r['name'],
+                'description'  => mb_substr((string)$r['description'], 0, 200),
+                'price'        => $r['price'],
+                'currency'     => $r['currency'],
+                'availability' => $r['availability'],
+                'min_stay'     => $r['min_stay'],
+            ];
+        }
+        usort($rooms, fn($a, $b) => ((float)($a['price'] ?? 1e12)) <=> ((float)($b['price'] ?? 1e12)));
+
+        $nights = (int)((strtotime($co) - strtotime($ci)) / 86400);
+        return [
+            'ok'           => true,
+            'check_in'     => $ci,
+            'check_out'    => $co,
+            'nights'       => $nights,
+            'guests_count' => $gc,
+            'rooms'        => $rooms,
+            'count'        => count($rooms),
+        ];
+    }
+
+    if ($name === 'select_room') {
+        $bdId = (int)($input['room_type_id'] ?? 0);
+        if ($bdId < 1) return ['ok' => false, 'error' => 'room_type_id inválido.'];
+        $localId = hp_banana_to_local($bdId);
+        if (!$localId) return ['ok' => false, 'error' => "No hay mapeo local para room_type_id {$bdId}."];
+        $slots = hp_get_slots($phone);
+        $slots['room_id']      = $localId;
+        $slots['room_type_id'] = $bdId;
+        hp_save_slots($phone, $slots);
+        return ['ok' => true, 'room_id' => $localId, 'room_type_id' => $bdId];
+    }
+
+    if ($name === 'send_room_buttons') {
+        $body    = trim((string)($input['body'] ?? 'Elegí una habitación:'));
+        $options = $input['options'] ?? [];
+        if (!is_array($options) || count($options) < 1) {
+            return ['ok' => false, 'error' => 'Necesito al menos 1 option.'];
+        }
+        $buttons = [];
+        foreach (array_slice($options, 0, 3) as $opt) {
+            $rid = (int)($opt['room_type_id'] ?? 0);
+            $title = trim((string)($opt['title'] ?? ''));
+            if ($rid < 1 || $title === '') continue;
+            $buttons[] = ['id' => "ROOM_{$rid}", 'title' => $title];
+        }
+        if (empty($buttons)) return ['ok' => false, 'error' => 'Ningún option válido.'];
+        hp_queue_after_reply($phone, [
+            'kind'    => 'buttons',
+            'body'    => $body,
+            'buttons' => $buttons,
+        ]);
+        return ['ok' => true, 'note' => 'Botones encolados. Se envían justo después de tu mensaje de texto. Esperá el [BTN:ROOM_<id>] del huésped.'];
+    }
+
+    if ($name === 'send_terms_buttons') {
+        hp_queue_after_reply($phone, [
+            'kind'    => 'buttons',
+            'body'    => 'Antes de confirmar tu reserva necesito que aceptes nuestras condiciones. ¿Cómo querés seguir?',
+            'buttons' => [
+                ['id' => 'TERMS_ACCEPT', 'title' => '✅ Acepto'],
+                ['id' => 'TERMS_READ',   'title' => '📄 Leer primero'],
+            ],
+            'on_ok_slot' => 'terms_buttons_sent_at',
+        ]);
+        return ['ok' => true, 'note' => 'Botones T&C encolados.'];
+    }
+
+    if ($name === 'mark_terms_accepted') {
+        $slots = hp_get_slots($phone);
+        $slots['terms_accepted_at'] = date('c');
+        hp_save_slots($phone, $slots);
+        return ['ok' => true, 'terms_accepted_at' => $slots['terms_accepted_at']];
+    }
+
+    if ($name === 'send_reservation_summary') {
+        $slots = hp_get_slots($phone);
+        $gd    = $slots['guest_data'] ?? [];
+
+        $missing = [];
+        foreach (['check_in','check_out','guests_count','room_id'] as $f) {
+            if (empty($slots[$f])) $missing[] = $f;
+        }
+        foreach (['guest_name','country','phone','id_type','id_number'] as $f) {
+            if (empty($gd[$f])) $missing[] = "guest.{$f}";
+        }
+        if (!empty($missing)) {
+            return ['ok' => false, 'error' => 'Faltan datos: ' . implode(', ', $missing)];
+        }
+
+        // Buscar nombre de habitación
+        $roomName = $slots['room_id'];
+        $rooms = hp_load_rooms(__DIR__ . '/../rooms.json');
+        foreach ($rooms as $r) {
+            if ((string)($r['id'] ?? '') === (string)$slots['room_id']) {
+                $roomName = (string)($r['name'] ?? $roomName);
+                break;
+            }
+        }
+
+        $nights = (int)((strtotime($slots['check_out']) - strtotime($slots['check_in'])) / 86400);
+        $summary = "🧾 Resumen de tu reserva\n"
+                 . "━━━━━━━━━━━━━━━━━━\n"
+                 . "📅 {$slots['check_in']} → {$slots['check_out']} ({$nights} noche" . ($nights === 1 ? '' : 's') . ")\n"
+                 . "🛏 {$roomName}\n"
+                 . "👥 {$slots['guests_count']} huésped" . ($slots['guests_count'] > 1 ? 'es' : '') . "\n"
+                 . "\n"
+                 . "👤 {$gd['guest_name']}\n"
+                 . "🌍 {$gd['country']}\n"
+                 . "📞 {$gd['phone']}\n"
+                 . "🪪 {$gd['id_type']} {$gd['id_number']}";
+        if (!empty($gd['email'])) $summary .= "\n✉️ {$gd['email']}";
+        $summary .= "\n\n¿Confirmás la reserva?";
+
+        hp_queue_after_reply($phone, [
+            'kind'    => 'buttons',
+            'body'    => $summary,
+            'buttons' => [
+                ['id' => 'CONFIRM_YES', 'title' => '✅ Confirmar'],
+                ['id' => 'CONFIRM_NO',  'title' => 'Cancelar'],
+            ],
+            'on_ok_slot' => 'summary_sent_at',
+        ]);
+        return ['ok' => true, 'note' => 'Resumen encolado con botones Confirmar/Cancelar.'];
     }
 
     return ['error' => "Herramienta desconocida: $name"];
@@ -536,9 +933,71 @@ FLUJO PARA RESERVAS:
 4. Con las tres cosas (fechas + huéspedes) llamá `generate_booking_link` y compartí el link
    con un texto cordial adaptado al idioma del huésped, tipo "¡Listo! Seguí este link
    para ver la disponibilidad y reservar: <URL>".
+   → NO menciones en tu respuesta los botones de asistencia. El sistema los envía
+     automáticamente como un mensaje separado justo después del tuyo.
 5. Si el huésped dice "somos uno" o parece obvio que va solo (ej: "quiero reservar
    para el 3 al 5"), asumí guests_count=1 y aclará en la respuesta que puede
    cambiarlo desde el link si son más.
+
+FLUJO DE RESERVA ASISTIDA (cuando el huésped acepta reservar por WhatsApp):
+Los botones interactivos llegan como mensajes con formato "[BTN:ID] título". Los IDs:
+- [BTN:ASSIST_YES]      → el huésped acepta que reserves por él.
+- [BTN:ASSIST_NO]       → declina; agradecé y quedá disponible.
+- [BTN:ROOM_<id>]       → eligió una habitación (donde <id> es el room_type_id de BananaDesk).
+- [BTN:TERMS_ACCEPT]    → acepta las T&C → llamá `mark_terms_accepted`, después `send_reservation_summary`.
+- [BTN:TERMS_READ]      → quiere leerlas antes → llamá `send_terms_and_conditions`, luego
+                          `send_terms_buttons` de nuevo.
+- [BTN:CONFIRM_YES]     → confirma el resumen final → llamá `create_bananadesk_reservation`.
+- [BTN:CONFIRM_NO]      → cancela → agradecé y quedá disponible.
+
+PASOS:
+
+Paso 1 — Elegir habitación:
+Cuando llegue [BTN:ASSIST_YES], llamá `list_available_rooms` con las fechas guardadas.
+Devolvé al huésped un texto breve listando las opciones (con precio y disponibilidad) e
+inmediatamente llamá `send_room_buttons` con hasta 3 opciones para que elija con un tap.
+Si hay más de 3, listalas todas en el texto y en los botones ponés las 3 más baratas
+(el huésped puede responder con el nombre si quiere otra).
+
+Paso 2 — Datos del huésped (3 mensajes agrupados):
+Una vez elegida la habitación (llegó [BTN:ROOM_<id>] o el huésped tipeó el nombre),
+llamá `select_room` con ese room_type_id y arrancá la recolección:
+
+  Turno A — "¡Buenísimo! ¿Cuál es tu nombre y apellido?"
+    → Al recibir, llamá `save_guest_reservation_data(guest_name=...)`.
+
+  Turno B — "Perfecto, [Nombre]. ¿De qué país sos y cuál es tu teléfono?"
+    → Al recibir, llamá `save_guest_reservation_data(country=..., phone=...)`.
+
+  Turno C — "Último dato: ¿tipo y número de documento? Ej: DNI 12345678 o Passport AB1234567."
+    → Al recibir, llamá `save_guest_reservation_data(id_type=..., id_number=...)`.
+
+Paso 3 — T&C:
+Cuando `save_guest_reservation_data` devuelva `complete: true`, mandá un texto corto tipo
+"Antes de confirmar, tenés que aceptar las condiciones de reserva." y llamá
+`send_terms_buttons` (envía los dos botones: "Acepto" / "Leer primero").
+
+Paso 4 — Resumen y confirmación:
+Cuando llegue [BTN:TERMS_ACCEPT], llamá `mark_terms_accepted` y después
+`send_reservation_summary` (arma el resumen con los slots y manda los botones
+"Confirmar" / "Cancelar" en un solo mensaje).
+
+Paso 5 — Ejecutar la reserva:
+Al llegar [BTN:CONFIRM_YES], llamá `create_bananadesk_reservation`.
+- Si `ok:true` → respondé algo como: "¡Listo! Reserva confirmada ✅ Código: HP-XXXX.
+  Te llegará confirmación por email."
+- Si `ok:false` → sugerí el link web como fallback: "Ups, hubo un problema
+  ({error}). Podés terminar la reserva desde el link que te pasé antes:
+  {proposed_link}. También podés cambiar de habitación desde ahí."
+
+REGLAS DEL FLUJO ASISTIDO:
+- Nunca declares "reservado" sin `create_bananadesk_reservation` con `ok:true`.
+- Mostrá SIEMPRE el resumen antes de crear la reserva.
+- Si el huésped abandona a mitad de camino, no insistas; agradecé.
+- Si corrige un dato en el medio ("no, mi teléfono es otro"), llamá
+  `save_guest_reservation_data` con la corrección y seguí donde estabas.
+- Si dice [BTN:ASSIST_NO] o dice "no" en cualquier momento, cerrá con cordialidad
+  y aclarale que igual puede usar el link web si cambia de idea.
 
 
 ESTILO:
@@ -1014,6 +1473,122 @@ function hp_faq_as_text(): string
     return implode("\n", $out);
 }
 
+/**
+ * Carga terms.json y lo formatea como texto WhatsApp-friendly (bullets, sin HTML).
+ */
+function hp_terms_as_text(): string
+{
+    $path = __DIR__ . '/../terms.json';
+    if (!is_file($path)) return '(Condiciones no disponibles)';
+    $data = json_decode(file_get_contents($path), true);
+    if (!is_array($data) || empty($data['sections'])) return '(Condiciones vacías)';
+
+    $out = ["*Booking Conditions · Hostel Plaza*", ''];
+    foreach ($data['sections'] as $sec) {
+        $out[] = '*' . ($sec['title'] ?? '') . '*';
+        foreach ($sec['items'] ?? [] as $item) {
+            $out[] = "• " . trim($item);
+        }
+        $out[] = '';
+    }
+    return implode("\n", $out);
+}
+
+/**
+ * Marca que después de responderle al huésped hay que mandarle un segundo
+ * mensaje con botones ofreciendo asistencia para reservar.
+ * hp_handle_message() lo lee y lo dispara post-respuesta.
+ */
+function hp_schedule_assistance_offer(string $phone): void
+{
+    hp_queue_after_reply($phone, ['kind' => 'assistance_offer']);
+}
+
+/**
+ * Cola genérica de mensajes que se envían DESPUÉS de la respuesta de texto
+ * principal del bot. Necesaria para que WhatsApp los muestre en orden y no
+ * los agrupe en la misma burbuja.
+ *
+ * Cada item tiene la forma:
+ *   ['kind' => 'assistance_offer']
+ *   ['kind' => 'buttons', 'body' => ..., 'buttons' => [...], 'header' => ?, 'footer' => ?, 'on_ok_slot' => ?]
+ *   ['kind' => 'text', 'body' => ...]
+ *
+ * $phone === '__flush__' → drenamos la cola.
+ */
+function hp_queue_after_reply(string $phone, ?array $item = null): void
+{
+    static $queue = [];
+    if ($phone === '__flush__') {
+        $q = $queue; $queue = [];
+        foreach ($q as $entry) {
+            [$to, $it] = $entry;
+            hp_dispatch_queued_item($to, $it);
+        }
+        return;
+    }
+    if ($item === null) return;
+    $queue[] = [$phone, $item];
+}
+
+function hp_dispatch_queued_item(string $phone, array $item): void
+{
+    $cfg = hp_cfg();
+    $kind = $item['kind'] ?? '';
+    if ($kind === 'assistance_offer') {
+        hp_do_send_assistance_offer($phone);
+        return;
+    }
+    if ($kind === 'buttons') {
+        $send = wa_send_buttons(
+            $cfg, $phone,
+            (string)($item['body'] ?? ''),
+            $item['buttons'] ?? [],
+            $item['header'] ?? null,
+            $item['footer'] ?? null
+        );
+        if (!$send['ok']) {
+            hp_log("queued buttons FAIL: code={$send['code']} body=" . substr((string)$send['body'], 0, 300));
+        } elseif (!empty($item['on_ok_slot'])) {
+            $slots = hp_get_slots($phone);
+            $slots[$item['on_ok_slot']] = date('c');
+            hp_save_slots($phone, $slots);
+        }
+        return;
+    }
+    if ($kind === 'text') {
+        wa_send_text($cfg, $phone, (string)($item['body'] ?? ''));
+        return;
+    }
+    hp_log("dispatch_queued_item: kind desconocido '{$kind}'");
+}
+
+/**
+ * Manda el mensaje interactivo "¿querés que reserve por vos?" con botones.
+ */
+function hp_do_send_assistance_offer(string $phone): void
+{
+    $cfg = hp_cfg();
+    $body = "¿Querés que reserve por vos desde acá? Te pido unos datos y lo cierro yo. 😊";
+    $send = wa_send_buttons(
+        $cfg, $phone, $body,
+        [
+            ['id' => 'ASSIST_YES', 'title' => '✅ Sí, reservá'],
+            ['id' => 'ASSIST_NO',  'title' => 'No, gracias'],
+        ],
+        null,
+        'También podés usar el link 👆'
+    );
+    if (!$send['ok']) {
+        hp_log("assistance_offer FAIL a +{$phone}: code={$send['code']} body=" . substr((string)$send['body'], 0, 300));
+    } else {
+        hp_log("assistance_offer OK a +{$phone}");
+        $slots = hp_get_slots($phone);
+        $slots['assistance_offered_at'] = date('c');
+        hp_save_slots($phone, $slots);
+    }
+}
+
 /* ---------- Loop principal con Claude ---------- */
 
 function hp_ask_claude(string $phone, string $userText): string
@@ -1095,6 +1670,12 @@ function hp_handle_message(string $from, string $text, ?string $messageId = null
     hp_log("OUT <{$from}>: {$reply}");
 
     $send = wa_send_text($cfg, $from, $reply);
+
+    // Después del mensaje principal: si generate_booking_link se llamó durante
+    // este turno, encolamos el mensaje interactivo "¿reservo por vos?".
+    // Delay chico para que WhatsApp no los agrupe visualmente en un mismo bubble.
+    hp_queue_after_reply('__flush__');
+
     if (!$send['ok']) {
         hp_log('WA send error: ' . json_encode($send));
     }
