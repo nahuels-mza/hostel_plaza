@@ -18,21 +18,19 @@
  */
 function _claude_normalize_messages(array $messages): array
 {
-    foreach ($messages as &$msg) {
+    // Mutación por índice — evita bugs sutiles de foreach ... as &$ref.
+    foreach ($messages as $i => $msg) {
         $content = $msg['content'] ?? null;
         if (!is_array($content)) continue;
-        foreach ($content as &$block) {
+        foreach ($content as $j => $block) {
             if (!is_array($block)) continue;
-            if (($block['type'] ?? '') === 'tool_use') {
-                $in = $block['input'] ?? null;
-                if ($in === null || (is_array($in) && empty($in))) {
-                    $block['input'] = new stdClass();
-                }
+            if (($block['type'] ?? '') !== 'tool_use') continue;
+            $in = $block['input'] ?? null;
+            if ($in === null || (is_array($in) && empty($in))) {
+                $messages[$i]['content'][$j]['input'] = new stdClass();
             }
         }
-        unset($block);
     }
-    unset($msg);
     return $messages;
 }
 

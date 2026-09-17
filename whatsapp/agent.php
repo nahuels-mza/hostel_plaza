@@ -297,7 +297,7 @@ function hp_tools_definition(): array
                 'properties' => [
                     'guest_name' => ['type' => 'string', 'description' => 'Nombre y apellido completos.'],
                     'country'    => ['type' => 'string', 'description' => 'País del huésped.'],
-                    'phone'      => ['type' => 'string', 'description' => 'Teléfono con código de país en E.164 (ej: +5492611234567) o formato humano.'],
+                    'phone'      => ['type' => 'string', 'description' => 'Teléfono OBLIGATORIAMENTE con código de país al inicio (ej: "+54 261 5990326", "+1 415 5551234"). Si el huésped no lo incluyó, deducilo del país indicado y anteponelo. Nunca guardes un teléfono sin código de país.'],
                     'id_type'    => ['type' => 'string', 'description' => 'Tipo de documento: "DNI", "Passport", "Driver License", "National ID", etc.'],
                     'id_number'  => ['type' => 'string', 'description' => 'Número de documento.'],
                     'email'      => ['type' => 'string', 'description' => 'Email del huésped (opcional pero recomendado para confirmación).'],
@@ -966,8 +966,13 @@ llamá `select_room` con ese room_type_id y arrancá la recolección:
   Turno A — "¡Buenísimo! ¿Cuál es tu nombre y apellido?"
     → Al recibir, llamá `save_guest_reservation_data(guest_name=...)`.
 
-  Turno B — "Perfecto, [Nombre]. ¿De qué país sos y cuál es tu teléfono?"
+  Turno B — "Perfecto, [Nombre]. ¿De qué país sos y cuál es tu teléfono?
+             (Formato: código de país + número, ej: +54 261 5990326 o +1 415 5551234)"
     → Al recibir, llamá `save_guest_reservation_data(country=..., phone=...)`.
+    → El teléfono se guarda SIEMPRE con el código de país incluido (formato E.164
+      o similar con "+"). Si el huésped mandó el número sin código, deducilo del
+      país que dijo y anteponelo (ej: dijo "Argentina" y "2615990326" → guardá
+      "+54 2615990326"). Si no podés deducirlo, volvé a preguntar el código.
 
   Turno C — "Último dato: ¿tipo y número de documento? Ej: DNI 12345678 o Passport AB1234567."
     → Al recibir, llamá `save_guest_reservation_data(id_type=..., id_number=...)`.
@@ -1604,26 +1609,37 @@ function hp_ask_claude(string $phone, string $userText): string
     $finalText = '';
     $newTurns  = [['role' => 'user', 'content' => $userText]];
 
-    for ($i = 0; $i < 5; $i++) {
+    $lastStopReason = '';
+    $lastBlockKinds = '';
+    $iterationsUsed = 0;
+    for ($i = 0; $i < 8; $i++) {
+        $iterationsUsed = $i + 1;
         $res = claude_call($cfg, $history, $tools, $system);
         if (!$res['ok']) {
             hp_log('Claude error: ' . json_encode($res));
-            return "Lo siento, tuvimos un problema técnico. Por favor escribinos a {$cfg['hostel']['website']} 🙏";
+            return "Lo siento, tuvimos un problema técnico. Por favor escribinos a +54 9 2615 37-2767 🙏";
         }
 
         $data = $res['data'];
         $stop = $data['stop_reason'] ?? '';
         $contentBlocks = $data['content'] ?? [];
+        $lastStopReason = $stop;
+        $lastBlockKinds = implode(',', array_map(fn($b) => ($b['type'] ?? '?'), $contentBlocks));
+        $usage = $data['usage'] ?? [];
+        hp_log("claude turn={$iterationsUsed} stop={$stop} blocks=[{$lastBlockKinds}] in_tok=" . ($usage['input_tokens'] ?? '?') . " out_tok=" . ($usage['output_tokens'] ?? '?'));
 
         $history[]  = ['role' => 'assistant', 'content' => $contentBlocks];
         $newTurns[] = ['role' => 'assistant', 'content' => $contentBlocks];
 
-        if ($stop !== 'tool_use') {
-            foreach ($contentBlocks as $b) {
-                if (($b['type'] ?? '') === 'text') {
-                    $finalText .= $b['text'];
-                }
+        // Acumulamos texto SIEMPRE que venga (incluso si stop=tool_use, puede
+        // haber texto antes de la tool)
+        foreach ($contentBlocks as $b) {
+            if (($b['type'] ?? '') === 'text') {
+                $finalText .= $b['text'];
             }
+        }
+
+        if ($stop !== 'tool_use') {
             break;
         }
 
@@ -1631,7 +1647,7 @@ function hp_ask_claude(string $phone, string $userText): string
         foreach ($contentBlocks as $b) {
             if (($b['type'] ?? '') !== 'tool_use') continue;
             $out = hp_run_tool($b['name'], $b['input'] ?? [], $phone);
-            hp_log("tool_use {$b['name']} input=" . json_encode($b['input'] ?? []) . " | out_size=" . strlen(json_encode($out)));
+            hp_log("tool_use {$b['name']} input=" . json_encode($b['input'] ?? []) . " | out=" . substr(json_encode($out), 0, 500));
             $toolResults[] = [
                 'type'        => 'tool_result',
                 'tool_use_id' => $b['id'],
@@ -1643,6 +1659,14 @@ function hp_ask_claude(string $phone, string $userText): string
     }
 
     if ($finalText === '') {
+        hp_log("EMPTY_REPLY: last stop={$lastStopReason} blocks=[{$lastBlockKinds}] turns={$iterationsUsed}");
+        // Fallback: si terminó bien pero sin texto, es porque Claude ejecutó
+        // solo una tool que ya mandó un mensaje (buttons/T&C/summary). En ese
+        // caso NO respondemos con el mensaje de disculpa — devolvemos vacío
+        // y en hp_handle_message evitamos wa_send_text si es empty.
+        if ($lastStopReason === 'end_turn' && strpos($lastBlockKinds, 'tool_use') !== false) {
+            return '';  // señal: no mandar mensaje de texto adicional
+        }
         $finalText = "Disculpá, no pude responder esta consulta. ¿Podés reformularla? 🙏";
     }
 
@@ -1667,18 +1691,21 @@ function hp_handle_message(string $from, string $text, ?string $messageId = null
     }
 
     $reply = hp_ask_claude($from, $text);
-    hp_log("OUT <{$from}>: {$reply}");
+    hp_log("OUT <{$from}>: " . ($reply === '' ? '(sin texto; solo mensajes de tools)' : $reply));
 
-    $send = wa_send_text($cfg, $from, $reply);
-
-    // Después del mensaje principal: si generate_booking_link se llamó durante
-    // este turno, encolamos el mensaje interactivo "¿reservo por vos?".
-    // Delay chico para que WhatsApp no los agrupe visualmente en un mismo bubble.
-    hp_queue_after_reply('__flush__');
-
-    if (!$send['ok']) {
-        hp_log('WA send error: ' . json_encode($send));
+    // Solo mandamos texto si Claude produjo texto. Si el turno consistió
+    // solo en tools (que ya encolaron sus propios mensajes interactivos)
+    // no metemos un mensaje de disculpa vacío.
+    if ($reply !== '') {
+        $send = wa_send_text($cfg, $from, $reply);
+        if (!$send['ok']) {
+            hp_log('WA send error: ' . json_encode($send));
+        }
     }
+
+    // Después del mensaje principal: flusheamos la cola (assistance_offer,
+    // buttons, T&C, resumen final...).
+    hp_queue_after_reply('__flush__');
 
     // Notificación al admin con un resumen de los slots conocidos
     if (!empty($cfg['admin']['forward']) && !empty($cfg['admin']['phone'])) {
