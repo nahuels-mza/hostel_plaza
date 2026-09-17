@@ -6,8 +6,39 @@
  * historial.
  */
 
+/**
+ * Normaliza los mensajes antes de mandarlos a Anthropic.
+ *
+ * Anthropic exige que `tool_use.input` sea un objeto JSON ({}), no un array
+ * vacío ([]). Cuando Claude no manda ningún argumento a una tool sin
+ * parámetros, la respuesta trae `input: {}`, pero al decodificar con
+ * json_decode(..., true) queda como `[]` en PHP y al re-encodearla como parte
+ * del historial vuelve como `[]` (array). Forzamos que sea objeto castéandolo
+ * a stdClass cuando esté vacío.
+ */
+function _claude_normalize_messages(array $messages): array
+{
+    foreach ($messages as &$msg) {
+        $content = $msg['content'] ?? null;
+        if (!is_array($content)) continue;
+        foreach ($content as &$block) {
+            if (!is_array($block)) continue;
+            if (($block['type'] ?? '') === 'tool_use') {
+                $in = $block['input'] ?? null;
+                if ($in === null || (is_array($in) && empty($in))) {
+                    $block['input'] = new stdClass();
+                }
+            }
+        }
+        unset($block);
+    }
+    unset($msg);
+    return $messages;
+}
+
 function claude_call(array $cfg, array $messages, array $tools = [], string $system = ''): array
 {
+    $messages = _claude_normalize_messages($messages);
     $body = [
         'model'      => $cfg['claude']['model'],
         'max_tokens' => $cfg['claude']['max_tokens'],
