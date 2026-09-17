@@ -300,7 +300,7 @@ function hp_tools_definition(): array
                     'phone'      => ['type' => 'string', 'description' => 'Teléfono OBLIGATORIAMENTE con código de país al inicio (ej: "+54 261 5990326", "+1 415 5551234"). Si el huésped no lo incluyó, deducilo del país indicado y anteponelo. Nunca guardes un teléfono sin código de país.'],
                     'id_type'    => ['type' => 'string', 'description' => 'Tipo de documento: "DNI", "Passport", "Driver License", "National ID", etc.'],
                     'id_number'  => ['type' => 'string', 'description' => 'Número de documento.'],
-                    'email'      => ['type' => 'string', 'description' => 'Email del huésped (opcional pero recomendado para confirmación).'],
+                    'email'      => ['type' => 'string', 'description' => 'Email del huésped. OBLIGATORIO para completar la reserva — es donde BananaDesk manda la confirmación.'],
                 ],
                 'required' => [],
             ],
@@ -315,7 +315,7 @@ function hp_tools_definition(): array
         ],
         [
             'name' => 'create_bananadesk_reservation',
-            'description' => 'Crea la reserva en BananaDesk (motor real). SOLO usar cuando: (1) tenés todos los slots requeridos: check_in, check_out, guests_count, guest_name, phone, id_type, id_number, room_id; (2) el huésped ya vio el resumen y confirmó; (3) el huésped ya aceptó las T&C (slot terms_accepted). Devuelve {ok:true, reservation_id} o {ok:false, error}. Si falla, sugerí al huésped usar el link web como fallback.',
+            'description' => 'Crea la reserva en BananaDesk (motor real). SOLO usar cuando: (1) tenés todos los slots requeridos: check_in, check_out, guests_count, guest_name, phone, id_type, id_number, email, room_id; (2) el huésped ya vio el resumen y confirmó; (3) el huésped ya aceptó las T&C (slot terms_accepted). Devuelve {ok:true, reservation_id} o {ok:false, error}. Si falla, sugerí al huésped usar el link web como fallback.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => new stdClass(),
@@ -579,7 +579,7 @@ function hp_run_tool(string $name, array $input, string $phone): array
         hp_save_slots($phone, $slots);
 
         // Reportar qué falta todavía
-        $required = ['guest_name','country','phone','id_type','id_number'];
+        $required = ['guest_name','country','phone','id_type','id_number','email'];
         $missing  = array_values(array_filter($required, fn($f) => empty($slots['guest_data'][$f])));
 
         return [
@@ -615,7 +615,7 @@ function hp_run_tool(string $name, array $input, string $phone): array
                 return ['ok' => false, 'error' => "Falta el slot obligatorio: {$r}."];
             }
         }
-        foreach (['guest_name','phone','id_type','id_number'] as $r) {
+        foreach (['guest_name','phone','id_type','id_number','email'] as $r) {
             if (empty($gd[$r])) {
                 return ['ok' => false, 'error' => "Falta el dato del huésped: {$r}."];
             }
@@ -648,7 +648,7 @@ function hp_run_tool(string $name, array $input, string $phone): array
             $slots['check_out'],
             $bdRoomTypeId,
             $gd['guest_name'],
-            $gd['email']  ?? 'sin-email@hostelplaza.com.ar',
+            $gd['email'],
             $gd['phone'],
             (int)$slots['guests_count'],
             $bookingUnit
@@ -809,7 +809,7 @@ function hp_run_tool(string $name, array $input, string $phone): array
         foreach (['check_in','check_out','guests_count','room_id'] as $f) {
             if (empty($slots[$f])) $missing[] = $f;
         }
-        foreach (['guest_name','country','phone','id_type','id_number'] as $f) {
+        foreach (['guest_name','country','phone','id_type','id_number','email'] as $f) {
             if (empty($gd[$f])) $missing[] = "guest.{$f}";
         }
         if (!empty($missing)) {
@@ -836,9 +836,9 @@ function hp_run_tool(string $name, array $input, string $phone): array
                  . "👤 {$gd['guest_name']}\n"
                  . "🌍 {$gd['country']}\n"
                  . "📞 {$gd['phone']}\n"
-                 . "🪪 {$gd['id_type']} {$gd['id_number']}";
-        if (!empty($gd['email'])) $summary .= "\n✉️ {$gd['email']}";
-        $summary .= "\n\n¿Confirmás la reserva?";
+                 . "🪪 {$gd['id_type']} {$gd['id_number']}\n"
+                 . "✉️ {$gd['email']}"
+                 . "\n\n¿Confirmás la reserva?";
 
         hp_queue_after_reply($phone, [
             'kind'    => 'buttons',
@@ -974,8 +974,13 @@ llamá `select_room` con ese room_type_id y arrancá la recolección:
       país que dijo y anteponelo (ej: dijo "Argentina" y "2615990326" → guardá
       "+54 2615990326"). Si no podés deducirlo, volvé a preguntar el código.
 
-  Turno C — "Último dato: ¿tipo y número de documento? Ej: DNI 12345678 o Passport AB1234567."
+  Turno C — "Anteúltimo dato: ¿tipo y número de documento? Ej: DNI 12345678 o Passport AB1234567."
     → Al recibir, llamá `save_guest_reservation_data(id_type=..., id_number=...)`.
+
+  Turno D — "Último dato: ¿un email para mandarte la confirmación?"
+    → Al recibir, llamá `save_guest_reservation_data(email=...)`.
+    → Validá que tenga forma de email (contiene "@" y un dominio con "."). Si no,
+      pedilo de nuevo cordialmente.
 
 Paso 3 — T&C:
 Cuando `save_guest_reservation_data` devuelva `complete: true`, mandá un texto corto tipo
