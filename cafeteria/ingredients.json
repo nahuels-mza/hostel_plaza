@@ -1,0 +1,116 @@
+[
+    {
+        "id": "frutas",
+        "name": "Frutas",
+        "stock": 25,
+        "unit": "unidad",
+        "min_stock": 10,
+        "updated_at": "2026-09-25",
+        "updated_by": "admin",
+        "last_cost": 12000,
+        "last_purchase_at": "2026-09-25"
+    },
+    {
+        "id": "azucar",
+        "name": "Azúcar",
+        "stock": 1.5,
+        "unit": "paquete",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "pan",
+        "name": "Pan",
+        "stock": 3,
+        "unit": "unidad",
+        "min_stock": 4,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "huevos",
+        "name": "Huevos",
+        "stock": 34,
+        "unit": "unidad",
+        "min_stock": 12,
+        "updated_at": "2026-09-25",
+        "updated_by": "admin",
+        "last_cost": 10,
+        "last_purchase_at": "2026-09-25"
+    },
+    {
+        "id": "leche",
+        "name": "Leche",
+        "stock": 16,
+        "unit": "litro",
+        "min_stock": 8,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "mermelada",
+        "name": "Mermelada",
+        "stock": 10,
+        "unit": "frasco",
+        "min_stock": 3,
+        "updated_at": "2026-09-25",
+        "updated_by": "admin",
+        "last_cost": 2,
+        "last_purchase_at": "2026-09-25"
+    },
+    {
+        "id": "cafe_molido",
+        "name": "Café (molido\/grano)",
+        "stock": 2.5,
+        "unit": "paquete",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "cafe_maquina",
+        "name": "Café de Máquina",
+        "stock": 2,
+        "unit": "paquete",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "edulcorante",
+        "name": "Edulcorante",
+        "stock": 2,
+        "unit": "caja",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "te_variedad",
+        "name": "Té Variedad",
+        "stock": 2,
+        "unit": "caja",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "te_clasico",
+        "name": "Té Clásico",
+        "stock": 1.5,
+        "unit": "caja",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    },
+    {
+        "id": "filtro_papel",
+        "name": "Filtro de Papel",
+        "stock": 1,
+        "unit": "caja",
+        "min_stock": 1,
+        "updated_at": "2026-09-22",
+        "updated_by": "planilla"
+    }
+]

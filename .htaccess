@@ -17,12 +17,38 @@ RewriteCond %{REQUEST_URI} !^/whatsapp/
 RewriteCond %{REQUEST_URI} !^/payway_charge\.php$
 RewriteCond %{REQUEST_URI} !^/paypal_create_order\.php$
 RewriteCond %{REQUEST_URI} !^/paypal_capture_order\.php$
+RewriteCond %{REQUEST_URI} !^/cafeteriagatonegro/(open_comanda|add_item|remove_item|cancel_comanda|close_comanda|update_stock|update_ingredient|add_purchase|create_product|create_ingredient|update_price|delete_product|delete_ingredient|update_flags|update_recipe|produce_product)\.php$
 RewriteRule ^/?(.*)\.php$ /$1 [L,R=301]
 
 # 4. Map the dynamic Room URLs (MUST be placed before the generic .php rule)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^room/([^/]+)/?$ room.php?name=$1 [L,QSA]
+
+# 4b. Cafetería Gato Negro — carpeta real es /cafeteria, URL pública /cafeteriagatonegro
+RewriteRule ^cafeteriagatonegro/open_comanda\.php$ cafeteria/open_comanda.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/add_item\.php$ cafeteria/add_item.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/remove_item\.php$ cafeteria/remove_item.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/cancel_comanda\.php$ cafeteria/cancel_comanda.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/close_comanda\.php$ cafeteria/close_comanda.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/update_stock\.php$ cafeteria/update_stock.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/update_ingredient\.php$ cafeteria/update_ingredient.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/add_purchase\.php$ cafeteria/add_purchase.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/create_product\.php$ cafeteria/create_product.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/create_ingredient\.php$ cafeteria/create_ingredient.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/update_price\.php$ cafeteria/update_price.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/delete_product\.php$ cafeteria/delete_product.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/delete_ingredient\.php$ cafeteria/delete_ingredient.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/update_flags\.php$ cafeteria/update_flags.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/update_recipe\.php$ cafeteria/update_recipe.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/produce_product\.php$ cafeteria/produce_product.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/stock/?$ cafeteria/stock.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/costos/?$ cafeteria/costos.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/reportes/?$ cafeteria/reportes.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/insumos/?$ cafeteria/insumos.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/login/?$ cafeteria/login.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/logout/?$ cafeteria/logout.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/?$ cafeteria/index.php [L,QSA]
 
 # 5. Map clean URLs back to .php files (Internal Routing)
 RewriteCond %{REQUEST_FILENAME} !-d
