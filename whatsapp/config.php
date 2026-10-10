@@ -50,7 +50,7 @@ return [
     ],
     'agent' => [
         // Cantidad de pares user+assistant a mantener en memoria por número
-        'history_turns'          => 5,
+        'history_turns'          => 3,
         // Horas de inactividad tras las cuales la conversación se resetea
         // (evita arrastrar historial viejo de consultas ya cerradas)
         'reset_after_hours'      => 6,

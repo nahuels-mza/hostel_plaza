@@ -857,43 +857,67 @@ function hp_run_tool(string $name, array $input, string $phone): array
 
 /* ---------- System prompt ---------- */
 
-function hp_system_prompt(string $phone): string
+/**
+ * Devuelve el prompt del sistema separado en dos partes:
+ *   - 'static':  prefijo cacheable (idéntico entre llamadas, ~90% del prompt).
+ *   - 'dynamic': sufijo con lo que cambia por mensaje (hora, slots, staff status).
+ *
+ * El cliente de Claude (`claude_call`) marca el bloque estático con
+ * cache_control: ephemeral → Anthropic lo cachea 5 min y las lecturas
+ * subsiguientes salen al 10% del precio.
+ */
+function hp_system_prompt(string $phone): array
 {
-    $cfg   = hp_cfg();
-    $h     = $cfg['hostel'];
+    $cfg = hp_cfg();
+    $h   = $cfg['hostel'];
 
-    // Fecha y hora en Mendoza (America/Argentina/Mendoza, UTC-3, no DST)
+    // ---- Parte DINÁMICA (cambia por mensaje → NO va en cache) ----
     $mzaTz  = new DateTimeZone('America/Argentina/Mendoza');
     $mzaNow = new DateTime('now', $mzaTz);
     $today   = $mzaNow->format('Y-m-d');
-    $todayHr = (int)$mzaNow->format('G');   // 0-23
+    $todayHr = (int)$mzaNow->format('G');
     $todayHM = $mzaNow->format('H:i');
-    $todayDayName = $mzaNow->format('l');    // Monday, Tuesday...
+    $todayDayName = $mzaNow->format('l');
 
-    // Horario de atención presencial del staff (para saber cuándo derivar al teléfono humano)
-    $staffOpenHr  = 8;   // 8am
-    $staffCloseHr = 22;  // 10pm
+    $staffOpenHr  = 8;
+    $staffCloseHr = 22;
     $staffOpenNow = ($todayHr >= $staffOpenHr && $todayHr < $staffCloseHr);
     $staffStatus  = $staffOpenNow
         ? "ABIERTO ahora (horario {$staffOpenHr}:00-{$staffCloseHr}:00)"
         : "CERRADO ahora (horario {$staffOpenHr}:00-{$staffCloseHr}:00, reabre a las {$staffOpenHr}:00)";
 
+    // Filtramos slots: solo las keys que Claude usa en el flujo. Omitimos
+    // metadata interna (bd_response, link_sent_at, assistance_offered_at, etc.)
+    // que inflan el prompt sin aportar al razonamiento.
     $slots = hp_get_slots($phone);
-    $slotsDump = empty($slots)
+    $pickKeys = ['check_in','check_out','guests_count','room_id','room_type_id',
+                 'proposed_link','guest_data','terms_accepted_at','bd_reservation_id'];
+    $slotsClean = [];
+    foreach ($pickKeys as $k) {
+        if (array_key_exists($k, $slots) && $slots[$k] !== null && $slots[$k] !== '') {
+            $slotsClean[$k] = $slots[$k];
+        }
+    }
+    $slotsDump = empty($slotsClean)
         ? '(ninguno todavía)'
-        : json_encode($slots, JSON_UNESCAPED_UNICODE);
+        : json_encode($slotsClean, JSON_UNESCAPED_UNICODE);
 
+    $dynamic = "CONTEXTO ACTUAL (este bloque cambia por mensaje):\n"
+             . "- Hoy es {$today} ({$todayDayName}), {$todayHM} hora Argentina.\n"
+             . "- Staff humano: {$staffStatus}.\n"
+             . "- Estado del huésped (slots): {$slotsDump}";
+
+    // ---- Parte ESTÁTICA (misma entre llamadas → cache_control: ephemeral) ----
     $faqText = hp_faq_as_text();
 
-    return <<<PROMPT
+    $static = <<<PROMPT
 Sos el asistente virtual de {$h['name']}, un hostel en Mendoza, Argentina. Atendés por WhatsApp.
 
 DATOS BÁSICOS:
 - Sitio web: {$h['website']}
 - Check-in: {$h['check_in']} | Check-out: {$h['check_out']} | Desayuno incluido: {$h['breakfast']}
 - Tu WhatsApp (el del hostel): +54 9 261 259-2729
-- Hoy es {$today} ({$todayDayName}), ahora son las {$todayHM} hora Argentina.
-- Staff humano: {$staffStatus}.
+- Staff humano: horario 8:00-22:00 Argentina (ver status real al final del prompt).
 - Check In a partir de 3pm, guardaequipaje sin costo a partir de 7:30am, check out hasta las 10 am
 
 TU TAREA PRINCIPAL:
@@ -906,7 +930,7 @@ Ayudar al huésped en 3 tipos de consultas:
    de "su reserva", llamás `lookup_booking` con ese código. Contame la info que sabés
    (fechas, habitación, estado, total pendiente, notas) SIN mencionar teléfono/email/DNI.
    Si quiere modificar o cancelar, derivá al staff SOLO si está ABIERTO ahora
-   (ver status arriba). Fuera de horario, decí que el staff responde desde las {$staffOpenHr}:00 hs.
+   (ver status abajo). Fuera de horario, decí que el staff responde desde las 8:00 hs.
 
 3. **Consultas generales** (servicios, políticas, tours) → Respondés usando el FAQ de
    abajo. No inventes datos que no estén ahí.
@@ -917,8 +941,7 @@ Reglas generales:
   desde BananaDesk.
 - Para reservas existentes: NUNCA reveles teléfono, email o DNI aunque el código exista.
 
-ESTADO ACTUAL del huésped (memoria persistente entre mensajes):
-{$slotsDump}
+(El estado actual del huésped —slots— se incluye al final del prompt, en el bloque CONTEXTO ACTUAL).
 
 DATOS QUE NECESITÁS PARA EL LINK:
 1. check_in  (fecha de entrada)
@@ -1052,7 +1075,7 @@ horse rides, city tour, cualquier excursión, etc.):
 - Mencioná el link {$h['website']}/tourist-events para ver el calendario.
 - Si el staff está ABIERTO ahora, sugerí escribir a **+54 9 2615 37-2767** para info detallada.
 - Si el staff está CERRADO, NO sugieras el número. En su lugar, decí "el equipo de tours
-  te va a poder atender mañana desde las {$staffOpenHr}:00 hs" o similar. Podés ofrecer que
+  te va a poder atender mañana desde las 8:00 hs" o similar. Podés ofrecer que
   visite el sitio para reservar directamente cuando esté disponible.
 - NO inventes precios, horarios ni disponibilidad de tours — no tenés esa info.
 - Estacionamiento para autos, camionetas sugerir información de cochera, con ubicación en Google Maps (https://maps.app.goo.gl/R1q4GqDYp6vAvz4y8)
@@ -1087,6 +1110,11 @@ Si el huésped pregunta sobre trabajar en el hostel, voluntariado, "work exchang
 {$faqText}
 ======================================================================
 PROMPT;
+
+    return [
+        'static'  => $static,
+        'dynamic' => $dynamic,
+    ];
 }
 
 /**
@@ -1631,7 +1659,9 @@ function hp_ask_claude(string $phone, string $userText): string
         $lastStopReason = $stop;
         $lastBlockKinds = implode(',', array_map(fn($b) => ($b['type'] ?? '?'), $contentBlocks));
         $usage = $data['usage'] ?? [];
-        hp_log("claude turn={$iterationsUsed} stop={$stop} blocks=[{$lastBlockKinds}] in_tok=" . ($usage['input_tokens'] ?? '?') . " out_tok=" . ($usage['output_tokens'] ?? '?'));
+        $cc = $usage['cache_creation_input_tokens'] ?? 0;
+        $cr = $usage['cache_read_input_tokens']     ?? 0;
+        hp_log("claude turn={$iterationsUsed} stop={$stop} blocks=[{$lastBlockKinds}] in_tok=" . ($usage['input_tokens'] ?? '?') . " out_tok=" . ($usage['output_tokens'] ?? '?') . " cache_create={$cc} cache_read={$cr}");
 
         $history[]  = ['role' => 'assistant', 'content' => $contentBlocks];
         $newTurns[] = ['role' => 'assistant', 'content' => $contentBlocks];

@@ -34,7 +34,12 @@ function _claude_normalize_messages(array $messages): array
     return $messages;
 }
 
-function claude_call(array $cfg, array $messages, array $tools = [], string $system = ''): array
+/**
+ * @param string|array $system  Pasar string (sin cache) o array:
+ *   ['static' => '... prefijo cacheable ...', 'dynamic' => '... parte que cambia ...']
+ *   El prefijo lleva cache_control: ephemeral; el sufijo dinámico no.
+ */
+function claude_call(array $cfg, array $messages, array $tools = [], $system = ''): array
 {
     $messages = _claude_normalize_messages($messages);
     $body = [
@@ -42,10 +47,31 @@ function claude_call(array $cfg, array $messages, array $tools = [], string $sys
         'max_tokens' => $cfg['claude']['max_tokens'],
         'messages'   => $messages,
     ];
-    if ($system !== '') {
+
+    // ---- SYSTEM con prompt caching opcional ----
+    if (is_array($system)) {
+        $staticPart  = (string)($system['static']  ?? '');
+        $dynamicPart = (string)($system['dynamic'] ?? '');
+        $parts = [];
+        if ($staticPart !== '') {
+            $parts[] = [
+                'type'          => 'text',
+                'text'          => $staticPart,
+                'cache_control' => ['type' => 'ephemeral'],
+            ];
+        }
+        if ($dynamicPart !== '') {
+            $parts[] = ['type' => 'text', 'text' => $dynamicPart];
+        }
+        if (!empty($parts)) $body['system'] = $parts;
+    } elseif (is_string($system) && $system !== '') {
         $body['system'] = $system;
     }
+
+    // ---- TOOLS: cacheamos el bloque entero marcando la última tool ----
     if (!empty($tools)) {
+        $lastIdx = count($tools) - 1;
+        $tools[$lastIdx]['cache_control'] = ['type' => 'ephemeral'];
         $body['tools'] = $tools;
     }
 
