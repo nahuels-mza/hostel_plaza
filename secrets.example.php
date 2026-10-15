@@ -38,4 +38,14 @@ return [
     'paypal_sandbox_secret'      => '',
     'paypal_live_client_id'      => '',         // developer.paypal.com → Apps & Credentials → Live
     'paypal_live_secret'         => '',
+
+    // Cafetería Gato Negro (/cafeteriagatonegro) — login propio, independiente
+    // del de staff/admin. Ver cafeteria/login.php y cafeteria/helpers.php.
+    // cafeteria_user/pass: usuario general (comanda y eventos únicamente).
+    // cafeteria_admin_user/pass: usuario admin (todas las secciones, incluida
+    // carga de stock/insumos y los reportes de costos/ventas).
+    'cafeteria_user' => '',
+    'cafeteria_pass' => '',
+    'cafeteria_admin_user' => '',
+    'cafeteria_admin_pass' => '',
 ];

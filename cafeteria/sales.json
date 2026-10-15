@@ -1,0 +1,85 @@
+[
+    {
+        "id": "sale_6ab3f70d5d11f0.77290909",
+        "items": [
+            {
+                "id": "alfajor_agus",
+                "name": "Alfajor Agus \/ Maicena",
+                "qty": 1,
+                "price": 2000,
+                "subtotal": 2000
+            },
+            {
+                "id": "huevo",
+                "name": "Huevo (extra)",
+                "qty": 1,
+                "price": 500,
+                "subtotal": 500
+            },
+            {
+                "id": "tostadas_dulce",
+                "name": "Tostadas con Dulce",
+                "qty": 1,
+                "price": 1500,
+                "subtotal": 1500
+            },
+            {
+                "id": "cookie",
+                "name": "Cookie",
+                "qty": 1,
+                "price": 2500,
+                "subtotal": 2500
+            }
+        ],
+        "guest": "pepe",
+        "payment_method": "Efectivo",
+        "total": 6500,
+        "date": "2026-09-23T15:58:05+00:00"
+    },
+    {
+        "id": "sale_6ab3f84ad08997.81979783",
+        "items": [
+            {
+                "id": "alfajor",
+                "name": "Alfajor",
+                "qty": 1,
+                "price": 2000,
+                "subtotal": 2000
+            },
+            {
+                "id": "galletitas",
+                "name": "Galletitas",
+                "qty": 1,
+                "price": 2500,
+                "subtotal": 2500
+            }
+        ],
+        "guest": "Agus",
+        "payment_method": "Transferencia",
+        "total": 4500,
+        "date": "2026-09-23T16:03:22+00:00"
+    },
+    {
+        "id": "sale_6ab4802aaf90e3.34350005",
+        "items": [
+            {
+                "id": "brownie",
+                "name": "Brownie",
+                "qty": 2,
+                "price": 3000,
+                "subtotal": 6000
+            },
+            {
+                "id": "tostadas_huevo",
+                "name": "Tostadas con Huevo",
+                "qty": 1,
+                "price": 3000,
+                "subtotal": 3000
+            }
+        ],
+        "guest": "Jorge",
+        "payment_method": "Efectivo",
+        "total": 9000,
+        "date": "2026-09-24T01:43:06+00:00"
+    }
+]

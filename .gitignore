@@ -13,5 +13,8 @@ logs/*/.recent.json
 bookings.json
 conversations.json
 whatsapp/cache/
+cafeteria/sales/*.json
+cafeteria/ingredient_history.json
+cafeteria/purchases.json
 
 do_not_upload/*

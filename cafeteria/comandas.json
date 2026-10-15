@@ -1,0 +1,112 @@
+[
+    {
+        "id": "cmd_6abc427c6cd341.18993790",
+        "name": "Fiestita",
+        "type": "evento",
+        "items": [
+            {
+                "id": "cafe",
+                "name": "Café",
+                "price": 1500,
+                "qty": 1
+            },
+            {
+                "id": "americano",
+                "name": "Café Americano",
+                "price": 2500,
+                "qty": 1
+            },
+            {
+                "id": "galletas_agua",
+                "name": "Galletas de Agua",
+                "price": 1000,
+                "qty": 1
+            },
+            {
+                "id": "magdalena",
+                "name": "Magdalena",
+                "price": 1000,
+                "qty": 1
+            },
+            {
+                "id": "tostadas_huevo",
+                "name": "Tostadas con Huevo",
+                "price": 3000,
+                "qty": 1
+            }
+        ],
+        "opened_at": "2026-09-29T22:58:04+00:00",
+        "opened_by": "gatonegro"
+    },
+    {
+        "id": "cmd_6abfae570f81f6.27907947",
+        "name": "flequillo",
+        "type": "evento",
+        "items": [
+            {
+                "id": "te",
+                "name": "Té",
+                "price": 1500,
+                "qty": 2
+            },
+            {
+                "id": "cerveza_stella",
+                "name": "Cerveza Stella",
+                "price": 3000,
+                "qty": 2
+            },
+            {
+                "id": "vino_beneventum",
+                "name": "Copa de Vino Beneventum",
+                "price": 1500,
+                "qty": 2
+            },
+            {
+                "id": "fernet",
+                "name": "Fernet (trago)",
+                "price": 3500,
+                "qty": 1
+            },
+            {
+                "id": "galletas_agua",
+                "name": "Galletas de Agua",
+                "price": 1000,
+                "qty": 1
+            }
+        ],
+        "opened_at": "2026-10-02T13:15:03+00:00",
+        "opened_by": "gatonegro"
+    },
+    {
+        "id": "cmd_6ac7eb6dca7fa7.56339885",
+        "name": "Mostrador 3",
+        "type": "mostrador",
+        "items": [],
+        "opened_at": "2026-10-08T19:13:49+00:00",
+        "opened_by": "lechuga"
+    },
+    {
+        "id": "cmd_6ac7ec6ac1eb49.03047581",
+        "name": "Mostrador 4",
+        "type": "mostrador",
+        "items": [],
+        "opened_at": "2026-10-08T19:18:02+00:00",
+        "opened_by": "lechuga"
+    },
+    {
+        "id": "cmd_6ac7f2e24291a3.59294670",
+        "name": "Mostrador 6",
+        "type": "mostrador",
+        "items": [],
+        "opened_at": "2026-10-08T19:45:38+00:00",
+        "opened_by": "lechuga"
+    },
+    {
+        "id": "cmd_6ac90e6fea59d4.26532026",
+        "name": "Mostrador 4",
+        "type": "mostrador",
+        "items": [],
+        "opened_at": "2026-10-09T15:55:27+00:00",
+        "opened_by": "gatonegro"
+    }
+]
