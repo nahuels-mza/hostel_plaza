@@ -100,7 +100,7 @@
     },
     {
         "id": "tostadasJyQ",
-        "name": "Tostadas con Jamón y Queso",
+        "name": "Tostado con Jamón y Queso",
         "category": "Comida",
         "price": 2000,
         "stock": 0,
@@ -133,11 +133,11 @@
         "id": "cookie",
         "name": "Cookie",
         "category": "Comida",
-        "price": 0,
+        "price": 1500,
         "stock": 0,
         "min_stock": 4,
         "unit": "unidad",
-        "active": false
+        "active": true
     },
     {
         "id": "postreDia",
@@ -179,6 +179,17 @@
         "min_stock": 10,
         "unit": "unidad",
         "active": true
+    },
+    {
+        "id": "3empanadas",
+        "name": "Trio de Empanadas",
+        "category": "Comida",
+        "price": 4000,
+        "stock": 20,
+        "min_stock": 10,
+        "unit": "unidad",
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "medialunas",

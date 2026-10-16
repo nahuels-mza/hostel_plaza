@@ -36,6 +36,7 @@ $noStockColCount = $isAdmin ? 4 : 3;
             <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
             <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a><?php endif; ?>
             <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a><?php endif; ?>
+            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a><?php endif; ?>
             <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
         </nav>
     </header>

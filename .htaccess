@@ -51,6 +51,7 @@ RewriteRule ^cafeteriagatonegro/produce_product\.php$ cafeteria/produce_product.
 RewriteRule ^cafeteriagatonegro/stock/?$ cafeteria/stock.php [L,QSA]
 RewriteRule ^cafeteriagatonegro/costos/?$ cafeteria/costos.php [L,QSA]
 RewriteRule ^cafeteriagatonegro/reportes/?$ cafeteria/reportes.php [L,QSA]
+RewriteRule ^cafeteriagatonegro/ventas/?$ cafeteria/ventas.php [L,QSA]
 RewriteRule ^cafeteriagatonegro/insumos/?$ cafeteria/insumos.php [L,QSA]
 RewriteRule ^cafeteriagatonegro/login/?$ cafeteria/login.php [L,QSA]
 RewriteRule ^cafeteriagatonegro/logout/?$ cafeteria/logout.php [L,QSA]

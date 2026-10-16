@@ -32,6 +32,36 @@ function hp_cafeteria_load_sales_for_month(string $month): array
     return $sales;
 }
 
+// Todas las ventas entre dos fechas (YYYY-MM-DD, inclusive), juntando los
+// archivos diarios día por día. Pensado para rangos chicos (vista de admin);
+// se limita a 366 días para no abrir miles de archivos por error de input.
+function hp_cafeteria_load_sales_for_range(string $from, string $to): array
+{
+    $start = new DateTime($from);
+    $end = new DateTime($to);
+    if ($end < $start) {
+        [$start, $end] = [$end, $start];
+    }
+    $end->modify('+1 day'); // DatePeriod no incluye el último día por defecto
+    $period = new DatePeriod($start, new DateInterval('P1D'), $end);
+
+    $sales = [];
+    $daysChecked = 0;
+    foreach ($period as $day) {
+        if (++$daysChecked > 366) {
+            break;
+        }
+        $file = hp_cafeteria_path(hp_cafeteria_sales_file($day->format('Y-m-d')));
+        if (file_exists($file)) {
+            $data = json_decode(file_get_contents($file), true);
+            if (is_array($data)) {
+                $sales = array_merge($sales, $data);
+            }
+        }
+    }
+    return $sales;
+}
+
 // Credenciales propias de la cafetería (independientes del login de staff/admin),
 // guardadas fuera del código siguiendo el mismo patrón que el resto del repo
 // (do_not_upload/secrets.php en local, storagedir/secrets.php en producción).

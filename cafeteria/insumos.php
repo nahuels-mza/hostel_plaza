@@ -30,6 +30,7 @@ $colCount = $isAdmin ? 6 : 4;
             <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock de Productos</a>
             <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a><?php endif; ?>
             <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a><?php endif; ?>
+            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a><?php endif; ?>
             <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
         </nav>
     </header>

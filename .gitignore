@@ -16,5 +16,6 @@ whatsapp/cache/
 cafeteria/sales/*.json
 cafeteria/ingredient_history.json
 cafeteria/purchases.json
+cafeteria/comandas.json
 
 do_not_upload/*

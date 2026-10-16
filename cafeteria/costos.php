@@ -100,6 +100,7 @@ $purchaseLog = array_slice($purchaseLog, 0, 50);
             <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock</a>
             <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
             <a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a>
+            <a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a>
             <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
         </nav>
     </header>

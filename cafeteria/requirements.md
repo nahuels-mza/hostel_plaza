@@ -81,3 +81,12 @@ Se identificaron 5 tipos de producto reales (empanadas producidas acá, cuantifi
   - Cada producción queda en `purchases.json` con `kind: "production"` (incluye qué insumos se consumieron, `consumed: [...]`). En `costos.php`, "compra" y "producción" del mismo producto se tratan como una sola línea de costo (ambas responden la misma pregunta: cuánto sale conseguir una unidad más), y el historial las distingue con la etiqueta "Producción propia".
 
 Los 26 productos existentes quedaron con `made_in_house: false` (nadie se migró automáticamente) — para pasar algo como "Empanada" a producción hay que marcarlo desde "Config" en `stock.php`, definirle una receta, y recién ahí usar "Registrar producción". Mientras no tenga receta, "Registrar producción" devuelve error pidiendo definirla primero.
+
+## Historial de ventas / comandas cerradas (fase 8) ✅ implementado
+Página nueva `ventas.php` (admin-only, 100% lectura — ni un botón de escritura) para poder ver comandas ya cerradas de cualquier fecha o rango, sin tener que esperar al resumen mensual de `reportes.php`.
+
+- Filtro "Desde"/"Hasta" por GET (bookmarkeable), con atajos "Hoy" / "Últimos 7 días" / "Este mes". Default: hoy.
+- Nuevo helper `hp_cafeteria_load_sales_for_range($from, $to)` en `helpers.php`: suma los `sales/ventas_YYYY-MM-DD.json` día por día dentro del rango (tope de 366 días para no abrir miles de archivos por error de input).
+- Por cada venta: fecha/hora, mesa/tipo (`table_name`/`tab_type` que ya guarda `close_comanda.php`), comprador (huésped+nombre o no-huésped), método de pago, y el detalle línea por línea de los productos vendidos con su subtotal.
+- Resumen arriba: total del período y cantidad de comandas cerradas.
+- Nav "Ventas" agregado junto a Costos/Reportes en todas las páginas admin.

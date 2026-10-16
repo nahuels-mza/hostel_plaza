@@ -77,6 +77,7 @@ for ($i = 0; $i < 12; $i++) {
             <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock</a>
             <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
             <a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a>
+            <a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a>
             <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
         </nav>
     </header>
