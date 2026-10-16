@@ -12,12 +12,18 @@ RewriteRule ^admin/?$ admin/index.php [L]
 # 3. Remove .php extension from URLs (External Redirect)
 # Excluir whatsapp/ y los endpoints que reciben POST con body — un 301 los
 # redirige a GET, perdiendo el body (el navegador no reenvía el POST).
+# OJO: cuando la regla 4b reescribe /cafeteriagatonegro/x.php -> cafeteria/x.php,
+# mod_rewrite reinicia el procesamiento del .htaccess desde el principio con la
+# nueva URI interna. Por eso hay que excluir TAMBIÉN /cafeteria/ (la carpeta real),
+# no solo /cafeteriagatonegro/ (la URL pública) — si no, esta regla agarra la URI
+# ya reescrita en esa segunda pasada y la vuelve a redirigir, perdiendo el POST.
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^\ ]+)\.php
 RewriteCond %{REQUEST_URI} !^/whatsapp/
 RewriteCond %{REQUEST_URI} !^/payway_charge\.php$
 RewriteCond %{REQUEST_URI} !^/paypal_create_order\.php$
 RewriteCond %{REQUEST_URI} !^/paypal_capture_order\.php$
-RewriteCond %{REQUEST_URI} !^/cafeteriagatonegro/(open_comanda|add_item|remove_item|cancel_comanda|close_comanda|update_stock|update_ingredient|add_purchase|create_product|create_ingredient|update_price|delete_product|delete_ingredient|update_flags|update_recipe|produce_product)\.php$
+RewriteCond %{REQUEST_URI} !^/cafeteriagatonegro/
+RewriteCond %{REQUEST_URI} !^/cafeteria/
 RewriteRule ^/?(.*)\.php$ /$1 [L,R=301]
 
 # 4. Map the dynamic Room URLs (MUST be placed before the generic .php rule)
