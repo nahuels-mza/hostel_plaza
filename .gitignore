@@ -17,5 +17,6 @@ cafeteria/sales/*.json
 cafeteria/ingredient_history.json
 cafeteria/purchases.json
 cafeteria/comandas.json
+cafeteria/products.json
 
 do_not_upload/*

@@ -11,17 +11,6 @@
         "tracks_stock": false
     },
     {
-        "id": "doppio",
-        "name": "Cafe Doppio",
-        "category": "Cafeteria",
-        "price": 2500,
-        "min_stock": 0,
-        "stock": 0,
-        "unit": "unidad",
-        "active": true,
-        "tracks_stock": false
-    },
-    {
         "id": "americano",
         "name": "Cafe Americano",
         "category": "Cafeteria",
@@ -88,33 +77,11 @@
         "tracks_stock": false
     },
     {
-        "id": "tostadasDulces",
-        "name": "Tostadas con Dulces",
-        "category": "Comida",
-        "price": 2000,
-        "stock": 0,
-        "min_stock": 3,
-        "unit": "unidad",
-        "active": true,
-        "tracks_stock": false
-    },
-    {
-        "id": "tostadasJyQ",
-        "name": "Tostado con Jamón y Queso",
-        "category": "Comida",
-        "price": 2000,
-        "stock": 0,
-        "min_stock": 3,
-        "unit": "unidad",
-        "active": true,
-        "tracks_stock": false
-    },
-    {
         "id": "alfajores",
         "name": "Alfajores",
         "category": "Comida",
         "price": 2000,
-        "stock": 0,
+        "stock": 12,
         "min_stock": 5,
         "unit": "unidad",
         "active": true
@@ -127,14 +94,15 @@
         "stock": 6,
         "min_stock": 4,
         "unit": "unidad",
-        "active": true
+        "active": true,
+        "made_in_house": false
     },
     {
         "id": "cookie",
         "name": "Cookie",
         "category": "Comida",
-        "price": 1500,
-        "stock": 0,
+        "price": 2500,
+        "stock": 1,
         "min_stock": 4,
         "unit": "unidad",
         "active": true
@@ -143,7 +111,7 @@
         "id": "postreDia",
         "name": "Postre del dia",
         "category": "Comida",
-        "price": 10000,
+        "price": 4000,
         "stock": 0,
         "min_stock": 3,
         "unit": "unidad",
@@ -155,7 +123,7 @@
         "name": "Chipá x 4 unidades",
         "category": "Comida",
         "price": 3500,
-        "stock": 46,
+        "stock": 11,
         "min_stock": 10,
         "unit": "unidad",
         "active": true
@@ -168,7 +136,8 @@
         "stock": 75,
         "min_stock": 15,
         "unit": "unidad",
-        "active": true
+        "active": true,
+        "made_in_house": false
     },
     {
         "id": "empanadas_vegg",
@@ -178,48 +147,8 @@
         "stock": 20,
         "min_stock": 10,
         "unit": "unidad",
-        "active": true
-    },
-    {
-        "id": "3empanadas",
-        "name": "Trio de Empanadas",
-        "category": "Comida",
-        "price": 4000,
-        "stock": 20,
-        "min_stock": 10,
-        "unit": "unidad",
         "active": true,
-        "tracks_stock": false
-    },
-    {
-        "id": "medialunas",
-        "name": "Medialunas",
-        "category": "Comida",
-        "price": 800,
-        "stock": 2,
-        "min_stock": 10,
-        "unit": "unidad",
-        "active": true
-    },
-    {
-        "id": "tortitas",
-        "name": "Tortitas",
-        "category": "Comida",
-        "price": 800,
-        "stock": 57,
-        "min_stock": 10,
-        "unit": "unidad",
-        "active": true
-    },
-    {
-        "id": "tortitas_raspadas",
-        "name": "Tortitas Raspadas",
-        "category": "Comida",
-        "price": 800,
-        "stock": 66,
-        "min_stock": 10,
-        "unit": "unidad",
-        "active": true
+        "made_in_house": false
     },
     {
         "id": "platoDia",
@@ -249,16 +178,6 @@
         "price": 2500,
         "stock": 12,
         "min_stock": 6,
-        "unit": "unidad",
-        "active": true
-    },
-    {
-        "id": "sprite_2l",
-        "name": "Sprite 2L",
-        "category": "Bebida",
-        "price": 0,
-        "stock": 3,
-        "min_stock": 2,
         "unit": "unidad",
         "active": true
     },
@@ -293,31 +212,11 @@
         "active": true
     },
     {
-        "id": "agua_1_5l",
-        "name": "Agua 1,5L",
-        "category": "Bebida",
-        "price": 40010,
-        "stock": 13,
-        "min_stock": 6,
-        "unit": "unidad",
-        "active": true
-    },
-    {
-        "id": "agua",
-        "name": "Agua",
-        "category": "Bebida",
-        "price": 1500,
-        "stock": 17,
-        "min_stock": 6,
-        "unit": "unidad",
-        "active": true
-    },
-    {
         "id": "tonicas",
         "name": "Tónicas",
         "category": "Bebida",
-        "price": 1500,
-        "stock": 1,
+        "price": 2000,
+        "stock": 12,
         "min_stock": 2,
         "unit": "unidad",
         "active": true
@@ -330,7 +229,8 @@
         "stock": 1,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "fernet",
@@ -340,27 +240,19 @@
         "stock": 1,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
-    },
-    {
-        "id": "vino_beneventum",
-        "name": "Vino Beneventum",
-        "category": "Bebida",
-        "price": 0,
-        "stock": 0,
-        "min_stock": 1,
-        "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "damajuana",
         "name": "Vino Damajuana",
         "category": "Bebida",
-        "price": 0,
+        "price": 1000,
         "stock": 0,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "aperol",
@@ -370,7 +262,8 @@
         "stock": 5,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "cachaca",
@@ -380,7 +273,8 @@
         "stock": 1,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "gin",
@@ -390,7 +284,8 @@
         "stock": 3,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "tequila",
@@ -400,17 +295,19 @@
         "stock": 1,
         "min_stock": 1,
         "unit": "botella",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "citric",
         "name": "Citric",
         "category": "Bebida",
-        "price": 3500,
+        "price": 3000,
         "stock": 2,
         "min_stock": 1,
         "unit": "litro",
-        "active": true
+        "active": true,
+        "tracks_stock": false
     },
     {
         "id": "toalla",
@@ -444,5 +341,69 @@
         "unit": "servicio",
         "active": true,
         "tracks_stock": false
+    },
+    {
+        "id": "cafe_doppio_esspresso",
+        "name": "Cafe Doppio Esspresso",
+        "category": "Cafeteria",
+        "price": 2500,
+        "stock": 0,
+        "min_stock": 0,
+        "unit": "unidad",
+        "active": true,
+        "tracks_stock": false
+    },
+    {
+        "id": "tostado_de_jamon_y_queso",
+        "name": "Tostado de Jamon y Queso",
+        "category": "Comida",
+        "price": 5000,
+        "stock": 0,
+        "min_stock": 0,
+        "unit": "unidad",
+        "active": true,
+        "tracks_stock": false
+    },
+    {
+        "id": "trio_de_empanadas",
+        "name": "Trio de Empanadas",
+        "category": "Comida",
+        "price": 4000,
+        "stock": 0,
+        "min_stock": 0,
+        "unit": "unidad",
+        "active": true,
+        "tracks_stock": false
+    },
+    {
+        "id": "tostadas_con_mermelada_o_queso_crema",
+        "name": "Tostadas con Mermelada o Queso Crema",
+        "category": "Comida",
+        "price": 2000,
+        "stock": 0,
+        "min_stock": 0,
+        "unit": "unidad",
+        "active": true,
+        "tracks_stock": false
+    },
+    {
+        "id": "agua_chica",
+        "name": "Agua Chica",
+        "category": "Bebida",
+        "price": 1500,
+        "stock": 17,
+        "min_stock": 0,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "agua_grande",
+        "name": "Agua Grande",
+        "category": "Bebida",
+        "price": 4000,
+        "stock": 13,
+        "min_stock": 0,
+        "unit": "unidad",
+        "active": true
     }
 ]
