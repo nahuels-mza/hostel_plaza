@@ -1,30 +1,304 @@
 [
-    { "id": "alfajores", "name": "Alfajores", "category": "Comida", "price": 0, "stock": 0, "min_stock": 5, "unit": "unidad", "active": true },
-    { "id": "brownie", "name": "Brownie", "category": "Comida", "price": 0, "stock": 6, "min_stock": 4, "unit": "unidad", "active": true },
-    { "id": "cookie", "name": "Cookie", "category": "Comida", "price": 0, "stock": 0, "min_stock": 4, "unit": "unidad", "active": true },
-    { "id": "bizcochuelo", "name": "Bizcochuelo", "category": "Comida", "price": 0, "stock": 0, "min_stock": 3, "unit": "unidad", "active": true },
-    { "id": "chipa", "name": "Chipá", "category": "Comida", "price": 0, "stock": 46, "min_stock": 10, "unit": "unidad", "active": true },
-    { "id": "empanadas_carne", "name": "Empanadas Carne", "category": "Comida", "price": 0, "stock": 75, "min_stock": 15, "unit": "unidad", "active": true },
-    { "id": "empanadas_vegg", "name": "Empanadas Vegetarianas", "category": "Comida", "price": 0, "stock": 20, "min_stock": 10, "unit": "unidad", "active": true },
-    { "id": "medialunas", "name": "Medialunas", "category": "Comida", "price": 0, "stock": 2, "min_stock": 10, "unit": "unidad", "active": true },
-    { "id": "tortitas", "name": "Tortitas", "category": "Comida", "price": 0, "stock": 57, "min_stock": 10, "unit": "unidad", "active": true },
-    { "id": "tortitas_raspadas", "name": "Tortitas Raspadas", "category": "Comida", "price": 0, "stock": 66, "min_stock": 10, "unit": "unidad", "active": true },
-
-    { "id": "coca", "name": "Coca-Cola", "category": "Bebida", "price": 0, "stock": 12, "min_stock": 6, "unit": "unidad", "active": true },
-    { "id": "sprite", "name": "Sprite", "category": "Bebida", "price": 0, "stock": 12, "min_stock": 6, "unit": "unidad", "active": true },
-    { "id": "sprite_2l", "name": "Sprite 2L", "category": "Bebida", "price": 0, "stock": 3, "min_stock": 2, "unit": "unidad", "active": true },
-    { "id": "quilmes", "name": "Cerveza Quilmes", "category": "Bebida", "price": 0, "stock": 11, "min_stock": 6, "unit": "unidad", "active": true },
-    { "id": "stella", "name": "Cerveza Stella", "category": "Bebida", "price": 0, "stock": 0, "min_stock": 6, "unit": "unidad", "active": true },
-    { "id": "agua_1_5l", "name": "Agua 1,5L", "category": "Bebida", "price": 0, "stock": 13, "min_stock": 6, "unit": "unidad", "active": true },
-    { "id": "agua", "name": "Agua", "category": "Bebida", "price": 0, "stock": 17, "min_stock": 6, "unit": "unidad", "active": true },
-    { "id": "tonicas", "name": "Tónicas", "category": "Bebida", "price": 0, "stock": 1, "min_stock": 2, "unit": "unidad", "active": true },
-    { "id": "ron", "name": "Ron", "category": "Bebida", "price": 0, "stock": 1, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "fernet", "name": "Fernet", "category": "Bebida", "price": 0, "stock": 1, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "vino_beneventum", "name": "Vino Beneventum", "category": "Bebida", "price": 0, "stock": 0, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "damajuana", "name": "Vino Damajuana", "category": "Bebida", "price": 0, "stock": 0, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "aperol", "name": "Aperol", "category": "Bebida", "price": 0, "stock": 5, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "cachaca", "name": "Cachaça", "category": "Bebida", "price": 0, "stock": 1, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "gin", "name": "Gin", "category": "Bebida", "price": 0, "stock": 3, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "tequila", "name": "Tequila", "category": "Bebida", "price": 0, "stock": 1, "min_stock": 1, "unit": "botella", "active": true },
-    { "id": "citric", "name": "Citric", "category": "Bebida", "price": 0, "stock": 2, "min_stock": 1, "unit": "litro", "active": true }
+    {
+        "id": "alfajores",
+        "name": "Alfajores",
+        "category": "Comida",
+        "price": 0,
+        "stock": 0,
+        "min_stock": 5,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "brownie",
+        "name": "Brownie",
+        "category": "Comida",
+        "price": 0,
+        "stock": 6,
+        "min_stock": 4,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "cookie",
+        "name": "Cookie",
+        "category": "Comida",
+        "price": 0,
+        "stock": 0,
+        "min_stock": 4,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "bizcochuelo",
+        "name": "Bizcochuelo",
+        "category": "Comida",
+        "price": 0,
+        "stock": 0,
+        "min_stock": 3,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "chipa",
+        "name": "Chipá",
+        "category": "Comida",
+        "price": 0,
+        "stock": 46,
+        "min_stock": 10,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "empanadas_carne",
+        "name": "Empanadas Carne",
+        "category": "Comida",
+        "price": 0,
+        "stock": 75,
+        "min_stock": 15,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "empanadas_vegg",
+        "name": "Empanadas Vegetarianas",
+        "category": "Comida",
+        "price": 0,
+        "stock": 20,
+        "min_stock": 10,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "medialunas",
+        "name": "Medialunas",
+        "category": "Comida",
+        "price": 0,
+        "stock": 2,
+        "min_stock": 10,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "tortitas",
+        "name": "Tortitas",
+        "category": "Comida",
+        "price": 0,
+        "stock": 57,
+        "min_stock": 10,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "tortitas_raspadas",
+        "name": "Tortitas Raspadas",
+        "category": "Comida",
+        "price": 0,
+        "stock": 66,
+        "min_stock": 10,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "coca",
+        "name": "Coca-Cola",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 12,
+        "min_stock": 6,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "sprite",
+        "name": "Sprite",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 12,
+        "min_stock": 6,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "sprite_2l",
+        "name": "Sprite 2L",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 3,
+        "min_stock": 2,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "quilmes",
+        "name": "Cerveza Quilmes",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 11,
+        "min_stock": 6,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "stella",
+        "name": "Cerveza Stella",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 0,
+        "min_stock": 6,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "agua_1_5l",
+        "name": "Agua 1,5L",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 13,
+        "min_stock": 6,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "agua",
+        "name": "Agua",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 17,
+        "min_stock": 6,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "tonicas",
+        "name": "Tónicas",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 1,
+        "min_stock": 2,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "ron",
+        "name": "Ron",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 1,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "fernet",
+        "name": "Fernet",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 1,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "vino_beneventum",
+        "name": "Vino Beneventum",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 0,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "damajuana",
+        "name": "Vino Damajuana",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 0,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "aperol",
+        "name": "Aperol",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 5,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "cachaca",
+        "name": "Cachaça",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 1,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "gin",
+        "name": "Gin",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 3,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "tequila",
+        "name": "Tequila",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 1,
+        "min_stock": 1,
+        "unit": "botella",
+        "active": true
+    },
+    {
+        "id": "citric",
+        "name": "Citric",
+        "category": "Bebida",
+        "price": 0,
+        "stock": 2,
+        "min_stock": 1,
+        "unit": "litro",
+        "active": true
+    },
+    {
+        "id": "toalla",
+        "name": "Toalla",
+        "category": "Lavandería",
+        "price": 2000,
+        "stock": 0,
+        "min_stock": 3,
+        "unit": "unidad",
+        "active": true
+    },
+    {
+        "id": "lavanderia",
+        "name": "Lavandería (servicio)",
+        "category": "Lavandería",
+        "price": 8000,
+        "stock": 0,
+        "min_stock": 0,
+        "unit": "servicio",
+        "active": true,
+        "tracks_stock": false
+    },
+    {
+        "id": "lavado_staff",
+        "name": "Lavado Staff",
+        "category": "Lavandería",
+        "price": 4000,
+        "stock": 0,
+        "min_stock": 0,
+        "unit": "servicio",
+        "active": true,
+        "tracks_stock": false
+    }
 ]
