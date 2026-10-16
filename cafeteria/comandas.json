@@ -108,5 +108,21 @@
         "items": [],
         "opened_at": "2026-10-09T15:55:27+00:00",
         "opened_by": "gatonegro"
+    },
+    {
+        "id": "cmd_6ad271f8284f85.10483026",
+        "name": "Mostrador 5",
+        "type": "mostrador",
+        "items": [],
+        "opened_at": "2026-10-16T18:50:32+00:00",
+        "opened_by": "mostrador"
+    },
+    {
+        "id": "cmd_6ad27538eada59.55558554",
+        "name": "Mostrador 6",
+        "type": "mostrador",
+        "items": [],
+        "opened_at": "2026-10-16T19:04:24+00:00",
+        "opened_by": "lechuga"
     }
 ]
