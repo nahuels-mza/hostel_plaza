@@ -204,12 +204,15 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
     ?>
     <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <div class="flex items-center justify-between">
-                <a href="<?= htmlspecialchars($backUrl) ?>" class="text-sm text-teal hover:underline"><?= htmlspecialchars($backLabel) ?></a>
-                <button id="cancel-btn" class="text-xs text-red-500 hover:text-red-700">Cancelar</button>
+            <div class="flex items-center justify-between gap-3">
+                <a href="<?= htmlspecialchars($backUrl) ?>" class="text-sm text-teal hover:underline shrink-0"><?= htmlspecialchars($backLabel) ?></a>
+                <input id="product-search" type="text" placeholder="Buscar producto..." class="flex-1 min-w-0 border rounded-lg px-3 py-1.5 text-sm">
+                <button id="cancel-btn" class="text-xs text-red-500 hover:text-red-700 shrink-0">Cancelar</button>
             </div>
+            <p id="no-results" class="hidden text-sm text-slate-400 text-center py-4">No se encontró ningún producto.</p>
+            <div id="product-sections">
             <?php foreach ($categories as $category => $items): ?>
-                <section>
+                <section class="product-category">
                     <h2 class="text-lg font-bold mb-2 text-teal"><?= htmlspecialchars($category) ?></h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <?php foreach ($items as $p): ?>
@@ -234,6 +237,7 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
                     </div>
                 </section>
             <?php endforeach; ?>
+            </div>
         </div>
 
         <aside class="bg-white rounded-xl shadow p-4 h-fit sticky top-4">
@@ -351,6 +355,22 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
 
         document.querySelectorAll('.product-btn').forEach(btn => {
             btn.addEventListener('click', () => addItem(btn.dataset.id));
+        });
+
+        document.getElementById('product-search').addEventListener('input', (e) => {
+            const q = e.target.value.trim().toLowerCase();
+            let anyVisible = false;
+            document.querySelectorAll('.product-category').forEach(section => {
+                let categoryVisible = false;
+                section.querySelectorAll('.product-btn').forEach(btn => {
+                    const match = btn.dataset.name.toLowerCase().includes(q);
+                    btn.classList.toggle('hidden', !match);
+                    if (match) categoryVisible = true;
+                });
+                section.classList.toggle('hidden', !categoryVisible);
+                if (categoryVisible) anyVisible = true;
+            });
+            document.getElementById('no-results').classList.toggle('hidden', anyVisible);
         });
 
         document.getElementById('cart').addEventListener('click', (e) => {
