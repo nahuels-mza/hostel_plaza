@@ -7,6 +7,19 @@ function hp_cafeteria_path(string $file): string
     return __DIR__ . '/' . $file;
 }
 
+// Slug ASCII simple para usar categorías de producto como id de sección/anchor
+// (ej. "Lavandería" -> "lavanderia") en los chips de categoría de la comanda.
+function hp_cafeteria_slug(string $text): string
+{
+    // iconv transliterates accented vowels as e.g. í -> "i'" — strip the
+    // apostrophe first so it doesn't turn into a stray hyphen below.
+    $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+    $slug = str_replace("'", '', $slug);
+    $slug = strtolower($slug);
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+    return trim($slug, '-');
+}
+
 // Nombre del archivo de ventas del día (uno por día, ej. sales/ventas_2026-09-24.json)
 // para que los reportes mensuales de fases futuras solo tengan que sumar los
 // archivos del rango de fechas en vez de recorrer un único archivo enorme.

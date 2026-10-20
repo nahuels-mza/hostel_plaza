@@ -43,20 +43,60 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             if (event.persisted) window.location.reload();
         });
     </script>
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans">
-    <header class="bg-teal text-white px-6 py-4 flex items-center justify-between shadow">
-        <h1 class="text-xl font-bold">Gato Negro · Comanda</h1>
-        <nav class="flex items-center gap-4 text-sm">
-            <span class="text-xs bg-white/15 px-2 py-1 rounded-full"><?= htmlspecialchars($cafeteriaUsername) ?> · <?= htmlspecialchars($cafeteriaRole) ?></span>
-            <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock</a>
-            <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
-            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a><?php endif; ?>
-            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a><?php endif; ?>
-            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a><?php endif; ?>
-            <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
-        </nav>
+    <header class="bg-teal text-white px-4 sm:px-6 py-3 sm:py-4 shadow relative z-30">
+        <div class="flex items-center justify-between gap-3">
+            <h1 class="text-lg sm:text-xl font-bold truncate">Gato Negro · Comanda</h1>
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                <span class="hidden sm:inline-block text-xs bg-white/15 px-2 py-1 rounded-full"><?= htmlspecialchars($cafeteriaUsername) ?> · <?= htmlspecialchars($cafeteriaRole) ?></span>
+                <nav class="hidden md:flex items-center gap-4 text-sm">
+                    <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock</a>
+                    <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
+                    <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a><?php endif; ?>
+                    <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a><?php endif; ?>
+                    <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a><?php endif; ?>
+                    <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
+                </nav>
+                <button id="menu-toggle" type="button" class="md:hidden w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center" aria-label="Abrir menú">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
     </header>
+
+    <!-- Menú mobile (☰): el nav de arriba no entra en una fila en celular, así que se colapsa acá -->
+    <div id="menu-scrim" class="hidden md:hidden fixed inset-0 bg-slate-900/50 z-40"></div>
+    <nav id="mobile-menu" class="md:hidden fixed top-0 left-0 right-0 bg-teal text-white px-4 pt-4 pb-4 -translate-y-full transition-transform duration-200 z-50 shadow-xl">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs bg-white/15 px-2 py-1 rounded-full"><?= htmlspecialchars($cafeteriaUsername) ?> · <?= htmlspecialchars($cafeteriaRole) ?></span>
+            <button id="menu-close" type="button" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center" aria-label="Cerrar menú">✕</button>
+        </div>
+        <a href="/cafeteriagatonegro/stock" class="block py-3 border-t border-white/15">Stock</a>
+        <a href="/cafeteriagatonegro/insumos" class="block py-3 border-t border-white/15">Insumos</a>
+        <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/costos" class="block py-3 border-t border-white/15">Costos</a><?php endif; ?>
+        <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/reportes" class="block py-3 border-t border-white/15">Reportes</a><?php endif; ?>
+        <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/ventas" class="block py-3 border-t border-white/15">Ventas</a><?php endif; ?>
+        <a href="/cafeteriagatonegro/logout" class="block py-3 border-t border-white/15 text-red-100">Salir</a>
+    </nav>
+
+    <script>
+        (function () {
+            const toggle = document.getElementById('menu-toggle');
+            const close = document.getElementById('menu-close');
+            const menu = document.getElementById('mobile-menu');
+            const scrim = document.getElementById('menu-scrim');
+            function openMenu() { menu.classList.remove('-translate-y-full'); scrim.classList.remove('hidden'); }
+            function closeMenu() { menu.classList.add('-translate-y-full'); scrim.classList.add('hidden'); }
+            toggle.addEventListener('click', openMenu);
+            close.addEventListener('click', closeMenu);
+            scrim.addEventListener('click', closeMenu);
+        })();
+    </script>
 
     <?php if ($comanda === null && $view !== 'mesas'): ?>
     <!-- ===================== HOME: ELEGIR TIPO DE VENTA ===================== -->
@@ -202,29 +242,37 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             $initialCart[$line['id']] = $line;
         }
     ?>
-    <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            <div class="flex items-center justify-between gap-3">
-                <a href="<?= htmlspecialchars($backUrl) ?>" class="text-sm text-teal hover:underline shrink-0"><?= htmlspecialchars($backLabel) ?></a>
-                <input id="product-search" type="text" placeholder="Buscar producto..." class="flex-1 min-w-0 border rounded-lg px-3 py-1.5 text-sm">
-                <button id="cancel-btn" class="text-xs text-red-500 hover:text-red-700 shrink-0">Cancelar</button>
+    <main class="lg:max-w-6xl lg:mx-auto lg:p-4 lg:grid lg:grid-cols-3 lg:gap-6">
+        <div class="lg:col-span-2 lg:space-y-6">
+            <div class="sticky top-0 z-20 bg-slate-100 lg:static lg:bg-transparent px-4 pt-3 pb-2 lg:p-0 space-y-2 lg:space-y-6">
+                <div class="flex items-center gap-2">
+                    <a href="<?= htmlspecialchars($backUrl) ?>" class="text-sm text-teal hover:underline shrink-0"><?= htmlspecialchars($backLabel) ?></a>
+                    <input id="product-search" type="text" placeholder="Buscar producto..." class="flex-1 min-w-0 border rounded-lg px-3 py-1.5 text-sm">
+                    <button id="cancel-btn" class="text-xs text-red-500 hover:text-red-700 shrink-0">Cancelar</button>
+                </div>
+                <div id="category-chips" class="flex gap-2 overflow-x-auto hide-scrollbar lg:flex-wrap lg:overflow-visible">
+                    <?php foreach (array_keys($categories) as $category): $slug = hp_cafeteria_slug($category); ?>
+                        <button type="button" class="category-chip shrink-0 border rounded-full px-3 py-1.5 text-xs font-semibold text-slate-500 bg-white whitespace-nowrap" data-target="cat-<?= htmlspecialchars($slug) ?>"><?= htmlspecialchars($category) ?></button>
+                    <?php endforeach; ?>
+                </div>
             </div>
             <p id="no-results" class="hidden text-sm text-slate-400 text-center py-4">No se encontró ningún producto.</p>
-            <div id="product-sections">
-            <?php foreach ($categories as $category => $items): ?>
-                <section class="product-category">
-                    <h2 class="text-lg font-bold mb-2 text-teal"><?= htmlspecialchars($category) ?></h2>
+            <div id="product-sections" class="px-4 lg:px-0 pb-28 lg:pb-0">
+            <?php foreach ($categories as $category => $items): $slug = hp_cafeteria_slug($category); ?>
+                <section class="product-category scroll-mt-28 lg:scroll-mt-4" id="cat-<?= htmlspecialchars($slug) ?>">
+                    <h2 class="text-lg font-bold mb-2 mt-4 lg:mt-0 text-teal"><?= htmlspecialchars($category) ?></h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <?php foreach ($items as $p): ?>
                             <button
                                 type="button"
-                                class="product-btn bg-white rounded-xl shadow p-3 text-left hover:ring-2 hover:ring-teal transition disabled:opacity-40 disabled:cursor-not-allowed"
+                                class="product-btn relative bg-white rounded-xl shadow p-3 text-left hover:ring-2 hover:ring-teal transition disabled:opacity-40 disabled:cursor-not-allowed"
                                 data-id="<?= htmlspecialchars($p['id']) ?>"
                                 data-name="<?= htmlspecialchars($p['name']) ?>"
                                 data-price="<?= (float)$p['price'] ?>"
                                 data-tracks-stock="<?= ($p['tracks_stock'] ?? true) ? '1' : '0' ?>"
                                 <?= ($p['tracks_stock'] ?? true) && $p['stock'] <= 0 ? 'disabled' : '' ?>
                             >
+                                <span class="product-qty-badge hidden absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-teal text-white text-[11px] font-bold items-center justify-center shadow"></span>
                                 <div class="font-semibold text-sm"><?= htmlspecialchars($p['name']) ?></div>
                                 <div class="text-teal font-bold">$<?= number_format($p['price'], 2, ',', '.') ?></div>
                                 <?php if ($p['tracks_stock'] ?? true): ?>
@@ -240,8 +288,19 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             </div>
         </div>
 
-        <aside class="bg-white rounded-xl shadow p-4 h-fit sticky top-4">
-            <h2 class="text-lg font-bold mb-1"><?= htmlspecialchars($comanda['name']) ?></h2>
+        <!-- Mobile: barra fija con el total + botón para abrir el pedido -->
+        <button id="cart-bar" type="button" hidden class="lg:hidden fixed inset-x-3 bottom-3 z-30 bg-teal text-white rounded-2xl shadow-xl px-4 py-3 flex items-center justify-between">
+            <span class="text-sm font-semibold"><strong id="cart-bar-count">0</strong> ítems · <span id="cart-bar-total">$0</span></span>
+            <span class="text-sm font-bold bg-white/15 px-3 py-1.5 rounded-lg">Ver pedido ›</span>
+        </button>
+        <div id="cart-scrim" class="hidden lg:hidden fixed inset-0 bg-slate-900/40 z-40"></div>
+
+        <aside id="cart-panel" class="fixed inset-x-0 bottom-0 z-50 translate-y-full transition-transform duration-300 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto p-4 lg:static lg:translate-y-0 lg:transition-none lg:rounded-xl lg:shadow lg:max-h-none lg:overflow-visible lg:h-fit lg:sticky lg:top-4">
+            <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto mb-3 lg:hidden"></div>
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="text-lg font-bold"><?= htmlspecialchars($comanda['name']) ?></h2>
+                <button id="cart-panel-close" type="button" class="lg:hidden w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center" aria-label="Cerrar pedido">✕</button>
+            </div>
             <p class="text-xs text-slate-500 mb-3">Comanda actual</p>
             <div id="cart" class="space-y-2 mb-4 text-sm"></div>
             <div class="flex justify-between font-bold text-lg border-t pt-2 mb-4">
@@ -298,8 +357,10 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             const items = Object.values(cart);
             cartEl.innerHTML = '';
             let total = 0;
+            let count = 0;
             items.forEach(item => {
                 total += item.price * item.qty;
+                count += item.qty;
                 const row = document.createElement('div');
                 row.className = 'flex items-center justify-between gap-2';
                 row.innerHTML = `
@@ -313,6 +374,23 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             });
             document.getElementById('cart-total').textContent = formatMoney(total);
             document.getElementById('checkout').disabled = items.length === 0;
+
+            // Mobile: barra fija con el total, y badge de cantidad en cada producto
+            // ya cargado — sin esto el carrito queda invisible hasta scrollear
+            // más allá de toda la carta (ver mockup de rediseño mobile).
+            const cartBar = document.getElementById('cart-bar');
+            cartBar.hidden = count === 0;
+            document.getElementById('cart-bar-count').textContent = count;
+            document.getElementById('cart-bar-total').textContent = formatMoney(total);
+            if (count === 0) closeCartPanel();
+
+            document.querySelectorAll('.product-btn').forEach(btn => {
+                const badge = btn.querySelector('.product-qty-badge');
+                const qty = cart[btn.dataset.id]?.qty || 0;
+                badge.textContent = '×' + qty;
+                badge.classList.toggle('hidden', qty === 0);
+                badge.classList.toggle('flex', qty > 0);
+            });
         }
 
         function setCartFromComanda(comanda) {
@@ -387,6 +465,49 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
                 guestField.classList.toggle('hidden', radio.value !== 'huesped');
             });
         });
+
+        // ---- Mobile: abrir/cerrar el pedido (hoja inferior) ----
+        const cartPanel = document.getElementById('cart-panel');
+        const cartScrim = document.getElementById('cart-scrim');
+        function openCartPanel() {
+            cartPanel.classList.remove('translate-y-full');
+            cartScrim.classList.remove('hidden');
+        }
+        function closeCartPanel() {
+            cartPanel.classList.add('translate-y-full');
+            cartScrim.classList.add('hidden');
+        }
+        document.getElementById('cart-bar').addEventListener('click', openCartPanel);
+        document.getElementById('cart-panel-close').addEventListener('click', closeCartPanel);
+        cartScrim.addEventListener('click', closeCartPanel);
+
+        // ---- Chips de categoría: saltar a la sección + resaltar la visible ----
+        const chipsBar = document.getElementById('category-chips');
+        const categorySections = [...document.querySelectorAll('.product-category')];
+        chipsBar.addEventListener('click', (e) => {
+            const chip = e.target.closest('.category-chip');
+            if (!chip) return;
+            document.getElementById(chip.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        function setActiveChip(targetId) {
+            chipsBar.querySelectorAll('.category-chip').forEach(chip => {
+                const active = chip.dataset.target === targetId;
+                chip.classList.toggle('bg-teal', active);
+                chip.classList.toggle('text-white', active);
+                chip.classList.toggle('border-teal', active);
+                chip.classList.toggle('bg-white', !active);
+                chip.classList.toggle('text-slate-500', !active);
+            });
+        }
+        if (categorySections.length) {
+            setActiveChip(categorySections[0].id);
+            const chipObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) setActiveChip(entry.target.id);
+                });
+            }, { rootMargin: '-45% 0px -50% 0px' });
+            categorySections.forEach(section => chipObserver.observe(section));
+        }
 
         document.getElementById('cancel-btn').addEventListener('click', async () => {
             if (!confirm('¿Cancelar? Se pierde lo cargado, no se registra venta.')) return;
