@@ -244,7 +244,7 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
     ?>
     <main class="lg:max-w-6xl lg:mx-auto lg:p-4 lg:grid lg:grid-cols-3 lg:gap-6">
         <div class="lg:col-span-2 lg:space-y-6">
-            <div class="sticky top-0 z-20 bg-slate-100 lg:static lg:bg-transparent px-4 pt-3 pb-2 lg:p-0 space-y-2 lg:space-y-6">
+            <div id="sticky-toolbar" class="sticky top-0 z-20 bg-slate-100 lg:static lg:bg-transparent px-4 pt-3 pb-2 lg:p-0 space-y-2 lg:space-y-6">
                 <div class="flex items-center gap-2">
                     <a href="<?= htmlspecialchars($backUrl) ?>" class="text-sm text-teal hover:underline shrink-0"><?= htmlspecialchars($backLabel) ?></a>
                     <input id="product-search" type="text" placeholder="Buscar producto..." class="flex-1 min-w-0 border rounded-lg px-3 py-1.5 text-sm">
@@ -345,6 +345,21 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
     <script>
         const comandaId = <?= json_encode($comanda['id']) ?>;
         const backUrl = <?= json_encode($backUrl) ?>;
+
+        // Declarado antes del primer renderCart() — si la comanda arranca
+        // vacía, renderCart() llama a closeCartPanel() de entrada, y esa
+        // función necesita cartPanel/cartScrim ya inicializados.
+        const cartPanel = document.getElementById('cart-panel');
+        const cartScrim = document.getElementById('cart-scrim');
+        function openCartPanel() {
+            cartPanel.classList.remove('translate-y-full');
+            cartScrim.classList.remove('hidden');
+        }
+        function closeCartPanel() {
+            cartPanel.classList.add('translate-y-full');
+            cartScrim.classList.add('hidden');
+        }
+
         let cart = <?= json_encode($initialCart, JSON_UNESCAPED_UNICODE) ?>; // id -> { id, name, price, qty }
         renderCart();
 
@@ -467,27 +482,30 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
         });
 
         // ---- Mobile: abrir/cerrar el pedido (hoja inferior) ----
-        const cartPanel = document.getElementById('cart-panel');
-        const cartScrim = document.getElementById('cart-scrim');
-        function openCartPanel() {
-            cartPanel.classList.remove('translate-y-full');
-            cartScrim.classList.remove('hidden');
-        }
-        function closeCartPanel() {
-            cartPanel.classList.add('translate-y-full');
-            cartScrim.classList.add('hidden');
-        }
         document.getElementById('cart-bar').addEventListener('click', openCartPanel);
         document.getElementById('cart-panel-close').addEventListener('click', closeCartPanel);
         cartScrim.addEventListener('click', closeCartPanel);
 
         // ---- Chips de categoría: saltar a la sección + resaltar la visible ----
         const chipsBar = document.getElementById('category-chips');
+        const stickyToolbar = document.getElementById('sticky-toolbar');
         const categorySections = [...document.querySelectorAll('.product-category')];
+
+        // scrollIntoView({block:'start'}) por sí solo deja el título de la
+        // sección tapado detrás de la barra sticky (buscador + chips) — acá
+        // medimos su alto real en vez de adivinar un scroll-margin fijo.
+        function scrollToSection(target) {
+            if (!target) return;
+            const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+            const offset = isDesktop ? 16 : (stickyToolbar?.getBoundingClientRect().height || 0) + 12;
+            const top = target.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
+
         chipsBar.addEventListener('click', (e) => {
             const chip = e.target.closest('.category-chip');
             if (!chip) return;
-            document.getElementById(chip.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            scrollToSection(document.getElementById(chip.dataset.target));
         });
         function setActiveChip(targetId) {
             chipsBar.querySelectorAll('.category-chip').forEach(chip => {
