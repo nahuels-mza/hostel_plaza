@@ -21,6 +21,11 @@ foreach ($comandas as $c) {
 }
 $view = $_GET['view'] ?? 'home';
 
+$todaySales = hp_cafeteria_load_json(hp_cafeteria_sales_file());
+usort($todaySales, fn($a, $b) => strcmp($b['date'], $a['date'])); // más reciente primero
+$todayTotal = array_sum(array_column($todaySales, 'total'));
+$tabTypeLabels = ['mesa' => 'Mesa', 'evento' => 'Evento', 'mostrador' => 'Mostrador'];
+
 // Mesa/evento vuelven al listado de mesas al cerrar/cancelar/volver; mostrador
 // (venta rápida, no se abre desde ese listado) vuelve directo al home.
 $backUrl = ($comanda !== null && $comanda['type'] === 'mostrador') ? '/cafeteriagatonegro' : '/cafeteriagatonegro?view=mesas';
@@ -114,6 +119,47 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             </button>
         </div>
         <p id="home-feedback" class="text-sm mt-4 text-center"></p>
+
+        <section class="mt-8 bg-white rounded-xl shadow p-4">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <h2 class="text-lg font-bold">Ventas de hoy</h2>
+                <span class="text-sm font-semibold text-slate-500"><?= count($todaySales) ?> venta<?= count($todaySales) === 1 ? '' : 's' ?> · $<?= number_format($todayTotal, 2, ',', '.') ?></span>
+            </div>
+            <?php if (empty($todaySales)): ?>
+                <p class="text-sm text-slate-400 text-center py-2">Todavía no se registraron ventas hoy.</p>
+            <?php else: ?>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="text-left text-xs uppercase text-slate-500">
+                            <tr>
+                                <th class="py-1 pr-2">Hora</th>
+                                <th class="py-1 pr-2">Mesa</th>
+                                <th class="py-1 pr-2">Comprador</th>
+                                <th class="py-1 pr-2">Método</th>
+                                <th class="py-1 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($todaySales as $sale): ?>
+                                <?php
+                                $buyerLabel = ($sale['buyer_type'] ?? 'no_huesped') === 'huesped'
+                                    ? 'Huésped' . ($sale['guest'] !== '' ? ' — ' . $sale['guest'] : '')
+                                    : 'No huésped';
+                                $tabType = $sale['tab_type'] ?? null;
+                                ?>
+                                <tr class="border-t">
+                                    <td class="py-1.5 pr-2 text-slate-500 whitespace-nowrap"><?= htmlspecialchars(date('H:i', strtotime($sale['date']))) ?></td>
+                                    <td class="py-1.5 pr-2"><?= !empty($sale['table_name']) ? htmlspecialchars(($tabTypeLabels[$tabType] ?? 'Mesa') . ': ' . $sale['table_name']) : '—' ?></td>
+                                    <td class="py-1.5 pr-2 text-slate-500"><?= htmlspecialchars($buyerLabel) ?></td>
+                                    <td class="py-1.5 pr-2 text-slate-500"><?= htmlspecialchars($sale['payment_method']) ?></td>
+                                    <td class="py-1.5 text-right font-semibold">$<?= number_format($sale['total'], 2, ',', '.') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </section>
     </main>
 
     <script>
