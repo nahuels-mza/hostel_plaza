@@ -67,23 +67,13 @@ for ($i = 0; $i < 12; $i++) {
     <script>
         tailwind.config = { theme: { extend: { colors: { teal: { DEFAULT: '#1c5457', hover: '#144042' } } } } }
     </script>
+    <?php include __DIR__ . '/_responsive_table.php'; ?>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans">
-    <header class="bg-teal text-white px-6 py-4 flex items-center justify-between shadow">
-        <h1 class="text-xl font-bold">Gato Negro · Reportes de Ventas</h1>
-        <nav class="flex items-center gap-4 text-sm">
-            <span class="text-xs bg-white/15 px-2 py-1 rounded-full"><?= htmlspecialchars($cafeteriaUsername) ?> · <?= htmlspecialchars($cafeteriaRole) ?></span>
-            <a href="/cafeteriagatonegro" class="hover:underline">Comanda</a>
-            <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock</a>
-            <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
-            <a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a>
-            <a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a>
-            <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
-        </nav>
-    </header>
+    <?php $cafeteriaTitle = 'Reportes de Ventas'; $cafeteriaActive = 'reportes'; include __DIR__ . '/_header.php'; ?>
 
     <main class="max-w-5xl mx-auto p-4 space-y-6">
-        <form method="GET" class="bg-white rounded-xl shadow p-4 flex items-center gap-3 text-sm">
+        <form method="GET" class="bg-white rounded-xl shadow p-4 flex items-center gap-3 text-sm flex-wrap">
             <label class="font-semibold">Mes:</label>
             <select name="month" onchange="this.form.submit()" class="border rounded px-2 py-1">
                 <?php foreach ($monthOptions as $m): ?>
@@ -110,7 +100,7 @@ for ($i = 0; $i < 12; $i++) {
         <section>
             <h2 class="text-lg font-bold mb-2 text-teal">Huésped vs. no huésped</h2>
             <div class="bg-white rounded-xl shadow overflow-hidden">
-                <table class="w-full text-sm">
+                <table class="w-full text-sm responsive-table">
                     <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
                         <tr>
                             <th class="px-4 py-3">Tipo</th>
@@ -121,16 +111,16 @@ for ($i = 0; $i < 12; $i++) {
                     </thead>
                     <tbody>
                         <tr class="border-t">
-                            <td class="px-4 py-2 font-semibold">Huésped</td>
-                            <td class="px-4 py-2"><?= $buyerTotals['huesped']['count'] ?></td>
-                            <td class="px-4 py-2"><?= $totalGuestSales > 0 ? round($buyerTotals['huesped']['count'] / $totalGuestSales * 100, 1) : 0 ?>%</td>
-                            <td class="px-4 py-2 font-semibold">$<?= number_format($buyerTotals['huesped']['revenue'], 2, ',', '.') ?></td>
+                            <td class="px-4 py-2 font-semibold" data-label="Tipo">Huésped</td>
+                            <td class="px-4 py-2" data-label="Ventas"><?= $buyerTotals['huesped']['count'] ?></td>
+                            <td class="px-4 py-2" data-label="% de las ventas"><?= $totalGuestSales > 0 ? round($buyerTotals['huesped']['count'] / $totalGuestSales * 100, 1) : 0 ?>%</td>
+                            <td class="px-4 py-2 font-semibold" data-label="Total">$<?= number_format($buyerTotals['huesped']['revenue'], 2, ',', '.') ?></td>
                         </tr>
                         <tr class="border-t">
-                            <td class="px-4 py-2 font-semibold">No huésped</td>
-                            <td class="px-4 py-2"><?= $buyerTotals['no_huesped']['count'] ?></td>
-                            <td class="px-4 py-2"><?= $totalGuestSales > 0 ? round($buyerTotals['no_huesped']['count'] / $totalGuestSales * 100, 1) : 0 ?>%</td>
-                            <td class="px-4 py-2 font-semibold">$<?= number_format($buyerTotals['no_huesped']['revenue'], 2, ',', '.') ?></td>
+                            <td class="px-4 py-2 font-semibold" data-label="Tipo">No huésped</td>
+                            <td class="px-4 py-2" data-label="Ventas"><?= $buyerTotals['no_huesped']['count'] ?></td>
+                            <td class="px-4 py-2" data-label="% de las ventas"><?= $totalGuestSales > 0 ? round($buyerTotals['no_huesped']['count'] / $totalGuestSales * 100, 1) : 0 ?>%</td>
+                            <td class="px-4 py-2 font-semibold" data-label="Total">$<?= number_format($buyerTotals['no_huesped']['revenue'], 2, ',', '.') ?></td>
                         </tr>
                     </tbody>
                 </table>
@@ -140,7 +130,7 @@ for ($i = 0; $i < 12; $i++) {
         <section>
             <h2 class="text-lg font-bold mb-2 text-teal">Por método de pago</h2>
             <div class="bg-white rounded-xl shadow overflow-hidden">
-                <table class="w-full text-sm">
+                <table class="w-full text-sm responsive-table">
                     <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
                         <tr>
                             <th class="px-4 py-3">Método</th>
@@ -150,8 +140,8 @@ for ($i = 0; $i < 12; $i++) {
                     <tbody>
                         <?php foreach ($paymentTotals as $method => $amount): ?>
                             <tr class="border-t">
-                                <td class="px-4 py-2 font-semibold"><?= htmlspecialchars($method) ?></td>
-                                <td class="px-4 py-2">$<?= number_format($amount, 2, ',', '.') ?></td>
+                                <td class="px-4 py-2 font-semibold" data-label="Método"><?= htmlspecialchars($method) ?></td>
+                                <td class="px-4 py-2" data-label="Total">$<?= number_format($amount, 2, ',', '.') ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -162,7 +152,7 @@ for ($i = 0; $i < 12; $i++) {
         <section>
             <h2 class="text-lg font-bold mb-2 text-teal">Productos más vendidos</h2>
             <div class="bg-white rounded-xl shadow overflow-hidden">
-                <table class="w-full text-sm">
+                <table class="w-full text-sm responsive-table">
                     <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
                         <tr>
                             <th class="px-4 py-3">#</th>
@@ -177,10 +167,10 @@ for ($i = 0; $i < 12; $i++) {
                         <?php endif; ?>
                         <?php $rank = 1; foreach ($topProducts as $p): ?>
                             <tr class="border-t">
-                                <td class="px-4 py-2 text-slate-500"><?= $rank++ ?></td>
-                                <td class="px-4 py-2 font-semibold"><?= htmlspecialchars($p['name']) ?></td>
-                                <td class="px-4 py-2"><?= $p['qty'] ?></td>
-                                <td class="px-4 py-2 font-semibold">$<?= number_format($p['revenue'], 2, ',', '.') ?></td>
+                                <td class="px-4 py-2 text-slate-500" data-label="#"><?= $rank++ ?></td>
+                                <td class="px-4 py-2 font-semibold" data-label="Producto"><?= htmlspecialchars($p['name']) ?></td>
+                                <td class="px-4 py-2" data-label="Cantidad vendida"><?= $p['qty'] ?></td>
+                                <td class="px-4 py-2 font-semibold" data-label="Total facturado">$<?= number_format($p['revenue'], 2, ',', '.') ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

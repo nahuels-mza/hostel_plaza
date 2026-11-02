@@ -34,18 +34,7 @@ $tabTypeLabels = ['mesa' => 'Mesa', 'evento' => 'Evento', 'mostrador' => 'Mostra
     </script>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans">
-    <header class="bg-teal text-white px-6 py-4 flex items-center justify-between shadow">
-        <h1 class="text-xl font-bold">Gato Negro · Ventas</h1>
-        <nav class="flex items-center gap-4 text-sm">
-            <span class="text-xs bg-white/15 px-2 py-1 rounded-full"><?= htmlspecialchars($cafeteriaUsername) ?> · <?= htmlspecialchars($cafeteriaRole) ?></span>
-            <a href="/cafeteriagatonegro" class="hover:underline">Comanda</a>
-            <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock</a>
-            <a href="/cafeteriagatonegro/insumos" class="hover:underline">Insumos</a>
-            <a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a>
-            <a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a>
-            <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
-        </nav>
-    </header>
+    <?php $cafeteriaTitle = 'Ventas'; $cafeteriaActive = 'ventas'; include __DIR__ . '/_header.php'; ?>
 
     <main class="max-w-5xl mx-auto p-4 space-y-4">
         <form method="GET" class="bg-white rounded-xl shadow p-4 flex flex-wrap items-end gap-3 text-sm">

@@ -20,28 +20,21 @@ $colCount = $isAdmin ? 6 : 4;
     <script>
         tailwind.config = { theme: { extend: { colors: { teal: { DEFAULT: '#1c5457', hover: '#144042' } } } } }
     </script>
+    <?php include __DIR__ . '/_responsive_table.php'; ?>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans">
-    <header class="bg-teal text-white px-6 py-4 flex items-center justify-between shadow">
-        <h1 class="text-xl font-bold">Gato Negro · Insumos</h1>
-        <nav class="flex items-center gap-4 text-sm">
-            <span class="text-xs bg-white/15 px-2 py-1 rounded-full"><?= htmlspecialchars($cafeteriaUsername) ?> · <?= htmlspecialchars($cafeteriaRole) ?></span>
-            <a href="/cafeteriagatonegro" class="hover:underline">Comanda</a>
-            <a href="/cafeteriagatonegro/stock" class="hover:underline">Stock de Productos</a>
-            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/costos" class="hover:underline">Costos</a><?php endif; ?>
-            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/reportes" class="hover:underline">Reportes</a><?php endif; ?>
-            <?php if ($isAdmin): ?><a href="/cafeteriagatonegro/ventas" class="hover:underline">Ventas</a><?php endif; ?>
-            <a href="/cafeteriagatonegro/logout" class="hover:underline">Salir</a>
-        </nav>
-    </header>
+    <?php $cafeteriaTitle = 'Insumos'; $cafeteriaActive = 'insumos'; include __DIR__ . '/_header.php'; ?>
 
     <main class="max-w-5xl mx-auto p-4 space-y-4">
         <p class="text-sm text-slate-500 bg-white rounded-xl shadow p-3">
             Insumos de cocina/desayuno (no se venden por unidad, no bajan solos con la comanda).
             <?= $isAdmin ? 'Actualizá la cantidad cuando hagas el conteo o registrá una compra con su costo.' : 'Solo podés consultar cantidades — actualizarlas es una acción de administrador.' ?>
         </p>
+
+        <input id="ingredient-search" type="search" placeholder="Buscar insumo..." class="w-full border rounded-xl px-4 py-2.5 text-sm shadow-sm">
+
         <div class="bg-white rounded-xl shadow overflow-hidden">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm responsive-table">
                 <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
                     <tr>
                         <th class="px-4 py-3">Insumo</th>
@@ -54,24 +47,24 @@ $colCount = $isAdmin ? 6 : 4;
                 </thead>
                 <tbody id="ingredients-body">
                     <?php foreach ($ingredients as $ing): ?>
-                        <tr class="border-t" data-id="<?= htmlspecialchars($ing['id']) ?>">
-                            <td class="px-4 py-2 font-semibold"><?= htmlspecialchars($ing['name']) ?></td>
-                            <td class="px-4 py-2 qty-cell">
+                        <tr class="ingredient-row border-t" data-id="<?= htmlspecialchars($ing['id']) ?>" data-name="<?= htmlspecialchars(mb_strtolower($ing['name'])) ?>">
+                            <td class="px-4 py-2 font-semibold" data-label="Insumo"><?= htmlspecialchars($ing['name']) ?></td>
+                            <td class="px-4 py-2 qty-cell" data-label="Cantidad">
                                 <span class="font-bold"><?= rtrim(rtrim(number_format($ing['stock'], 2, ',', ''), '0'), ',') ?></span>
                                 <span class="text-slate-500"><?= htmlspecialchars($ing['unit']) ?></span>
                                 <?= $ing['stock'] <= $ing['min_stock'] ? ' <span title="Stock bajo">⚠️</span>' : '' ?>
                             </td>
                             <?php if ($isAdmin): ?>
-                            <td class="px-4 py-2 text-slate-500">
+                            <td class="px-4 py-2 text-slate-500" data-label="Costo últ. compra">
                                 <?= isset($ing['last_cost']) ? '$' . number_format($ing['last_cost'], 0, ',', '.') : '—' ?>
                             </td>
                             <?php endif; ?>
-                            <td class="px-4 py-2 text-slate-500 updated-cell">
+                            <td class="px-4 py-2 text-slate-500 updated-cell" data-label="Actualizado">
                                 <?= htmlspecialchars($ing['updated_at']) ?> (<?= htmlspecialchars($ing['updated_by']) ?>)
                             </td>
                             <?php if ($isAdmin): ?>
                             <td class="px-4 py-2">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
                                     <button class="adjust-toggle text-xs border rounded px-2 py-1 hover:bg-slate-100">Ajustar</button>
                                     <button class="purchase-toggle text-xs border rounded px-2 py-1 bg-teal text-white hover:bg-teal-hover">Registrar compra</button>
                                     <button class="delete-btn text-xs border border-red-200 text-red-600 rounded px-2 py-1 hover:bg-red-50">Eliminar</button>
@@ -85,7 +78,7 @@ $colCount = $isAdmin ? 6 : 4;
                         <?php if ($isAdmin): ?>
                         <tr class="adjust-row hidden border-t bg-slate-50" data-id="<?= htmlspecialchars($ing['id']) ?>">
                             <td colspan="<?= $colCount ?>" class="px-4 py-2">
-                                <div class="flex items-center gap-2 text-sm">
+                                <div class="flex items-center gap-2 text-sm flex-wrap">
                                     <span class="text-xs text-slate-500">Fijar cantidad (conteo manual, sin costo):</span>
                                     <input type="number" step="0.5" class="qty-input w-24 border rounded px-2 py-1" placeholder="cant.">
                                     <button class="save-btn text-xs border rounded px-2 py-1 bg-slate-600 text-white hover:bg-slate-700">Fijar</button>
@@ -94,7 +87,7 @@ $colCount = $isAdmin ? 6 : 4;
                         </tr>
                         <tr class="purchase-row hidden border-t bg-slate-50" data-id="<?= htmlspecialchars($ing['id']) ?>">
                             <td colspan="<?= $colCount ?>" class="px-4 py-2">
-                                <div class="flex items-center gap-2 text-sm">
+                                <div class="flex items-center gap-2 text-sm flex-wrap">
                                     <span class="text-xs text-slate-500">Compra:</span>
                                     <label class="text-xs text-slate-500">Cantidad</label>
                                     <input type="number" step="0.5" min="0" class="purchase-qty-input w-24 border rounded px-2 py-1" placeholder="cant.">
@@ -143,6 +136,13 @@ $colCount = $isAdmin ? 6 : 4;
     </main>
 
     <script>
+        document.getElementById('ingredient-search').addEventListener('input', (e) => {
+            const q = e.target.value.trim().toLowerCase();
+            document.querySelectorAll('#ingredients-body tr.ingredient-row').forEach(row => {
+                row.classList.toggle('hidden', !row.dataset.name.includes(q));
+            });
+        });
+
         function toggleRow(id, cls) {
             document.querySelector(`tr.${cls}[data-id="${id}"]`)?.classList.toggle('hidden');
         }
