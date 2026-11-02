@@ -128,39 +128,58 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             <?php if (empty($todaySales)): ?>
                 <p class="text-sm text-slate-400 text-center py-2">Todavía no se registraron ventas hoy.</p>
             <?php else: ?>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="text-left text-xs uppercase text-slate-500">
-                            <tr>
-                                <th class="py-1 pr-2">Hora</th>
-                                <th class="py-1 pr-2">Mesa</th>
-                                <th class="py-1 pr-2">Comprador</th>
-                                <th class="py-1 pr-2">Método</th>
-                                <th class="py-1 text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($todaySales as $sale): ?>
-                                <?php
-                                $buyerLabel = ($sale['buyer_type'] ?? 'no_huesped') === 'huesped'
-                                    ? 'Huésped' . ($sale['guest'] !== '' ? ' — ' . $sale['guest'] : '')
-                                    : 'No huésped';
-                                $tabType = $sale['tab_type'] ?? null;
-                                ?>
-                                <tr class="border-t">
-                                    <td class="py-1.5 pr-2 text-slate-500 whitespace-nowrap"><?= htmlspecialchars(date('H:i', strtotime($sale['date']))) ?></td>
-                                    <td class="py-1.5 pr-2"><?= !empty($sale['table_name']) ? htmlspecialchars(($tabTypeLabels[$tabType] ?? 'Mesa') . ': ' . $sale['table_name']) : '—' ?></td>
-                                    <td class="py-1.5 pr-2 text-slate-500"><?= htmlspecialchars($buyerLabel) ?></td>
-                                    <td class="py-1.5 pr-2 text-slate-500"><?= htmlspecialchars($sale['payment_method']) ?></td>
-                                    <td class="py-1.5 text-right font-semibold">$<?= number_format($sale['total'], 2, ',', '.') ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div id="today-sales" class="divide-y">
+                    <?php foreach ($todaySales as $sale): ?>
+                        <?php
+                        $buyerLabel = ($sale['buyer_type'] ?? 'no_huesped') === 'huesped'
+                            ? 'Huésped' . ($sale['guest'] !== '' ? ' — ' . $sale['guest'] : '')
+                            : 'No huésped';
+                        $tabType = $sale['tab_type'] ?? null;
+                        $tableLabel = !empty($sale['table_name']) ? ($tabTypeLabels[$tabType] ?? 'Mesa') . ': ' . $sale['table_name'] : null;
+                        $itemCount = array_sum(array_column($sale['items'], 'qty'));
+                        ?>
+                        <div class="sale-row">
+                            <button type="button" class="sale-toggle w-full flex items-center justify-between gap-3 py-2.5 text-left">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap text-sm">
+                                        <span class="font-semibold"><?= htmlspecialchars(date('H:i', strtotime($sale['date']))) ?></span>
+                                        <?php if ($tableLabel): ?><span class="text-slate-500"><?= htmlspecialchars($tableLabel) ?></span><?php endif; ?>
+                                        <span class="text-slate-500"><?= htmlspecialchars($buyerLabel) ?></span>
+                                        <span class="text-slate-500"><?= htmlspecialchars($sale['payment_method']) ?></span>
+                                    </div>
+                                    <div class="text-xs text-slate-400"><?= $itemCount ?> producto<?= $itemCount === 1 ? '' : 's' ?></div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="font-semibold">$<?= number_format($sale['total'], 2, ',', '.') ?></span>
+                                    <svg class="sale-chevron w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </button>
+                            <div class="sale-details hidden pb-3 pl-1 text-sm">
+                                <?php foreach ($sale['items'] as $item): ?>
+                                    <div class="flex items-center justify-between gap-2 py-0.5 text-slate-600">
+                                        <span><?= (int)$item['qty'] ?>x <?= htmlspecialchars($item['name']) ?></span>
+                                        <span>$<?= number_format($item['subtotal'], 2, ',', '.') ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </section>
     </main>
+
+    <script>
+        document.getElementById('today-sales')?.addEventListener('click', (e) => {
+            const toggle = e.target.closest('.sale-toggle');
+            if (!toggle) return;
+            const row = toggle.closest('.sale-row');
+            const details = row.querySelector('.sale-details');
+            const chevron = row.querySelector('.sale-chevron');
+            details.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        });
+    </script>
 
     <script>
         document.getElementById('btn-mostrador').addEventListener('click', async () => {
