@@ -71,9 +71,8 @@ $tabTypeLabels = ['mesa' => 'Mesa', 'evento' => 'Evento', 'mostrador' => 'Mostra
             <?php endif; ?>
             <?php foreach ($sales as $sale): ?>
                 <?php
-                $buyerLabel = ($sale['buyer_type'] ?? 'no_huesped') === 'huesped'
-                    ? 'Huésped' . ($sale['guest'] !== '' ? ' — ' . $sale['guest'] : '')
-                    : 'No huésped';
+                $buyerLabel = (($sale['buyer_type'] ?? 'no_huesped') === 'huesped' ? 'Huésped' : 'No huésped')
+                    . (!empty($sale['guest']) ? ' — ' . $sale['guest'] : '');
                 $tabType = $sale['tab_type'] ?? null;
                 ?>
                 <div class="bg-white rounded-xl shadow p-4">

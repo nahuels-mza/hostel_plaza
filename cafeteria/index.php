@@ -84,9 +84,8 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
                 <div id="today-sales" class="divide-y">
                     <?php foreach ($todaySales as $sale): ?>
                         <?php
-                        $buyerLabel = ($sale['buyer_type'] ?? 'no_huesped') === 'huesped'
-                            ? 'Huésped' . ($sale['guest'] !== '' ? ' — ' . $sale['guest'] : '')
-                            : 'No huésped';
+                        $buyerLabel = (($sale['buyer_type'] ?? 'no_huesped') === 'huesped' ? 'Huésped' : 'No huésped')
+                            . (!empty($sale['guest']) ? ' — ' . $sale['guest'] : '');
                         $tabType = $sale['tab_type'] ?? null;
                         $tableLabel = !empty($sale['table_name']) ? ($tabTypeLabels[$tabType] ?? 'Mesa') . ': ' . $sale['table_name'] : null;
                         $itemCount = array_sum(array_column($sale['items'], 'qty'));
@@ -335,9 +334,9 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
                     <input type="radio" name="buyer_type" value="no_huesped" class="hidden"> No huésped
                 </label>
             </div>
-            <div id="guest-field" class="hidden mb-3">
-                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Huésped / Habitación</label>
-                <input id="guest" type="text" placeholder="Ej: Habitación 5, Juan..." class="w-full border rounded-lg px-3 py-2 text-sm">
+            <div class="mb-3">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Comentarios</label>
+                <input id="guest" type="text" placeholder="Ej: Habitación 5, Juan... (opcional)" class="w-full border rounded-lg px-3 py-2 text-sm">
             </div>
 
             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Método de pago</label>
@@ -492,13 +491,6 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             if (e.target.classList.contains('cart-remove')) removeItem(id, 'delete');
         });
 
-        document.querySelectorAll('input[name="buyer_type"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                const guestField = document.getElementById('guest-field');
-                guestField.classList.toggle('hidden', radio.value !== 'huesped');
-            });
-        });
-
         // ---- Mobile: abrir/cerrar el pedido (hoja inferior) ----
         document.getElementById('cart-bar').addEventListener('click', openCartPanel);
         document.getElementById('cart-panel-close').addEventListener('click', closeCartPanel);
@@ -562,7 +554,6 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             const guest = document.getElementById('guest').value.trim();
             if (!payment) { showFeedback('Elegí un método de pago.', false); return; }
             if (!buyerType) { showFeedback('Indicá si es huésped o no.', false); return; }
-            if (buyerType.value === 'huesped' && guest === '') { showFeedback('Ingresá el nombre/habitación del huésped.', false); return; }
 
             const btn = document.getElementById('checkout');
             btn.disabled = true;

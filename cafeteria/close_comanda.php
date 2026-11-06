@@ -22,15 +22,10 @@ $validBuyerTypes = ['huesped', 'no_huesped'];
 if ($comandaId === ''
     || !in_array($paymentMethod, $validMethods, true)
     || !in_array($buyerType, $validBuyerTypes, true)
-    || ($buyerType === 'huesped' && $guest === '')
 ) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'invalid_request']);
     exit;
-}
-
-if ($buyerType === 'no_huesped') {
-    $guest = '';
 }
 
 // Paso 1: leer la comanda (sin tocar todavía) para no dejar nunca dos locks
