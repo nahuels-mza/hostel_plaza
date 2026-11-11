@@ -523,6 +523,15 @@ function hp_run_tool(string $name, array $input, string $phone): array
         $checkOut    = hp_normalize_date($input['check_out'] ?? '');
         $guestsCount = max(1, (int)($input['guests_count'] ?? 1));
 
+        // Guardrail: grupos (≥5) no van por el link; se derivan al admin a mano.
+        if ($guestsCount >= 5) {
+            return [
+                'error'       => 'group_booking',
+                'group_size'  => $guestsCount,
+                'instruction' => 'Esta consulta es para un grupo (5+ personas). NO generes link. En tu respuesta al huésped derivalo al admin del hostel (+54 9 2615 37-2767) para que le armen la cotización grupal manualmente. NO sugieras combinaciones de habitaciones ni afirmes capacidades. Si el staff está CERRADO, aclará que responden desde las 8:00 hs.',
+            ];
+        }
+
         if (!$checkIn || !$checkOut) {
             return ['error' => 'Fechas inválidas. Necesito ambas en formato YYYY-MM-DD.'];
         }
@@ -554,14 +563,46 @@ function hp_run_tool(string $name, array $input, string $phone): array
         // de la respuesta principal del bot (ver hp_handle_message).
         hp_schedule_assistance_offer($phone);
 
+        $nights = (int)((strtotime($checkOut) - strtotime($checkIn)) / 86400);
+
+        // Pedimos los precios reales de BananaDesk (cacheado 300s en disco → sin
+        // overhead práctico). Los adjuntamos al tool_result para que Claude los
+        // tenga en contexto y pueda responder consultas de precio sin inventar.
+        $roomsPricing = [];
+        $localRooms = hp_load_rooms(__DIR__ . '/../rooms.json');
+        $bookingUnitBy = [];
+        foreach ($localRooms as $r) {
+            $localId = (string)($r['id'] ?? '');
+            $bookingUnitBy[$localId] = $r['bookingUnit'] ?? 'room';
+        }
+        $avail = hp_bananadesk_fetch($cfg['bananadesk'] ?? [], $checkIn, $checkOut, $cfg['paths']['cache']);
+        if (!empty($avail['ok'])) {
+            foreach ($avail['rooms'] as $r) {
+                $bdId     = (int)$r['room_type_id'];
+                $localId  = hp_banana_to_local($bdId) ?? '';
+                $unit     = $bookingUnitBy[$localId] ?? 'room';
+                $roomsPricing[] = [
+                    'name'          => $r['name'],
+                    'price'         => $r['price'],
+                    'currency'      => $r['currency'],
+                    'booking_unit'  => $unit,   // "room" = se vende la habitación entera; "bed" = se vende cama por cama
+                    'nights'        => $nights,
+                    'price_scope'   => "precio que BananaDesk devolvió para el rango {$checkIn} → {$checkOut} ({$nights} noche" . ($nights === 1 ? '' : 's') . ")",
+                    'is_available'  => !empty($r['is_available']),
+                ];
+            }
+        }
+
         return [
             'booking_link'         => $url,
             'check_in'             => $checkIn,
             'check_out'            => $checkOut,
             'guests_count'         => $guestsCount,
-            'nights'               => (int)((strtotime($checkOut) - strtotime($checkIn)) / 86400),
+            'nights'               => $nights,
+            'rooms_pricing'        => $roomsPricing,
+            'pricing_rules'        => 'Usá estos precios SOLO si el huésped pregunta explícitamente. NUNCA los multipliques por personas para dar un total. Para habitaciones privadas (booking_unit=room) el precio es por la habitación entera. Para dormitorios compartidos (booking_unit=bed) el precio es por cama por noche.',
             'assistance_scheduled' => true,
-            'note'                 => 'Después de que envíes tu mensaje con el link, el bot le va a mandar automáticamente un segundo mensaje con botones ofreciendo asistencia para reservar. NO menciones esos botones en tu respuesta — solo pasá el link con cordialidad.',
+            'note'                 => 'Después de que envíes tu mensaje con el link, el bot le va a mandar automáticamente un segundo mensaje con botones ofreciendo asistencia para reservar. NO menciones esos botones en tu respuesta — solo pasá el link con cordialidad. No le listes los precios acá; solo contestá con el precio si te pregunta después.',
         ];
     }
 
@@ -713,6 +754,15 @@ function hp_run_tool(string $name, array $input, string $phone): array
         $gc = (int)($input['guests_count'] ?? ($slots['guests_count'] ?? 0));
         if (!$ci || !$co) return ['error' => 'Faltan fechas. Necesito check_in y check_out para consultar disponibilidad.'];
         if ($gc < 1) $gc = 1;
+
+        // Guardrail: no consultamos habitaciones para grupos — se deriva al admin.
+        if ($gc >= 5) {
+            return [
+                'error'       => 'group_booking',
+                'group_size'  => $gc,
+                'instruction' => 'Grupo de 5+. NO listes ni sugieras habitaciones. Derivá al admin: +54 9 2615 37-2767.',
+            ];
+        }
 
         $bdCfg = $cfg['bananadesk'] ?? [];
         $avail = hp_bananadesk_fetch($bdCfg, $ci, $co, $cfg['paths']['cache']);
@@ -962,6 +1012,43 @@ FLUJO PARA RESERVAS:
    para el 3 al 5"), asumí guests_count=1 y aclará en la respuesta que puede
    cambiarlo desde el link si son más.
 
+RESERVAS DE GRUPO (REGLA CRÍTICA):
+Un **grupo** es cualquier consulta de **5 o más personas**. 4 personas NO es grupo
+(aunque el huésped use la palabra "grupo"/"group"/"nos" — 4 entra en una habitación y
+se maneja como reserva normal).
+
+Cómo detectar grupo:
+- El huésped dice un número ≥ 5 ("somos 10", "10 personas", "un grupo de 8").
+- El huésped NO sabe cuántos son Y después de pedirle que confirme sigue sin saber
+  ("somos un grupo", "estamos organizando un viaje", "una página de grupos"): tratá
+  como grupo.
+- Palabras clave: "grupo grande", "contingente", "excursión", "promoción", "familia
+  numerosa", "charter", "colegio", "equipo".
+
+Caso ambiguo — no sabe cuántos son (primer turno):
+- Mandá el link con `guests_count=1` y aclará: "Te paso el link asumiendo 1 persona
+  para que veas las opciones; podés cambiar la cantidad desde ahí cuando sepas."
+- Si en el siguiente turno sigue sin saber ("todavía no sé", "soy el organizador"),
+  **tratá como grupo** y aplicá las reglas de abajo.
+
+Reglas una vez identificado como grupo (≥5 o inciertos insistentes):
+- **NUNCA sugieras combinaciones de habitaciones ni camas** ("podrían tomar 2
+  dormitorios de 6 + 1 doble", "tenemos espacio para 10 entre habitaciones" — PROHIBIDO).
+  No tenés visibilidad real de la capacidad total ni de cómo el staff organiza grupos.
+- **NUNCA afirmes capacidad total del hostel** ("entran X personas", "tenemos lugar
+  para X"). No lo sabés.
+- **NO llames a `list_available_rooms` para grupos** — el motor de reservas no está
+  pensado para contingentes y Claude terminaría improvisando.
+- Derivá al admin del hostel. Respuesta sugerida (adaptala al idioma):
+    "Para grupos de 5 personas o más gestionamos la reserva directamente con el equipo
+    del hostel, así te armamos la mejor combinación de habitaciones y precio.
+    Escribile a +54 9 2615 37-2767 con las fechas y la cantidad aproximada — te
+    responden a la brevedad." 👋
+- Si el staff está CERRADO (ver bloque CONTEXTO ACTUAL), aclará que van a responder
+  desde las 8:00 hs, pero igual pueden mandar el mensaje ahora para dejar la consulta.
+- NO ofrezcas el flujo de reserva asistida por WhatsApp para grupos; NO llames a
+  `generate_booking_link` con `guests_count ≥ 5`.
+
 FLUJO DE RESERVA ASISTIDA (cuando el huésped acepta reservar por WhatsApp):
 Los botones interactivos llegan como mensajes con formato "[BTN:ID] título". Los IDs:
 - [BTN:ASSIST_YES]      → el huésped acepta que reserves por él.
@@ -1042,6 +1129,50 @@ ESTILO:
 - Si te preguntan algo que NO está en el FAQ ni es sobre reservas, decí que no sabés
   y derivá a {$h['website']} — mencioná al staff (+54 9 2615 37-2767) SOLO si está
   ABIERTO ahora según status; si no, ofrecé responder mañana o email/web.
+
+CONSULTAS SOBRE PRECIOS (REGLA DURA — leer y cumplir al pie de la letra):
+El único precio que el bot "conoce" de una habitación es el que BananaDesk devolvió
+en el tool `generate_booking_link` (campo `rooms_pricing`) o `list_available_rooms`.
+Ese precio es por TIPO DE HABITACIÓN (no por huésped), y es el valor que BananaDesk
+asignó al RANGO que se consultó (ej: 22 al 24 nov). El campo `booking_unit` te dice
+si lo que se vende es la habitación entera (`"room"`) o cama por cama (`"bed"` →
+dormitorio compartido).
+
+Qué respondés según lo que te pregunten:
+
+a) **Precio de una cama** (dormitorio compartido, `booking_unit = "bed"`):
+   Respondé con el precio exacto del tool, aclarando que es por cama (por el rango
+   consultado — ej: "18.000 ARS por cama del 22 al 24"). No multipliques por
+   personas. No multipliques por noches.
+
+b) **Precio de una habitación privada** (`booking_unit = "room"`):
+   Respondé con el precio exacto del tool, aclarando que es por la habitación
+   COMPLETA, entre 1 persona o X (donde X es la capacidad máxima de esa
+   habitación). "Es el valor de la habitación entera, no cambia si van 1 o 2".
+   NUNCA dividas por cantidad de huéspedes.
+
+c) **Precio total de la reserva** (ej: "entonces serían X mil × 2 noches × 3 personas?"):
+   No respondas con un número calculado. Decí: "el total exacto lo ves en el link al
+   final del wizard; yo acá solo tengo el valor por habitación. No lo multiplico por
+   personas ni por noches — eso ya está incluido en el precio que te paso."
+
+d) **Fechas distintas a las consultadas**: NO estimes. Decí: "esos precios son solo
+   para las fechas que consultamos. Para otras fechas, usá el link y cambialas."
+
+e) **Cuando NO tenés datos de precio en contexto** (no llamaste a `generate_booking_link`
+   para esas fechas todavía): no inventes. Decí "el precio exacto lo ves en el link
+   que te paso" y generá el link.
+
+PROHIBIDO ABSOLUTO:
+- Multiplicar precio × personas.
+- Multiplicar precio × noches si el campo `price_scope` dice que ya cubre el rango.
+- Dividir precio por personas en habitaciones privadas.
+- Estimar precios para fechas no consultadas.
+- Dar precios de habitaciones que no aparecen en `rooms_pricing`.
+
+Si el huésped insiste y no tenés el dato con certeza, derivá al admin
+(+54 9 2615 37-2767 en horario de staff). Mejor decir "no sé" que arriesgar un número
+que después difiera del total que ve en el link — eso quema la confianza.
 
 CONSULTAS SOBRE EL CLIMA:
 Si el huésped pregunta por el clima ("¿va a llover?", "how's the weather?", "que tiempo hace"):

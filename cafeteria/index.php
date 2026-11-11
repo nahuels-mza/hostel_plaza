@@ -19,17 +19,16 @@ foreach ($comandas as $c) {
         break;
     }
 }
-$view = $_GET['view'] ?? 'home';
 
 $todaySales = hp_cafeteria_load_json(hp_cafeteria_sales_file());
 usort($todaySales, fn($a, $b) => strcmp($b['date'], $a['date'])); // más reciente primero
 $todayTotal = array_sum(array_column($todaySales, 'total'));
 $tabTypeLabels = ['mesa' => 'Mesa', 'evento' => 'Evento', 'mostrador' => 'Mostrador'];
 
-// Mesa/evento vuelven al listado de mesas al cerrar/cancelar/volver; mostrador
-// (venta rápida, no se abre desde ese listado) vuelve directo al home.
-$backUrl = ($comanda !== null && $comanda['type'] === 'mostrador') ? '/cafeteriagatonegro' : '/cafeteriagatonegro?view=mesas';
-$backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inicio' : '‹ Volver a mesas';
+// El listado de mesas vive en el home ahora — ya no hay pantalla intermedia,
+// así que volver siempre es volver al home.
+$backUrl = '/cafeteriagatonegro';
+$backLabel = '‹ Inicio';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -56,70 +55,119 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
 <body class="bg-slate-100 text-slate-900 font-sans">
     <?php $cafeteriaTitle = 'Comanda'; $cafeteriaActive = 'comanda'; include __DIR__ . '/_header.php'; ?>
 
-    <?php if ($comanda === null && $view !== 'mesas'): ?>
-    <!-- ===================== HOME: ELEGIR TIPO DE VENTA ===================== -->
-    <main class="max-w-2xl mx-auto p-6">
+    <?php if ($comanda === null): ?>
+    <!-- ===================== HOME: ACCIONES + VENTAS DE HOY + MESAS ABIERTAS ===================== -->
+    <main class="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a href="?view=mesas" class="bg-white rounded-2xl shadow-lg p-8 text-center hover:ring-2 hover:ring-teal transition flex flex-col items-center gap-3">
-                <span class="text-5xl">🍽️</span>
-                <span class="text-xl font-bold text-teal">Venta en Mesa</span>
-                <span class="text-sm text-slate-500">Mesas y eventos con comanda abierta</span>
-            </a>
-            <button id="btn-mostrador" type="button" class="bg-white rounded-2xl shadow-lg p-8 text-center hover:ring-2 hover:ring-teal transition flex flex-col items-center gap-3">
-                <span class="text-5xl">🛎️</span>
-                <span class="text-xl font-bold text-teal">Venta en Mostrador</span>
+            <button id="btn-mesa" type="button" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 text-center hover:ring-2 hover:ring-teal transition flex flex-col items-center gap-2 sm:gap-3">
+                <span class="text-4xl sm:text-5xl">🍽️</span>
+                <span class="text-lg sm:text-xl font-bold text-teal">Venta en Mesa</span>
+                <span class="text-sm text-slate-500">Abrir una mesa o evento nuevo</span>
+            </button>
+            <button id="btn-mostrador" type="button" class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 text-center hover:ring-2 hover:ring-teal transition flex flex-col items-center gap-2 sm:gap-3">
+                <span class="text-4xl sm:text-5xl">🛎️</span>
+                <span class="text-lg sm:text-xl font-bold text-teal">Venta en Mostrador</span>
                 <span class="text-sm text-slate-500">Venta rápida al paso</span>
             </button>
         </div>
-        <p id="home-feedback" class="text-sm mt-4 text-center"></p>
+        <p id="home-feedback" class="text-sm text-center"></p>
 
-        <section class="mt-8 bg-white rounded-xl shadow p-4">
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <h2 class="text-lg font-bold">Ventas de hoy</h2>
-                <span class="text-sm font-semibold text-slate-500"><?= count($todaySales) ?> venta<?= count($todaySales) === 1 ? '' : 's' ?> · $<?= number_format($todayTotal, 2, ',', '.') ?></span>
-            </div>
-            <?php if (empty($todaySales)): ?>
-                <p class="text-sm text-slate-400 text-center py-2">Todavía no se registraron ventas hoy.</p>
-            <?php else: ?>
-                <div id="today-sales" class="divide-y">
-                    <?php foreach ($todaySales as $sale): ?>
-                        <?php
-                        $buyerLabel = (($sale['buyer_type'] ?? 'no_huesped') === 'huesped' ? 'Huésped' : 'No huésped')
-                            . (!empty($sale['guest']) ? ' — ' . $sale['guest'] : '');
-                        $tabType = $sale['tab_type'] ?? null;
-                        $tableLabel = !empty($sale['table_name']) ? ($tabTypeLabels[$tabType] ?? 'Mesa') . ': ' . $sale['table_name'] : null;
-                        $itemCount = array_sum(array_column($sale['items'], 'qty'));
-                        ?>
-                        <div class="sale-row">
-                            <button type="button" class="sale-toggle w-full flex items-center justify-between gap-3 py-2.5 text-left">
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-2 flex-wrap text-sm">
-                                        <span class="font-semibold"><?= htmlspecialchars(date('H:i', strtotime($sale['date']))) ?></span>
-                                        <?php if ($tableLabel): ?><span class="text-slate-500"><?= htmlspecialchars($tableLabel) ?></span><?php endif; ?>
-                                        <span class="text-slate-500"><?= htmlspecialchars($buyerLabel) ?></span>
-                                        <span class="text-slate-500"><?= htmlspecialchars($sale['payment_method']) ?></span>
-                                    </div>
-                                    <div class="text-xs text-slate-400"><?= $itemCount ?> producto<?= $itemCount === 1 ? '' : 's' ?></div>
-                                </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span class="font-semibold">$<?= number_format($sale['total'], 2, ',', '.') ?></span>
-                                    <svg class="sale-chevron w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </button>
-                            <div class="sale-details hidden pb-3 pl-1 text-sm">
-                                <?php foreach ($sale['items'] as $item): ?>
-                                    <div class="flex items-center justify-between gap-2 py-0.5 text-slate-600">
-                                        <span><?= (int)$item['qty'] ?>x <?= htmlspecialchars($item['name']) ?></span>
-                                        <span>$<?= number_format($item['subtotal'], 2, ',', '.') ?></span>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <section class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <h2 class="text-lg font-bold">Ventas de hoy</h2>
+                    <span class="text-sm font-semibold text-slate-500"><?= count($todaySales) ?> venta<?= count($todaySales) === 1 ? '' : 's' ?> · $<?= number_format($todayTotal, 2, ',', '.') ?></span>
                 </div>
-            <?php endif; ?>
-        </section>
+                <?php if (empty($todaySales)): ?>
+                    <p class="text-sm text-slate-400 text-center py-2">Todavía no se registraron ventas hoy.</p>
+                <?php else: ?>
+                    <div id="today-sales" class="divide-y">
+                        <?php foreach ($todaySales as $sale): ?>
+                            <?php
+                            $buyerLabel = (($sale['buyer_type'] ?? 'no_huesped') === 'huesped' ? 'Huésped' : 'No huésped')
+                                . (!empty($sale['guest']) ? ' — ' . $sale['guest'] : '');
+                            $tabType = $sale['tab_type'] ?? null;
+                            $tableLabel = !empty($sale['table_name']) ? ($tabTypeLabels[$tabType] ?? 'Mesa') . ': ' . $sale['table_name'] : null;
+                            $itemCount = array_sum(array_column($sale['items'], 'qty'));
+                            ?>
+                            <div class="sale-row">
+                                <button type="button" class="sale-toggle w-full flex items-center justify-between gap-3 py-2.5 text-left">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap text-sm">
+                                            <span class="font-semibold"><?= htmlspecialchars(date('H:i', strtotime($sale['date']))) ?></span>
+                                            <?php if ($tableLabel): ?><span class="text-slate-500"><?= htmlspecialchars($tableLabel) ?></span><?php endif; ?>
+                                            <span class="text-slate-500"><?= htmlspecialchars($buyerLabel) ?></span>
+                                            <span class="text-slate-500"><?= htmlspecialchars($sale['payment_method']) ?></span>
+                                        </div>
+                                        <div class="text-xs text-slate-400"><?= $itemCount ?> producto<?= $itemCount === 1 ? '' : 's' ?></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <span class="font-semibold">$<?= number_format($sale['total'], 2, ',', '.') ?></span>
+                                        <svg class="sale-chevron w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </button>
+                                <div class="sale-details hidden pb-3 pl-1 text-sm">
+                                    <?php foreach ($sale['items'] as $item): ?>
+                                        <div class="flex items-center justify-between gap-2 py-0.5 text-slate-600">
+                                            <span><?= (int)$item['qty'] ?>x <?= htmlspecialchars($item['name']) ?></span>
+                                            <span>$<?= number_format($item['subtotal'], 2, ',', '.') ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <section class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <h2 class="text-lg font-bold">Mesas abiertas</h2>
+                    <span class="text-sm font-semibold text-slate-500"><?= count($comandas) ?> abierta<?= count($comandas) === 1 ? '' : 's' ?></span>
+                </div>
+                <?php if (empty($comandas)): ?>
+                    <p class="text-sm text-slate-400 text-center py-2">No hay ninguna mesa abierta.</p>
+                <?php else: ?>
+                    <div class="space-y-2">
+                        <?php foreach ($comandas as $c): ?>
+                            <?php
+                                $itemCount = array_sum(array_column($c['items'], 'qty'));
+                                $total = array_sum(array_map(fn($it) => $it['price'] * $it['qty'], $c['items']));
+                            ?>
+                            <div class="flex items-center justify-between gap-3 border rounded-lg px-3 py-2">
+                                <a href="?comanda=<?= urlencode($c['id']) ?>" class="flex-1 min-w-0">
+                                    <div class="font-semibold flex items-center gap-2">
+                                        <?= htmlspecialchars($c['name']) ?>
+                                        <span class="text-xs font-normal bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full"><?= htmlspecialchars($c['type']) ?></span>
+                                    </div>
+                                    <div class="text-xs text-slate-500"><?= $itemCount ?> ítem<?= $itemCount === 1 ? '' : 's' ?> · $<?= number_format($total, 2, ',', '.') ?></div>
+                                </a>
+                                <button data-id="<?= htmlspecialchars($c['id']) ?>" class="cancel-comanda text-xs text-red-500 hover:text-red-700 px-2 py-1">Cancelar</button>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </section>
+        </div>
     </main>
+
+    <!-- Modal: nombre de la mesa/evento nuevo (reemplaza la pantalla intermedia) -->
+    <div id="mesa-scrim" class="hidden fixed inset-0 bg-slate-900/40 z-40"></div>
+    <div id="mesa-modal" class="hidden fixed inset-x-4 top-1/4 sm:inset-x-0 sm:w-96 sm:mx-auto z-50 bg-white rounded-2xl shadow-2xl p-5">
+        <h3 class="text-lg font-bold mb-3">Nueva mesa / evento</h3>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
+        <input id="mesa-name" type="text" placeholder="Ej: Mesa 5, Cumple Juan..." class="w-full border rounded-lg px-3 py-2 text-sm mb-3">
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+        <select id="mesa-type" class="w-full border rounded-lg px-3 py-2 text-sm mb-4">
+            <option value="mesa">Mesa</option>
+            <option value="evento">Evento</option>
+        </select>
+        <p id="mesa-feedback" class="text-sm mb-3"></p>
+        <div class="flex gap-2">
+            <button id="mesa-cancel" type="button" class="flex-1 border rounded-lg px-4 py-2 text-sm hover:bg-slate-50">Cancelar</button>
+            <button id="mesa-open" type="button" class="flex-1 bg-teal text-white font-bold rounded-lg px-4 py-2 text-sm hover:bg-teal-hover">Abrir</button>
+        </div>
+    </div>
 
     <script>
         document.getElementById('today-sales')?.addEventListener('click', (e) => {
@@ -131,13 +179,11 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
             details.classList.toggle('hidden');
             chevron.classList.toggle('rotate-180');
         });
-    </script>
 
-    <script>
         document.getElementById('btn-mostrador').addEventListener('click', async () => {
             const feedback = document.getElementById('home-feedback');
             feedback.textContent = 'Abriendo...';
-            feedback.className = 'text-sm mt-4 text-center text-slate-500';
+            feedback.className = 'text-sm text-center text-slate-500';
             try {
                 const res = await fetch('/cafeteriagatonegro/open_comanda.php', {
                     method: 'POST',
@@ -149,71 +195,37 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
                 window.location.href = '?comanda=' + encodeURIComponent(data.comanda.id);
             } catch (err) {
                 feedback.textContent = 'No se pudo abrir la venta.';
-                feedback.className = 'text-sm mt-4 text-center text-red-600';
+                feedback.className = 'text-sm text-center text-red-600';
             }
         });
-    </script>
 
-    <?php elseif ($comanda === null): ?>
-    <!-- ===================== LISTADO DE MESAS/COMANDAS ABIERTAS ===================== -->
-    <main class="max-w-3xl mx-auto p-4 space-y-6">
-        <a href="/cafeteriagatonegro" class="text-sm text-teal hover:underline">‹ Inicio</a>
-
-        <section class="bg-white rounded-xl shadow p-4">
-            <h2 class="text-lg font-bold mb-3">Nueva mesa / comanda</h2>
-            <form id="open-form" class="flex flex-wrap gap-2 items-end">
-                <div class="flex-1 min-w-[160px]">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
-                    <input id="open-name" type="text" required placeholder="Ej: Mesa 5, Barra, Cumple Juan..." class="w-full border rounded-lg px-3 py-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
-                    <select id="open-type" class="border rounded-lg px-3 py-2 text-sm">
-                        <option value="mesa">Mesa</option>
-                        <option value="evento">Evento</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-teal text-white font-bold px-4 py-2 rounded-lg hover:bg-teal-hover transition">Abrir</button>
-            </form>
-            <p id="open-feedback" class="text-sm mt-2"></p>
-        </section>
-
-        <section class="bg-white rounded-xl shadow p-4">
-            <h2 class="text-lg font-bold mb-3">Mesas abiertas</h2>
-            <?php if (empty($comandas)): ?>
-                <p class="text-sm text-slate-500">No hay ninguna mesa abierta.</p>
-            <?php else: ?>
-                <div class="space-y-2">
-                    <?php foreach ($comandas as $c): ?>
-                        <?php
-                            $itemCount = array_sum(array_column($c['items'], 'qty'));
-                            $total = array_sum(array_map(fn($it) => $it['price'] * $it['qty'], $c['items']));
-                        ?>
-                        <div class="flex items-center justify-between gap-3 border rounded-lg px-3 py-2">
-                            <a href="?comanda=<?= urlencode($c['id']) ?>" class="flex-1 min-w-0">
-                                <div class="font-semibold flex items-center gap-2">
-                                    <?= htmlspecialchars($c['name']) ?>
-                                    <span class="text-xs font-normal bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full"><?= htmlspecialchars($c['type']) ?></span>
-                                </div>
-                                <div class="text-xs text-slate-500"><?= $itemCount ?> ítem<?= $itemCount === 1 ? '' : 's' ?> · $<?= number_format($total, 2, ',', '.') ?></div>
-                            </a>
-                            <button data-id="<?= htmlspecialchars($c['id']) ?>" class="cancel-comanda text-xs text-red-500 hover:text-red-700 px-2 py-1">Cancelar</button>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
-    </main>
-
-    <script>
-        document.getElementById('open-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('open-name').value.trim();
-            const type = document.getElementById('open-type').value;
-            const feedback = document.getElementById('open-feedback');
-            if (!name) return;
-            feedback.textContent = 'Abriendo...';
-            feedback.className = 'text-sm mt-2 text-slate-500';
+        const mesaModal = document.getElementById('mesa-modal');
+        const mesaScrim = document.getElementById('mesa-scrim');
+        const mesaFeedback = document.getElementById('mesa-feedback');
+        function openMesaModal() {
+            mesaModal.classList.remove('hidden');
+            mesaScrim.classList.remove('hidden');
+            document.getElementById('mesa-name').value = '';
+            mesaFeedback.textContent = '';
+            document.getElementById('mesa-name').focus();
+        }
+        function closeMesaModal() {
+            mesaModal.classList.add('hidden');
+            mesaScrim.classList.add('hidden');
+        }
+        document.getElementById('btn-mesa').addEventListener('click', openMesaModal);
+        document.getElementById('mesa-cancel').addEventListener('click', closeMesaModal);
+        mesaScrim.addEventListener('click', closeMesaModal);
+        document.getElementById('mesa-open').addEventListener('click', async () => {
+            const name = document.getElementById('mesa-name').value.trim();
+            const type = document.getElementById('mesa-type').value;
+            if (!name) {
+                mesaFeedback.textContent = 'Ingresá un nombre para la mesa/evento.';
+                mesaFeedback.className = 'text-sm mb-3 text-red-600';
+                return;
+            }
+            mesaFeedback.textContent = 'Abriendo...';
+            mesaFeedback.className = 'text-sm mb-3 text-slate-500';
             try {
                 const res = await fetch('/cafeteriagatonegro/open_comanda.php', {
                     method: 'POST',
@@ -224,8 +236,8 @@ $backLabel = ($comanda !== null && $comanda['type'] === 'mostrador') ? '‹ Inic
                 if (!data.ok) throw new Error(data.error || 'error');
                 window.location.href = '?comanda=' + encodeURIComponent(data.comanda.id);
             } catch (err) {
-                feedback.textContent = 'No se pudo abrir la mesa.';
-                feedback.className = 'text-sm mt-2 text-red-600';
+                mesaFeedback.textContent = 'No se pudo abrir la mesa.';
+                mesaFeedback.className = 'text-sm mb-3 text-red-600';
             }
         });
 
