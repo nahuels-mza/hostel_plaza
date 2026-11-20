@@ -67,12 +67,10 @@ if (file_exists($plazaEventsFile)) {
     $plazaEvents = json_decode(file_get_contents($plazaEventsFile), true) ?: [];
 }
 
-// --- ABOUT SECTION PHOTO CAROUSEL (hotlinked from Google Drive) ---
-require_once __DIR__ . '/_about_gallery.php';
-$aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
-    'src' => 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/633284365.jpg?k=fc4866488d6a9f7bb753b918edac964136059bbde98f4e13f80bb63fae7c1d81&o=',
-    'alt' => 'Hostel Plaza Courtyard',
-]]);
+// --- COMMON AREAS (living, TV room, cowork, kitchen, patio) ---
+require_once __DIR__ . '/_areas.php';
+require_once __DIR__ . '/componentes/carrousel.php';
+$areas = hp_load_areas(__DIR__ . '/areas.json');
 
 ?>
 <!DOCTYPE html>
@@ -170,19 +168,12 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
             transform: scale(1.05);
         }
 
-        /* CAROUSEL CSS */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .event-card { flex: 0 0 100%; }
-        @media (min-width: 768px) { .event-card { flex: 0 0 calc(50% - 12px); } }
-        @media (min-width: 1024px) { .event-card { flex: 0 0 calc(33.333% - 16px); } }
-
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <?php
     require_once __DIR__ . '/dev_env.php';
@@ -228,49 +219,14 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
 
     <div class="h-40 md:h-20"></div>
 
-    <section id="about" class="py-16 px-6 max-w-7xl mx-auto w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div class="relative animate-float">
-                <div id="about-carousel" class="relative rounded-3xl overflow-hidden shadow-2xl aspect-square">
-                    <?php foreach ($aboutGallery as $i => $photo): ?>
-                    <img src="<?php echo htmlspecialchars($photo['src']); ?>" alt="<?php echo htmlspecialchars($photo['alt']); ?>"
-                         class="about-slide absolute inset-0 w-full h-full object-cover transition-opacity duration-700 <?php echo $i === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'; ?>"
-                         loading="<?php echo $i === 0 ? 'eager' : 'lazy'; ?>" />
-                    <?php endforeach; ?>
-
-                    <?php if (count($aboutGallery) > 1): ?>
-                    <button type="button" onclick="scrollAbout(-1)" aria-label="Previous photo" class="absolute left-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm z-10"><i data-lucide="chevron-left"></i></button>
-                    <button type="button" onclick="scrollAbout(1)" aria-label="Next photo" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm z-10"><i data-lucide="chevron-right"></i></button>
-                    <?php endif; ?>
-                </div>
-                <?php if (count($aboutGallery) > 1): ?>
-                <div id="about-dots" class="flex justify-center items-center gap-2 mt-4"></div>
-                <?php endif; ?>
-            </div>
-            <div class="space-y-8">
-                <span class="text-teal font-bold tracking-widest uppercase text-sm">Who We Are</span>
-                <h2 class="text-4xl md:text-5xl leading-tight font-serif">A space designed by travelers, for travelers.</h2>
-                <p class="text-slate-600 text-lg leading-relaxed">Located in a beautifully preserved heritage house, we offer a unique blend of historical charm and modern comfort in the true spirit of Mendoza.</p>
-                <a href="about" class="inline-flex items-center gap-2 text-teal font-bold hover:gap-4 transition-all group">Discover our story <i data-lucide="chevron-right"></i></a>
-            </div>
-        </div>
-    </section>
-
     <section id="rooms" class="py-16 px-6 max-w-7xl mx-auto w-full bg-slate-50">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-            <div class="text-left">
-                <span class="text-teal font-bold tracking-widest uppercase text-sm mb-4 block">Rest & Recharge</span>
-                <h2 class="text-4xl md:text-5xl mb-4 font-serif">Private & Shared Rooms</h2>
-            </div>
-            <div class="hidden md:flex gap-3 shrink-0">
-                <button onclick="scrollRooms(-1)" class="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm"><i data-lucide="chevron-left"></i></button>
-                <button onclick="scrollRooms(1)" class="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm"><i data-lucide="chevron-right"></i></button>
-            </div>
-        </div>
-
-        <div id="rooms-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar scroll-smooth">
-            <?php foreach ($rooms as $room): ?>
-            <div class="snap-start shrink-0 w-[85vw] md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col relative">
+        <?php hp_carrousel([
+            'id'      => 'rooms',
+            'eyebrow' => 'Rest & Recharge',
+            'title'   => 'Private & Shared Rooms',
+            'items'   => $rooms,
+            'card'    => function ($room) { ?>
+            <div class="<?php echo HP_CARROUSEL_SLIDE; ?> group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col relative">
                 <div class="h-72 relative room-card-image-container">
                     <img src="<?php echo htmlspecialchars($room['image']); ?>" alt="<?php echo htmlspecialchars($room['name']); ?>" class="w-full h-full object-cover">
 
@@ -305,26 +261,51 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
                     </div>
                 </div>
             </div>
-            <?php endforeach; ?>
-        </div>
-        <div id="rooms-dots" class="flex md:hidden justify-center items-center gap-2 mt-2"></div>
+            <?php },
+        ]); ?>
     </section>
 
-    <section id="plaza-events" class="py-16 px-6 max-w-7xl mx-auto w-full relative">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-            <div class="text-left">
-                <span class="text-teal font-bold tracking-widest uppercase text-sm mb-4 block">What's Happening</span>
-                <h2 class="text-4xl md:text-5xl mb-4 font-serif">Hostel Plaza Events</h2>
-                <p class="text-slate-500 max-w-2xl">Join us for unforgettable nights and local culture right here at the hostel.</p>
-            </div>
-            <div class="hidden md:flex gap-3 shrink-0">
-                <button onclick="scrollEvents(-1)" class="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm"><i data-lucide="chevron-left"></i></button>
-                <button onclick="scrollEvents(1)" class="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-teal hover:text-white hover:border-teal transition-all shadow-sm"><i data-lucide="chevron-right"></i></button>
-            </div>
-        </div>
+    <?php if ($areas): ?>
+    <section id="areas" class="bg-white border-y border-slate-100">
+        <div class="py-16 px-6 max-w-7xl mx-auto w-full">
+            <?php hp_carrousel([
+                'id'      => 'areas',
+                'eyebrow' => 'Common Areas',
+                'title'   => 'Conocer nuestra casa por dentro',
+                'items'   => $areas,
+                'card'    => function ($area) { ?>
+                <div class="<?php echo HP_CARROUSEL_SLIDE; ?> group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col relative">
+                    <div class="h-72 relative room-card-image-container bg-slate-200">
+                        <?php if ($area['image'] !== ''): ?>
+                        <img src="<?php echo htmlspecialchars(hp_area_photo_src($area['image'], 1000)); ?>" alt="<?php echo htmlspecialchars($area['title']); ?>" class="w-full h-full object-cover" loading="lazy">
+                        <?php endif; ?>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                    </div>
 
-        <div id="events-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar scroll-smooth">
-            <?php foreach ($plazaEvents as $pevent):
+                    <div class="p-8 flex-1 flex flex-col bg-white z-10">
+                        <h3 class="text-2xl font-serif font-bold text-slate-900 leading-tight mb-3"><?php echo htmlspecialchars($area['title']); ?></h3>
+                        <p class="text-slate-500 text-sm leading-relaxed mb-8 line-clamp-3"><?php echo htmlspecialchars($area['text']); ?></p>
+                        <div class="mt-auto">
+                            <a href="area/<?php echo htmlspecialchars(rawurlencode($area['slug'])); ?>" class="block text-center py-4 bg-teal text-white rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-hover group-hover:shadow-md">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <?php },
+            ]); ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <section id="plaza-events" class="py-16 px-6 max-w-7xl mx-auto w-full relative">
+        <?php hp_carrousel([
+            'id'       => 'events',
+            'eyebrow'  => "What's Happening",
+            'title'    => 'Hostel Plaza Events',
+            'subtitle' => 'Join us for unforgettable nights and local culture right here at the hostel.',
+            'items'    => $plazaEvents,
+            'card'     => function ($pevent) {
                 // Fix: Translate Admin Panel keys to frontend keys
                 $title = $pevent['name'] ?? $pevent['title'] ?? 'Special Event';
                 $subtitle = $pevent['description'] ?? $pevent['subtitle'] ?? '';
@@ -354,9 +335,8 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
                         <p class="text-[11px] text-teal uppercase tracking-widest font-bold truncate w-full"><?php echo htmlspecialchars($subtitle); ?></p>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        </div>
-        <div id="events-dots" class="flex md:hidden justify-center items-center gap-2 mt-2"></div>
+            <?php },
+        ]); ?>
     </section>
 
     <section id="location" class="py-16 px-6 bg-slate-50">
@@ -494,7 +474,7 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
         </div>
     </section>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
@@ -541,155 +521,6 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
             });
         })();
 
-        // --- CAROUSEL AUTO-SCROLL ENGINE ---
-        const eventsCarousel = document.getElementById('events-carousel');
-        const roomsCarousel = document.getElementById('rooms-carousel');
-
-        // Returns a { scrollBy } controller so button handlers can suppress the
-        // teleport while a button-initiated smooth scroll is in flight.
-        function setupEndless(carousel) {
-            if (!carousel) return null;
-
-            const children = Array.from(carousel.children);
-            children.forEach(child => {
-                const clone = child.cloneNode(true);
-                clone.setAttribute('aria-hidden', 'true');
-                carousel.appendChild(clone);
-            });
-
-            let teleporting  = false;
-            let btnScrolling = false; // true while a button scroll is animating
-
-            carousel.addEventListener('scroll', () => {
-                if (teleporting || btnScrolling) return;
-
-                const scrollLeft = carousel.scrollLeft;
-                const halfWidth  = carousel.scrollWidth / 2;
-                const edge = 2;
-
-                let target = null;
-                if (scrollLeft >= halfWidth) {
-                    target = scrollLeft - halfWidth;
-                } else if (scrollLeft <= edge) {
-                    target = scrollLeft + halfWidth;
-                }
-                if (target === null) return;
-
-                teleporting = true;
-                const prevBehavior = carousel.style.scrollBehavior;
-                carousel.style.scrollBehavior = 'auto';
-                carousel.scrollLeft = target;
-                requestAnimationFrame(() => {
-                    carousel.style.scrollBehavior = prevBehavior;
-                    teleporting = false;
-                });
-            }, { passive: true });
-
-            return {
-                scrollBy: function (delta) {
-                    btnScrolling = true;
-                    carousel.scrollBy({ left: delta, behavior: 'smooth' });
-                    // 500 ms covers a typical smooth-scroll animation
-                    setTimeout(() => { btnScrolling = false; }, 500);
-                }
-            };
-        }
-
-        const eventsCtrl = setupEndless(eventsCarousel);
-        const roomsCtrl  = setupEndless(roomsCarousel);
-
-        // --- CAROUSEL DOTS ---
-        function setupDots(carousel, dotsContainer, originalCount) {
-            if (!carousel || !dotsContainer || originalCount === 0) return;
-
-            for (let i = 0; i < originalCount; i++) {
-                const dot = document.createElement('span');
-                dot.style.cssText = 'display:block;height:8px;border-radius:9999px;transition:all .3s;cursor:pointer;';
-                dot.style.width = i === 0 ? '24px' : '8px';
-                dot.style.backgroundColor = i === 0 ? '#1c5457' : '#cbd5e1';
-                dot.addEventListener('click', () => {
-                    const cardWidth = (carousel.children[0]?.offsetWidth ?? 0) + 24;
-                    carousel.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
-                });
-                dotsContainer.appendChild(dot);
-            }
-
-            const dots = Array.from(dotsContainer.children);
-
-            function update() {
-                const cardWidth = (carousel.children[0]?.offsetWidth ?? 1) + 24;
-                const idx = ((Math.round(carousel.scrollLeft / cardWidth) % originalCount) + originalCount) % originalCount;
-                dots.forEach((d, i) => {
-                    if (i === idx) {
-                        d.style.width = '24px';
-                        d.style.backgroundColor = '#1c5457';
-                    } else {
-                        d.style.width = '8px';
-                        d.style.backgroundColor = '#cbd5e1';
-                    }
-                });
-            }
-
-            carousel.addEventListener('scroll', update, { passive: true });
-            window.addEventListener('resize', update);
-            update();
-        }
-
-        setupDots(roomsCarousel,  document.getElementById('rooms-dots'),  <?php echo count($rooms); ?>);
-        setupDots(eventsCarousel, document.getElementById('events-dots'), <?php echo count($plazaEvents); ?>);
-
-        function scrollEvents(direction) {
-            if (!eventsCarousel || !eventsCtrl) return;
-            const firstCard = eventsCarousel.querySelector('.event-card');
-            const scrollStep = firstCard ? firstCard.offsetWidth + 24 : eventsCarousel.clientWidth / 2;
-            eventsCtrl.scrollBy(direction * scrollStep);
-        }
-
-        function scrollRooms(direction) {
-            if (!roomsCarousel || !roomsCtrl) return;
-            const firstCard = roomsCarousel.querySelector('.group');
-            const scrollStep = firstCard ? firstCard.offsetWidth + 24 : roomsCarousel.clientWidth / 2;
-            roomsCtrl.scrollBy(direction * scrollStep);
-        }
-
-        // --- ABOUT PHOTO CAROUSEL (single-image crossfade) ---
-        (function () {
-            const carousel = document.getElementById('about-carousel');
-            const dotsContainer = document.getElementById('about-dots');
-            if (!carousel) return;
-
-            const slides = Array.from(carousel.querySelectorAll('.about-slide'));
-            if (slides.length <= 1) return;
-
-            let current = 0;
-
-            slides.forEach((_, i) => {
-                const dot = document.createElement('span');
-                dot.style.cssText = 'display:block;height:8px;border-radius:9999px;transition:all .3s;cursor:pointer;';
-                dot.style.width = i === 0 ? '24px' : '8px';
-                dot.style.backgroundColor = i === 0 ? '#1c5457' : '#cbd5e1';
-                dot.addEventListener('click', () => show(i));
-                dotsContainer.appendChild(dot);
-            });
-            const dots = Array.from(dotsContainer.children);
-
-            function show(index) {
-                slides[current].classList.remove('opacity-100');
-                slides[current].classList.add('opacity-0', 'pointer-events-none');
-                dots[current].style.width = '8px';
-                dots[current].style.backgroundColor = '#cbd5e1';
-
-                current = ((index % slides.length) + slides.length) % slides.length;
-
-                slides[current].classList.remove('opacity-0', 'pointer-events-none');
-                slides[current].classList.add('opacity-100');
-                dots[current].style.width = '24px';
-                dots[current].style.backgroundColor = '#1c5457';
-            }
-
-            window.scrollAbout = function (direction) { show(current + direction); };
-        })();
-
         // Review Randomizer Script
         document.addEventListener("DOMContentLoaded", function() {
             const grid = document.getElementById("reviews-grid");
@@ -711,7 +542,7 @@ $aboutGallery = hp_load_about_gallery(__DIR__ . '/about_gallery.json', [[
             }
         }
 
-        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en header.php
+        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en componentes/header.php
     </script>
 
 </body>

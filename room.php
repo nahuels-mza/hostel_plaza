@@ -204,12 +204,12 @@ $seo = [
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <div class="w-full h-[50vh] md:h-[65vh] relative bg-slate-900">
         <img src="<?php echo htmlspecialchars($currentRoom['image']); ?>" alt="<?php echo htmlspecialchars($currentRoom['name']); ?>" class="w-full h-full object-cover opacity-80">
@@ -338,10 +338,10 @@ $seo = [
         </div>
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
-        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en header.php
+        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en componentes/header.php
         lucide.createIcons();
     </script>
 </body>

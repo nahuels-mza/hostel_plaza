@@ -80,7 +80,7 @@ $t = $isEs ? [
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 font-sans">
 
-<?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+<?php $hasHero = false; include __DIR__ . '/componentes/header.php'; ?>
 
 <div class="flex-1 w-full flex items-center justify-center pt-20">
 <div class="notranslate w-full max-w-md bg-white rounded-3xl shadow-sm border border-slate-200 p-8">

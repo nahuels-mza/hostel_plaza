@@ -392,6 +392,14 @@ function hp_tools_definition(): array
             ],
         ],
         [
+            'name' => 'send_closing_message',
+            'description' => 'Envía (como mensaje de texto encolado DESPUÉS de tu respuesta) el mensaje de bienvenida/cierre de Hostel Plaza con la lista de servicios (Tour Planner, Cafetería, Cowork, Lavandería, Cocina y Parrilla, link para extender estadía, Instagram). Usar cuando: (a) el huésped confirma que va a reservar ("ok voy a reservar", "ya reservé", "gracias ya está"), (b) manda un código HP-XXXX como confirmación de reserva nueva, (c) la conversación se cierra con cordialidad ("gracias, nos vemos", "perfecto, listo"). NO usar en consultas en curso ni cuando queda algo pendiente. Se puede usar UNA SOLA VEZ por conversación — si el slot closing_message_sent ya está, no lo llames de nuevo.',
+            'input_schema' => [
+                'type' => 'object',
+                'properties' => new stdClass(),
+            ],
+        ],
+        [
             'name' => 'check_paso_cristo_redentor',
             'description' => 'Estima el estado del Paso Cristo Redentor (frontera Argentina-Chile, altura ~3.200 m) según el pronóstico del clima. NO es el estado oficial — es una estimación heurística basada en nieve, viento y visibilidad. USAR cuando el huésped pregunta por: cruzar a Chile, ir a Santiago/Valparaíso/Viña, el paso, la cordillera, esquiar en Portillo, "Los Libertadores" (nombre chileno del paso), etc. Devuelve un juicio ("likely_open" / "at_risk" / "likely_closed") + los datos del pronóstico + un disclaimer para confirmar oficialmente antes de viajar.',
             'input_schema' => [
@@ -902,6 +910,31 @@ function hp_run_tool(string $name, array $input, string $phone): array
         return ['ok' => true, 'note' => 'Resumen encolado con botones Confirmar/Cancelar.'];
     }
 
+    if ($name === 'send_closing_message') {
+        $slots = hp_get_slots($phone);
+        if (!empty($slots['closing_message_sent_at'])) {
+            return ['ok' => true, 'note' => 'Ya se había enviado antes. No se vuelve a mandar.'];
+        }
+        $body = "Gracias por reservar en\n"
+              . "*HOSTEL PLAZA* 🏡\n\n"
+              . "Tenemos muchos servicios para tu comodidad!\n\n"
+              . "📸  *Tour Planner Gratuito*\n"
+              . "☕  *Cafetería*\n"
+              . "💼  *Cowork*\n"
+              . "🧺  *Lavandería*\n"
+              . "👨‍🍳  *Cocina Equipada y Parrilla*\n\n"
+              . "📅  *Extendé tu Estadia*\n"
+              . "www.hostelplaza.com.ar\n\n"
+              . "📸  *Seguinos!*\n"
+              . "www.instagram.com/hostel.plaza\n\n"
+              . "_Escribinos acá si necesitas asistencia antes o durante tu estadía_\n\n"
+              . "Te esperamos! 😺";
+        hp_queue_after_reply($phone, ['kind' => 'text', 'body' => $body]);
+        $slots['closing_message_sent_at'] = date('c');
+        hp_save_slots($phone, $slots);
+        return ['ok' => true, 'note' => 'Mensaje de cierre encolado. Se envía justo después de tu respuesta de texto.'];
+    }
+
     return ['error' => "Herramienta desconocida: $name"];
 }
 
@@ -1000,17 +1033,81 @@ DATOS QUE NECESITÁS PARA EL LINK:
 
 FLUJO PARA RESERVAS:
 1. Saludá brevemente y preguntá las fechas si no las tenés.
-2. Si mandan solo una fecha, pedí la otra.
-3. Si ya tenés las dos fechas pero no sabés la cantidad de huéspedes, preguntá
+2. Si mandan solo UNA fecha ("llego el domingo") y no sabés o no aclaran la de
+   salida, **asumí 1 noche** (check_out = check_in + 1 día) y aclará en la respuesta:
+   "Te paso el link por 1 noche; podés extender la estadía desde el sitio si querés
+   quedarte más días". NO pierdas otro turno pidiéndole la fecha de salida.
+3. Si el huésped duda entre varias noches ("1 o 2, no sé todavía", "una noche al
+   menos", "quizás 2 días"): **asumí la mínima (1 noche)** y aclará igual que arriba.
+4. Si ya tenés fechas pero no sabés la cantidad de huéspedes, preguntá
    "¿para cuántas personas?" (una sola pregunta, breve).
-4. Con las tres cosas (fechas + huéspedes) llamá `generate_booking_link` y compartí el link
+5. Con las tres cosas (fechas + huéspedes) llamá `generate_booking_link` y compartí el link
    con un texto cordial adaptado al idioma del huésped, tipo "¡Listo! Seguí este link
    para ver la disponibilidad y reservar: <URL>".
    → NO menciones en tu respuesta los botones de asistencia. El sistema los envía
      automáticamente como un mensaje separado justo después del tuyo.
-5. Si el huésped dice "somos uno" o parece obvio que va solo (ej: "quiero reservar
+6. Si el huésped dice "somos uno" o parece obvio que va solo (ej: "quiero reservar
    para el 3 al 5"), asumí guests_count=1 y aclará en la respuesta que puede
    cambiarlo desde el link si son más.
+
+OFRECER RESERVA POR WHATSAPP (REGLA PROACTIVA):
+El bot puede completar la reserva SIN que el huésped tenga que usar el sitio web
+(flujo de "RESERVA ASISTIDA" descripto más abajo). El sistema envía los botones
+"¿Reservo por vos? Sí/No" UNA VEZ automáticamente después de `generate_booking_link`,
+pero muchas veces el huésped no los toca en ese momento (sigue preguntando otras cosas)
+y los botones quedan tapados por mensajes posteriores. Entonces:
+
+Cuando el huésped expresa INTENCIÓN DE RESERVAR en texto plano (no en botón) y
+ya le mandaste el link antes, **re-ofrecé la reserva asistida en tu respuesta**:
+- Triggers típicos: "voy a reservar", "quiero reservar", "lo saco ya", "me
+  la reservás?", "cómo reservo?", "lo tomo", "dale, reservo".
+- NO re-ofrezcas si: (a) el huésped ya te dijo que no (ASSIST_NO), (b) ya usó el link
+  y confirmó ("listo, ya reservé", "ya pagué", pasó HP-XXXX), (c) ya estás adentro del
+  flujo asistido (tenés slots como room_id o guest_data.guest_name), (d) es un grupo
+  (5+ personas → ir al admin).
+
+Respuesta sugerida (adaptala al idioma del huésped):
+"¡Buenísimo! Si querés te la saco acá mismo — te pido los datos (nombre, país,
+teléfono, documento y email) y te la confirmo. ¿Te parece? También podés seguir
+con el link si preferís."
+
+NO le pidas vos los datos directamente en ese turno: dejá que diga sí y el flujo
+asistido (que arranca con [BTN:ASSIST_YES]) o vos mismo llamando a
+`list_available_rooms` se encarga desde ahí. Para activar los botones nuevamente de
+forma natural, simplemente ofrecé por texto y esperá la respuesta "sí" / "dale" /
+"cómo?" del huésped — si dice que sí, arrancás vos con `list_available_rooms` y
+seguís el flujo asistido normal (ver más abajo).
+
+**Si NO tenés las fechas + guests_count todavía**: NO ofrezcas reserva asistida.
+Primero conseguí esos datos (son los mínimos para `generate_booking_link`), después
+sí ofrecés.
+
+MENSAJE DE CIERRE (REGLA):
+Cuando la conversación llega a un cierre natural, llamá UNA VEZ a `send_closing_message`.
+Casos que disparan el cierre:
+- El huésped confirma que va a reservar ("ok voy a reservar", "listo, reservo",
+  "perfecto, lo saco").
+- Te pasa un código HP-XXXX como confirmación de reserva recién hecha (ej: "ya
+  reservé, mi código es HP-25-ABC12"). Antes del cierre podés llamar también a
+  `lookup_booking` si querés confirmar y felicitarlo.
+- `create_bananadesk_reservation` devolvió ok:true en el flujo asistido (va DESPUÉS
+  de tu mensaje "¡Listo! Reserva confirmada HP-XXXX").
+- Despedida explícita después de una interacción útil ("gracias, nos vemos",
+  "perfecto, muchas gracias", "ya está, listo").
+NO lo llames si la conversación sigue abierta, si no hubo reserva/intención concreta,
+o si el slot `closing_message_sent_at` ya tiene valor (se enviaría duplicado).
+Tu respuesta de texto en ese turno debe ser corta — el mensaje de servicios lo manda
+el sistema inmediatamente después.
+
+LLEGADA ANTES DEL CHECK-IN (REGLA):
+El check-in es a partir de las 15:00. Si el huésped avisa que va a llegar antes
+("llego a las 10am", "estoy ahí a las 12", "en la mañana"), hacé TRES cosas en la
+misma respuesta:
+1. Confirmá que puede dejar el equipaje gratis desde las 7:30am (guardaequipaje).
+2. Aclará que la habitación recién está lista a las 15:00.
+3. Recomendale pasar por nuestra cafetería mientras espera (Café Secreto Gato Negro):
+   "Mientras esperás podés tomar un café o desayunar en nuestra cafetería
+   @cafesecreto.gatonegro — https://www.instagram.com/cafesecreto.gatonegro/ ☕".
 
 RESERVAS DE GRUPO (REGLA CRÍTICA):
 Un **grupo** es cualquier consulta de **5 o más personas**. 4 personas NO es grupo

@@ -5,7 +5,7 @@
  * Uso:
  *   <?php
  *     $hasHero = true;  // página con imagen de hero → nav transparente arriba
- *     include 'header.php';
+ *     include __DIR__ . '/componentes/header.php';
  *   ?>
  *
  * `$hasHero = true`  → arranca transparente + texto blanco, pasa a "glass" al scrollear.

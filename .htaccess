@@ -31,6 +31,11 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^room/([^/]+)/?$ room.php?name=$1 [L,QSA]
 
+# 4a. Map the common-area URLs: /area/<slug> -> area.php?name=<slug>
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^area/([^/]+)/?$ area.php?name=$1 [L,QSA]
+
 # 4b. Cafetería Gato Negro — carpeta real es /cafeteria, URL pública /cafeteriagatonegro
 RewriteRule ^cafeteriagatonegro/open_comanda\.php$ cafeteria/open_comanda.php [L,QSA]
 RewriteRule ^cafeteriagatonegro/add_item\.php$ cafeteria/add_item.php [L,QSA]

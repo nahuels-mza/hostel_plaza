@@ -54,12 +54,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <section class="relative h-[40vh] min-h-[350px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
@@ -134,7 +134,7 @@
         </div>
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
         lucide.createIcons();

@@ -13,6 +13,7 @@ logs/*/.recent.json
 bookings.json
 conversations.json
 whatsapp/cache/
+cache/
 cafeteria/sales/*.json
 cafeteria/*.json
 cafeteria/ingredients.json

@@ -139,11 +139,11 @@ if (file_exists($bookingsFile)) {
 
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- CSS de nav/lang/google translate vive en header.php -->
+    <!-- CSS de nav/lang/google translate vive en componentes/header.php -->
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <div class="w-full pt-40 pb-16 bg-slate-900 border-b border-white/10">
         <div class="max-w-3xl mx-auto px-6 text-center">
@@ -242,16 +242,16 @@ if (file_exists($bookingsFile)) {
     </main>
 
     <?php
-    if(file_exists('footer.php')) {
-        include 'footer.php';
+    if(file_exists(__DIR__ . '/componentes/footer.php')) {
+        include __DIR__ . '/componentes/footer.php';
     }
     ?>
 
     <script>
         lucide.createIcons();
 
-        // Google Translate init + killer-loop + mobile menu toggle already live in header.php.
-        // This page's own changeLanguage() below overrides the one from header.php (it's
+        // Google Translate init + killer-loop + mobile menu toggle already live in componentes/header.php.
+        // This page's own changeLanguage() below overrides the one from componentes/header.php (it's
         // declared later in the DOM) so it can also swap the .nav-label copy on this page.
         function changeLanguage(langCode, btnElement, isMobile = false) {
             var selectField = document.querySelector("#google_translate_element select");

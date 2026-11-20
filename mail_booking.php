@@ -5,10 +5,10 @@
  * se paga directamente en el check-in.
  *
  * Idioma: se toma el idioma que el huésped ya eligió en el selector del sitio
- * (cookie `hp_lang`, seteada por header.php) — no la nacionalidad del huésped.
+ * (cookie `hp_lang`, seteada por componentes/header.php) — no la nacionalidad del huésped.
  * Si no hay cookie (ej. llamada directa a la API), se cae al header
  * Accept-Language del browser, y en última instancia a español (mismo
- * criterio que el resto del sitio, ver header.php).
+ * criterio que el resto del sitio, ver componentes/header.php).
  *
  * Uso:
  *   require_once __DIR__ . '/mail_booking.php';
