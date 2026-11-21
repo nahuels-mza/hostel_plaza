@@ -20,3 +20,5 @@ cafeteria/ingredients.json
 do_not_upload/*
 
 db/*
+
+/cache

@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms & Conditions | Hostel Plaza</title>
     <link rel="icon" href="/iconwhite.ico" sizes="any">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -78,7 +78,7 @@
     </section>
 
     <main class="flex-1 max-w-4xl mx-auto px-8 md:px-16 py-16 bg-white rounded-3xl shadow-xl -mt-16 relative z-30 mb-24 w-[90%] md:w-full">
-        
+
         <div class="prose prose-slate max-w-none">
             <p class="text-sm text-slate-500 uppercase tracking-widest font-bold mb-8">Last Updated: <?php echo date("F Y"); ?></p>
 
@@ -96,7 +96,7 @@
             <ul class="list-disc pl-5 text-slate-600 space-y-2 mb-8 leading-relaxed">
                 <li><strong>Check-in:</strong> Begins at 14:00 (2:00 PM).</li>
                 <li><strong>Check-out:</strong> Strictly by 10:00 AM.</li>
-                <li>Early check-in and late check-out are subject to availability and may incur additional charges. If you arrive early, you are welcome to store your luggage in our secure room free of charge.</li>
+                <li>Early check-in and late check-out are subject to availability and may incur additional charges. Hostel Plaza is not responsible for any loss or damage to luggage stored in. We encourge to use <a href="https://bounce.com/s/location/d6a41810-df04-4ef0-9ae3-ee1a9e564e3f?_aid=1be92827-c3d7-4651-835b-d6ccb1b5bc99&from=2026-08-14T0000&query=Mendoza&ref=5MADS458065823323850&selectedStoreId=d6a41810-df04-4ef0-9ae3-ee1a9e564e3f&to=2026-08-14T0000&standardBags=0&compactBags=1&oddsizeBags=0">Bounce</a>. for a Safe Storage option.</li>
                 <li>A valid government-issued photo ID (passport or National ID) is required upon check-in. And if Argentinian, a DNI card.</li>
             </ul>
 

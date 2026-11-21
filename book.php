@@ -1038,7 +1038,6 @@ $seo = [
                     <ul class="space-y-1 pl-1">
                         <li><span class="font-semibold">Check-in:</span> 3:00 PM to 11:30 PM</li>
                         <li><span class="font-semibold">Check-out:</span> Before 11:00 AM</li>
-                        <li><span class="font-semibold">Free luggage storage:</span> 7:30 AM to 8:00 PM</li>
                     </ul>
                 </div>
 
@@ -1046,6 +1045,12 @@ $seo = [
                 <div>
                     <h3 class="font-bold text-slate-900 mb-1">☕ Breakfast</h3>
                     <p>Included in our café: coffee/tea, toast with jam, and fruit.</p>
+                </div>
+
+                <!-- Early Check in -->
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-1">🌅 Early Check in</h3>
+                    <p>Available for an additional fee, subject to availability. We recommend using <a href="https://bounce.com/s/location/d6a41810-df04-4ef0-9ae3-ee1a9e564e3f?_aid=1be92827-c3d7-4651-835b-d6ccb1b5bc99&from=2026-08-14T0000&query=Mendoza&ref=5MADS458065823323850&selectedStoreId=d6a41810-df04-4ef0-9ae3-ee1a9e564e3f&to=2026-08-14T0000&standardBags=0&compactBags=1&oddsizeBags=0" class="text-blue-500 hover:underline">Bounce</a> to secure your luggage.</p>
                 </div>
 
                 <!-- Rates -->
