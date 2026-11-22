@@ -15,6 +15,65 @@
  *   así que no se pierde nada; la reserva en BananaDesk se puede crear a mano.
  */
 
+// User-Agent tipo navegador: BananaDesk (nginx) devolvió 403 al UA "HostelPlaza-Booking/1.0".
+const HP_BD_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+/**
+ * HTTP helper con diagnóstico completo (para poder entender fallos tipo 403 de nginx/WAF).
+ * @return array{code:int, body:string, err:string, errno:int, diag:array}
+ */
+function hp_bd_http(string $step, string $url, array $opts, array $headers): array
+{
+    $ch = curl_init($url);
+    $respHeaders = [];
+    curl_setopt_array($ch, $opts + [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => $headers,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HEADERFUNCTION => function ($c, $h) use (&$respHeaders) {
+            $t = trim($h);
+            if ($t !== '' && strpos($t, ':') !== false) $respHeaders[] = $t;
+            return strlen($h);
+        },
+    ]);
+    $body  = curl_exec($ch);
+    $info  = curl_getinfo($ch);
+    $err   = curl_error($ch);
+    $errno = curl_errno($ch);
+    curl_close($ch);
+
+    $diag = [
+        'step'         => $step,
+        'url'          => $url,
+        'http_code'    => (int)($info['http_code'] ?? 0),
+        'effective_url'=> $info['url'] ?? $url,
+        'redirects'    => (int)($info['redirect_count'] ?? 0),
+        'server_ip'    => $info['primary_ip'] ?? '',
+        'total_time_s' => round((float)($info['total_time'] ?? 0), 3),
+        'curl_errno'   => $errno,
+        'curl_error'   => $err,
+        'resp_headers' => array_slice($respHeaders, -25),
+        'resp_body'    => is_string($body) ? trim(preg_replace('/\s+/', ' ', strip_tags($body))) : '',
+    ];
+    return ['code' => $diag['http_code'], 'body' => is_string($body) ? $body : '', 'err' => $err, 'errno' => $errno, 'diag' => $diag];
+}
+
+/** Escribe un bloque de diagnóstico en logs/bananadesk/ cuando algo falla. */
+function hp_bd_log_failure(string $reason, array $diag, ?string $payload = null): void
+{
+    if (!function_exists('hp_write_log')) require_once __DIR__ . '/logger.php';
+    $lines = ["FAIL [{$diag['step']}] {$reason}"];
+    foreach ($diag as $k => $v) {
+        if ($k === 'step') continue;
+        if (is_array($v)) $v = implode(' | ', $v);
+        $lines[] = sprintf('  %-13s %s', $k . ':', substr((string)$v, 0, 800));
+    }
+    if ($payload !== null) $lines[] = '  payload:      ' . substr($payload, 0, 2000);
+    $lines[] = '  context:      ' . hp_client_info() . ' | php ' . PHP_VERSION;
+    $lines[] = str_repeat('-', 60);
+    hp_write_log('bananadesk', implode("\n", $lines));
+}
+
 /**
  * @param string $checkIn     YYYY-MM-DD
  * @param string $checkOut    YYYY-MM-DD
@@ -51,19 +110,15 @@ function hp_bananadesk_reserve(
         $base, rawurlencode($slug), rawurlencode($checkIn), rawurlencode($checkOut)
     );
 
-    $ch = curl_init($availUrl);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json', 'User-Agent: HostelPlaza-Booking/1.0'],
-        CURLOPT_TIMEOUT        => $timeout,
-        CURLOPT_FOLLOWLOCATION => true,
-    ]);
-    $body = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    $r = hp_bd_http('availability', $availUrl, [CURLOPT_TIMEOUT => $timeout],
+        ['Accept: application/json', 'User-Agent: ' . HP_BD_USER_AGENT]);
+    $body = $r['body'];
+    $code = $r['code'];
 
-    if ($code < 200 || $code >= 300 || !$body) {
-        return ['ok' => false, 'response' => null, 'error' => "Availability fetch failed: HTTP $code"];
+    if ($r['errno'] || $code < 200 || $code >= 300 || !$body) {
+        hp_bd_log_failure('availability fetch failed', $r['diag']);
+        $why = $r['errno'] ? "cURL error {$r['errno']}: {$r['err']}" : "HTTP $code";
+        return ['ok' => false, 'response' => null, 'error' => "Availability fetch failed: $why", 'diag' => $r['diag']];
     }
 
     $rooms = json_decode($body, true);
@@ -138,26 +193,24 @@ function hp_bananadesk_reserve(
     $reserveUrl = sprintf('%s/booking-engine/hostel/%s/reserve-and-bank-transfer', $base, rawurlencode($slug));
     $jsonBody   = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
-    $ch = curl_init($reserveUrl);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $jsonBody,
-        CURLOPT_HTTPHEADER     => [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'User-Agent: HostelPlaza-Booking/1.0',
-        ],
-        CURLOPT_TIMEOUT        => $timeout,
-        CURLOPT_FOLLOWLOCATION => true,
+    $r = hp_bd_http('reserve', $reserveUrl, [
+        CURLOPT_POST       => true,
+        CURLOPT_POSTFIELDS => $jsonBody,
+        CURLOPT_TIMEOUT    => $timeout,
+    ], [
+        'Content-Type: application/json',
+        'Accept: application/json, text/plain, */*',
+        'Accept-Language: es-AR,es;q=0.9,en;q=0.8',
+        'Origin: ' . $base,
+        'Referer: ' . $base . '/',
+        'User-Agent: ' . HP_BD_USER_AGENT,
     ]);
-    $respBody = curl_exec($ch);
-    $respCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlErr  = curl_error($ch);
-    curl_close($ch);
+    $respBody = $r['body'];
+    $respCode = $r['code'];
 
-    if ($curlErr) {
-        return ['ok' => false, 'response' => null, 'error' => "cURL error: {$curlErr}"];
+    if ($r['errno']) {
+        hp_bd_log_failure('cURL error', $r['diag'], $jsonBody);
+        return ['ok' => false, 'response' => null, 'error' => "cURL error {$r['errno']}: {$r['err']}", 'diag' => $r['diag']];
     }
 
     $respData = json_decode($respBody, true);
@@ -166,9 +219,11 @@ function hp_bananadesk_reserve(
         return ['ok' => true, 'response' => $respData, 'error' => null];
     }
 
+    hp_bd_log_failure("HTTP {$respCode} on reserve", $r['diag'], $jsonBody);
     return [
         'ok'       => false,
         'response' => $respData,
-        'error'    => "BananaDesk returned HTTP {$respCode}: " . substr((string)$respBody, 0, 300),
+        'error'    => "BananaDesk returned HTTP {$respCode}: " . substr(trim(preg_replace('/\s+/', ' ', strip_tags((string)$respBody))), 0, 300),
+        'diag'     => $r['diag'],
     ];
 }
