@@ -7,7 +7,7 @@
 /**
  * @return array{ok: bool, error: string|null, debug: string}
  */
-function hp_send_mail(string $toEmail, string $toName, string $subject, string $body, string $altBody, string $logId = ''): array
+function hp_send_mail(string $toEmail, string $toName, string $subject, string $body, string $altBody, string $logId = '', bool $internal = false): array
 {
     $pathException = __DIR__ . '/PHPMailer-master/src/Exception.php';
     $pathPHPMailer = __DIR__ . '/PHPMailer-master/src/PHPMailer.php';
@@ -47,11 +47,13 @@ function hp_send_mail(string $toEmail, string $toName, string $subject, string $
 
         $mail->setFrom('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
         $mail->addAddress($toEmail, $toName);
-        $mail->addCC('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
-        $mail->addBCC('hostelplazamza@gmail.com');
-        $mail->addReplyTo('info@hostelplaza.com.ar', 'Hostel Plaza Info');
+        if (!$internal) {
+            $mail->addCC('confirmation@hostelplaza.com.ar', 'Hostel Plaza');
+            $mail->addBCC('hostelplazamza@gmail.com');
+            $mail->addReplyTo('info@hostelplaza.com.ar', 'Hostel Plaza Info');
+        }
 
-        $mail->isHTML(true);
+        $mail->isHTML(!$internal);
         $mail->Subject = $subject;
         $mail->Body    = $body;
         $mail->AltBody = $altBody;

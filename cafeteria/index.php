@@ -40,12 +40,6 @@ $backLabel = '‹ Inicio';
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { teal: { DEFAULT: '#1c5457', hover: '#144042' } } } } }
-        // El botón "atrás" del navegador puede restaurar esta página desde su
-        // caché (bfcache) en vez de volver a pedirla — eso deja ver una foto
-        // vieja de la comanda/lista de mesas. Si pasó eso, forzamos un reload.
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) window.location.reload();
-        });
     </script>
     <style>
         .hide-scrollbar::-webkit-scrollbar { display: none; }

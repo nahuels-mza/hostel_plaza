@@ -139,16 +139,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         $bdBookingUnit = $bookedRoomMeta['bookingUnit'] ?? 'room';
         $bdResult      = null;
         if ($bdRoomTypeId > 0) {
-            $bdResult = hp_bananadesk_reserve(
-                $newBooking['checkIn'],
-                $newBooking['checkOut'],
-                $bdRoomTypeId,
-                $newBooking['guestName'],
-                $newBooking['email'],
-                $newBooking['phone'],
-                (int)$newBooking['guestsCount'],
-                $bdBookingUnit
-            );
+            try {
+                $bdResult = hp_bananadesk_reserve(
+                    $newBooking['checkIn'],
+                    $newBooking['checkOut'],
+                    $bdRoomTypeId,
+                    $newBooking['guestName'],
+                    $newBooking['email'],
+                    $newBooking['phone'],
+                    (int)$newBooking['guestsCount'],
+                    $bdBookingUnit
+                );
+            } catch (\Throwable $e) {
+                $bdResult = [
+                    'ok' => false, 'response' => null,
+                    'error' => 'EXCEPTION ' . get_class($e) . ': ' . $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine(),
+                ];
+                hp_write_log('bananadesk', "EXCEPTION booking {$newReservationId}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            }
 
             // Guardar el resultado en bookings.json para trazabilidad
             $bookingsNow = json_decode(file_get_contents($bookingsFile), true) ?: [];
@@ -179,11 +187,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
         }
         if ($bdRoomTypeId > 0) {
             $entryLines[] = "BananaDesk: " . ($bdResult['ok'] ? 'OK' : 'ERROR — ' . ($bdResult['error'] ?? 'unknown error'));
+            if (!$bdResult['ok']) {
+                $d = $bdResult['diag'] ?? [];
+                if ($d) {
+                    $entryLines[] = "BD debug:   step={$d['step']} http={$d['http_code']} ip={$d['server_ip']} t={$d['total_time_s']}s curl_errno={$d['curl_errno']} (detalle: logs/bananadesk/)";
+                }
+                $entryLines[] = "!! ACCIÓN REQUERIDA: reserva {$newReservationId} NO creada en BananaDesk — cargar manualmente.";
+            }
         } else {
             $entryLines[] = "BananaDesk: SKIP (sin mapeo en room_mapping.json)";
         }
         $entryLines[] = str_repeat('=', 60);
         hp_write_log('mail', implode("\n", $entryLines));
+
+        // --- Aviso al admin si la reserva no quedó creada en BananaDesk ---
+        if ($bdRoomTypeId > 0 && $bdResult && !$bdResult['ok']) {
+            try {
+                $alert  = "ATENCIÓN: la reserva {$newReservationId} NO se creó en BananaDesk. Hay que cargarla manualmente.\n";
+                $alert .= "(El huésped sí recibió el mail de confirmación: " . ($mailResult['ok'] ? 'OK' : 'ERROR') . ")\n\n";
+                $alert .= implode("\n", $entryLines) . "\n\n";
+                $alert .= "Error: " . ($bdResult['error'] ?? 'unknown') . "\n";
+                if (!empty($bdResult['diag'])) {
+                    $alert .= "\n--- Diagnóstico HTTP ---\n";
+                    foreach ($bdResult['diag'] as $k => $v) {
+                        if (is_array($v)) $v = "\n    " . implode("\n    ", $v);
+                        $alert .= sprintf("%-14s %s\n", $k . ':', $v);
+                    }
+                }
+                if (!empty($bdResult['response'])) {
+                    $alert .= "\nResponse JSON: " . json_encode($bdResult['response'], JSON_UNESCAPED_UNICODE) . "\n";
+                }
+                $alert .= "\nBooking guardado (bookings.json): " . json_encode($newBooking, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
+                $alert .= "\nLogs: logs/bananadesk/" . date('Y-m-d') . ".log y logs/mail/" . date('Y-m-d') . ".log\n";
+                $alert .= "Servidor: " . ($_SERVER['HTTP_HOST'] ?? '?') . " | " . date('c') . "\n";
+                $adminMail = hp_send_mail(
+                    'hostelplazamza@gmail.com', 'Hostel Plaza Admin',
+                    "[URGENTE] Reserva {$newReservationId} NO creada en BananaDesk",
+                    $alert, $alert, "bd-alert={$newReservationId}", true
+                );
+                if (!$adminMail['ok']) {
+                    hp_write_log('bananadesk', "No se pudo enviar el aviso al admin ({$newReservationId}): " . $adminMail['error']);
+                }
+            } catch (\Throwable $e) {
+                hp_write_log('bananadesk', "Excepción enviando aviso al admin ({$newReservationId}): " . $e->getMessage());
+            }
+        }
 
         $bookingSuccess = true;
     }
@@ -395,9 +443,18 @@ $seo = [
                                 </div>
                             </div>
                             <div class="p-5 flex-1 flex flex-col">
-                                <p class="text-[11px] text-teal uppercase tracking-widest font-bold mb-1"><?php echo htmlspecialchars($r['type'] ?? ''); ?></p>
+                                <?php if (stripos($r['type'] ?? '', 'female') !== false): ?>
+                                    <p class="inline-flex items-center gap-1 text-[11px] bg-pink-50 text-pink-700 border border-pink-200 uppercase tracking-widest font-bold mb-1 px-2 py-0.5 rounded-full w-fit">
+                                        <i data-lucide="shield-check" class="w-3 h-3"></i> <?php echo htmlspecialchars($r['type']); ?>
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-[11px] text-teal uppercase tracking-widest font-bold mb-1"><?php echo htmlspecialchars($r['type'] ?? ''); ?></p>
+                                <?php endif; ?>
                                 <h3 class="text-lg font-bold text-slate-900 mb-2"><?php echo htmlspecialchars($r['name']); ?></h3>
-                                <p class="text-sm text-slate-500 mb-4 line-clamp-2"><?php echo htmlspecialchars($r['description'] ?? ''); ?></p>
+                                <p class="text-sm text-slate-500 line-clamp-2 <?php echo stripos($r['type'] ?? '', 'female') !== false ? 'mb-2' : 'mb-4'; ?>"><?php echo htmlspecialchars($r['description'] ?? ''); ?></p>
+                                <?php if (stripos($r['type'] ?? '', 'female') !== false): ?>
+                                    <p class="text-xs font-bold text-pink-700 mb-2">Women only — valid ID may be checked at check-in.</p>
+                                <?php endif; ?>
                                 <div class="flex items-center gap-3 text-xs text-slate-500 mb-4">
                                     <span class="flex items-center gap-1"><i data-lucide="users" class="w-4 h-4"></i> Up to <?php echo (int)($r['capacity'] ?? 1); ?></span>
                                 </div>
@@ -445,9 +502,18 @@ $seo = [
                                          class="w-full h-full object-cover">
                                 </div>
                                 <div class="sm:col-span-3 p-6 flex flex-col">
-                                    <p class="text-[11px] text-teal uppercase tracking-widest font-bold mb-1"><?php echo htmlspecialchars($selectedRoom['type'] ?? ''); ?></p>
+                                    <?php if (stripos($selectedRoom['type'] ?? '', 'female') !== false): ?>
+                                        <p class="inline-flex items-center gap-1 text-[11px] bg-pink-50 text-pink-700 border border-pink-200 uppercase tracking-widest font-bold mb-1 px-2 py-0.5 rounded-full w-fit">
+                                            <i data-lucide="shield-check" class="w-3 h-3"></i> <?php echo htmlspecialchars($selectedRoom['type']); ?>
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="text-[11px] text-teal uppercase tracking-widest font-bold mb-1"><?php echo htmlspecialchars($selectedRoom['type'] ?? ''); ?></p>
+                                    <?php endif; ?>
                                     <h3 class="text-xl font-bold text-slate-900 mb-1"><?php echo htmlspecialchars($selectedRoom['name']); ?></h3>
-                                    <p class="text-sm text-slate-500 mb-3 line-clamp-2"><?php echo htmlspecialchars($selectedRoom['description'] ?? ''); ?></p>
+                                    <p class="text-sm text-slate-500 line-clamp-2 <?php echo stripos($selectedRoom['type'] ?? '', 'female') !== false ? 'mb-1' : 'mb-3'; ?>"><?php echo htmlspecialchars($selectedRoom['description'] ?? ''); ?></p>
+                                    <?php if (stripos($selectedRoom['type'] ?? '', 'female') !== false): ?>
+                                        <p class="text-xs font-bold text-pink-700 mb-3">Women only — valid ID may be checked at check-in.</p>
+                                    <?php endif; ?>
                                     <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                                         <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?></span>
                                         <span class="flex items-center gap-1"><i data-lucide="moon" class="w-3.5 h-3.5"></i> <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?></span>

@@ -26,6 +26,15 @@ $cafeteriaNavLinks = [
     'ventas'   => ['href' => '/cafeteriagatonegro/ventas',   'label' => 'Ventas',   'admin' => true],
 ];
 ?>
+    <script>
+        // El botón "atrás" del navegador puede restaurar la página anterior desde
+        // su caché (bfcache) en vez de volver a pedirla al server — eso deja ver
+        // stock/insumos/precios desactualizados (p. ej. después de registrar una
+        // compra en otra pestaña o página). Si pasó eso, forzamos un reload.
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) window.location.reload();
+        });
+    </script>
     <header class="bg-teal text-white px-4 sm:px-6 py-3 sm:py-4 shadow relative z-30">
         <div class="flex items-center justify-between gap-3">
             <h1 class="text-lg sm:text-xl font-bold truncate">Gato Negro · <?= htmlspecialchars($cafeteriaTitle) ?></h1>
