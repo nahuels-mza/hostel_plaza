@@ -55,12 +55,12 @@ $faqCategories = $faqData['categories'] ?? [];
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col selection:bg-teal selection:text-white">
 
-    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = false; include __DIR__ . '/componentes/header.php'; ?>
 
     <div class="bg-[#0f172a] pt-20 pb-24 px-6 text-center border-b border-white/5">
         <h4 class="text-teal-400 font-bold tracking-widest uppercase text-xs mb-4 flex items-center justify-center gap-2"><i data-lucide="help-circle" class="w-4 h-4"></i> Support & Information</h4>
@@ -103,7 +103,7 @@ $faqCategories = $faqData['categories'] ?? [];
         </div>
     </main>
 
-      <?php include 'footer.php'; ?>
+      <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
         lucide.createIcons();

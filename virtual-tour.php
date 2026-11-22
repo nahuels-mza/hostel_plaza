@@ -55,12 +55,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <header class="relative pt-40 pb-24 lg:pt-48 lg:pb-32 bg-slate-900 overflow-hidden">
         <div class="absolute inset-0 z-0 opacity-40">
@@ -151,8 +151,8 @@
     </section>
 
     <?php 
-    if(file_exists('footer.php')) {
-        include 'footer.php'; 
+    if(file_exists(__DIR__ . '/componentes/footer.php')) {
+        include __DIR__ . '/componentes/footer.php'; 
     }
     ?>
 

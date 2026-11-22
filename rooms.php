@@ -93,12 +93,12 @@ $seo = [
                 scroll-snap-align: start;
             }
         }
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = false; include __DIR__ . '/componentes/header.php'; ?>
 
     <header class="relative h-[60vh] min-h-[450px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/hero-img?p=rooms');"></div>
@@ -166,7 +166,7 @@ $seo = [
         </div>
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
         lucide.createIcons();

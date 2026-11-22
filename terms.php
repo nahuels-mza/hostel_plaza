@@ -54,12 +54,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <section class="relative h-[40vh] min-h-[350px] flex items-center justify-center">
         <div class="absolute inset-0 z-0 overflow-hidden">
@@ -96,7 +96,7 @@
             <ul class="list-disc pl-5 text-slate-600 space-y-2 mb-8 leading-relaxed">
                 <li><strong>Check-in:</strong> Begins at 14:00 (2:00 PM).</li>
                 <li><strong>Check-out:</strong> Strictly by 10:00 AM.</li>
-                <li>Early check-in and late check-out are subject to availability and may incur additional charges. Hostel Plaza is not responsible for any loss or damage to luggage stored in. We encourge to use <a href="https://bounce.com/s/location/d6a41810-df04-4ef0-9ae3-ee1a9e564e3f?_aid=1be92827-c3d7-4651-835b-d6ccb1b5bc99&from=2026-08-14T0000&query=Mendoza&ref=5MADS458065823323850&selectedStoreId=d6a41810-df04-4ef0-9ae3-ee1a9e564e3f&to=2026-08-14T0000&standardBags=0&compactBags=1&oddsizeBags=0">Bounce</a>. for a Safe Storage option.</li>
+                <li>Early check-in and late check-out are subject to availability and may incur additional charges. Hostel Plaza is not responsible for any loss or damage to luggage stored in. We encourge to use <a href="https://bounce.com/s/location/d6a41810-df04-4ef0-9ae3-ee1a9e564e3f?_aid=1be92827-c3d7-4651-835b-d6ccb1b5bc99&from=2026-08-14T0000&query=Mendoza&ref=5MADS458065823323850&selectedStoreId=d6a41810-df04-4ef0-9ae3-ee1a9e564e3f&to=2026-08-14T0000&standardBags=0&compactBags=1&oddsizeBags=0">Bounce</a> for a Safe Storage option.</li>
                 <li>A valid government-issued photo ID (passport or National ID) is required upon check-in. And if Argentinian, a DNI card.</li>
             </ul>
 
@@ -134,7 +134,7 @@
         </div>
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
         lucide.createIcons();

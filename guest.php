@@ -149,7 +149,7 @@ if ($isLoggedIn) {
 </head>
 <body class="bg-[#f8fafc] font-sans text-slate-800 min-h-screen flex flex-col">
 
-    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = false; include __DIR__ . '/componentes/header.php'; ?>
 
     <?php if (!$isLoggedIn): ?>
     <div class="flex-1 flex items-center justify-center p-6 pt-24">

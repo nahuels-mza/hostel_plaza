@@ -27,9 +27,16 @@ There is no build/lint/test tooling for the PHP code (no Composer scripts, no PH
 ## Architecture
 
 ### Public site
-`index.php`, `rooms.php`, `room.php`, `about.php`, `faq.php`, `history.php`, `virtual-tour.php`, `terms.php`, `privacy.php`, `tourist-events.php` are public pages sharing `header.php` / `footer.php` and partials prefixed with `_` (`_seo.php`, `_ga.php`, `_search_fields.php`, `_about_gallery.php`).
+`index.php`, `rooms.php`, `room.php`, `about.php`, `faq.php`, `history.php`, `virtual-tour.php`, `terms.php`, `privacy.php`, `tourist-events.php` are public pages sharing the components in `componentes/` and partials prefixed with `_` (`_seo.php`, `_ga.php`, `_search_fields.php`, `_about_gallery.php`, `_areas.php`).
 
-Language handling: the guest picks a language via a selector in `header.php`, stored in the `hp_lang` cookie. Only `es` and `en` have dedicated copy (see `hp_detect_lang()` in `mail_booking.php`); other languages fall back to English and are translated client-side via Google Translate.
+**Shared components live in `componentes/`** — any new page or section should extend from here instead of copying markup:
+- `componentes/header.php` / `componentes/footer.php`: include with `$hasHero = true|false; include __DIR__ . '/componentes/header.php';` and `include __DIR__ . '/componentes/footer.php';`. Never include them by bare filename.
+- `componentes/carrousel.php`: `hp_carrousel([...])` draws the heading + arrows + endless-scroll track + dots, and prints the shared CSS/JS once. The page supplies only the card (`'card' => function ($item) { ?> ... <?php }`). Used by rooms, common areas and events on the home.
+(`cafeteria/_header.php` is a separate header for that subsystem, not part of this.)
+
+Common areas (living, TV room, cowork, kitchen, patio): data lives in `areas.json` (slug, title, text, long_text, image, gallery). `image` is ONE Drive photo link (card + page hero); `gallery` is a shared Drive FOLDER link — `_areas.php` lists its photos (sorted by file name, cached 1 week in the gitignored `cache/`, last good list kept if Google fails) and hotlinks them via `drive.google.com/thumbnail`, which serves JPEG even for HEIC originals. The home shows them in a carousel and `area.php` renders each one at `/area/<slug>` (rewrite in `.htaccess`). Its hero/header/footer must match `room.php` (the other detail page).
+
+Language handling: the guest picks a language via a selector in `componentes/header.php`, stored in the `hp_lang` cookie. Only `es` and `en` have dedicated copy (see `hp_detect_lang()` in `mail_booking.php`); other languages fall back to English and are translated client-side via Google Translate.
 
 ### Booking flow
 1. `book.php` is a multi-step wizard (dates → guest details → payment) that checks live availability/pricing via `room_availability.php` / `rooms_for_dates.php`, both of which query **BananaDesk** — an external booking engine — in real time.

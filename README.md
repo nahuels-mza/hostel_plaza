@@ -10,8 +10,10 @@ Es una app **PHP clásica sin framework** (sin Composer excepto para PHPMailer):
 ├── index.php, rooms.php, room.php, about.php, faq.php,   → páginas públicas del sitio
 │   history.php, virtual-tour.php, terms.php, privacy.php,  (landing, habitaciones, info)
 │   tourist-events.php, hero-img.php, event-img.php
-├── header.php, footer.php, _seo.php, _ga.php,             → partials compartidos por las
-│   _search_fields.php, _about_gallery.php                  páginas públicas
+├── componentes/                                            → componentes compartidos por todas las páginas:
+│   header.php, footer.php, carrousel.php                    nav, footer y carrousel horizontal (hp_carrousel())
+├── _seo.php, _ga.php, _search_fields.php,                  → partials sueltos de las páginas públicas
+│   _about_gallery.php, _areas.php
 │
 ├── book.php                                                → wizard de reserva (3 pasos: fechas → datos → pago)
 ├── bananadesk_reserve.php                                  → crea la reserva en BananaDesk (motor externo)

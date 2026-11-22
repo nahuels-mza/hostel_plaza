@@ -81,4 +81,4 @@
     </svg>
 </a>
 
-<?php include_once __DIR__ . '/_ga.php'; ?>
+<?php include_once dirname(__DIR__) . '/_ga.php'; ?>

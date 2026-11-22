@@ -1,0 +1,52 @@
+[
+    {
+        "slug": "living",
+        "title": "Living Room",
+        "text": "A cozy lounge in our heritage house to relax, read or share a mate with other travelers.",
+        "long_text": "Our living room is the heart of the house. Sink into the couches after a day of wine tasting or hiking, pick up a book from the shelf or simply meet the people you will be traveling with tomorrow.",
+        "image": "https://drive.google.com/file/d/1Igv-bSjdryOmZd829jRjNYO7Cb6jrNdh/view?usp=sharing",
+        "gallery": "https://drive.google.com/drive/folders/14eLYU29tyyEbSnOBoD-nxcxAKkF8QdfG"
+    },
+    {
+        "slug": "tv-room",
+        "title": "TV Room",
+        "text": "Movie nights, football matches and lazy afternoons on the couch.",
+        "long_text": "A comfortable room with a big screen for movie nights, football matches and series marathons. A great plan for those rainy days, or for when your legs are tired from the mountains.",
+        "image": "https://drive.google.com/file/d/1hoEelSFtEa3TIPVDU0amvOLLQQ96lGd7/view?usp=sharing",
+        "gallery": [
+            "https://drive.google.com/file/d/1_4VTNM3U6-VX3PtDPDT_GnIoFOmHbETB/view?usp=sharing",
+            "https://drive.google.com/file/d/1u4rYsR9G_ks6zDeiunRks1lq1IjaSZ90/view?usp=sharing",
+            "https://drive.google.com/file/d/1CI5NUWDBkdWL0wymFfFsXbyKe8QVcXi4/view?usp=sharing",
+            "https://drive.google.com/file/d/1XsGzIxUbKdpc3DHi1hln7v7_tlxtoEw0/view?usp=sharing",
+            "https://drive.google.com/file/d/1QqDMH6JHyqZnr7yLKV785h2qo966vf-I/view?usp=sharing"
+        ]
+    },
+    {
+        "slug": "cowork",
+        "title": "Cowork",
+        "text": "Quiet desks and fast WiFi for digital nomads who need to get things done.",
+        "long_text": "A calm corner of the house set up for remote work: comfortable desks, plenty of plugs and fast WiFi. Work in the morning, explore Mendoza in the afternoon.",
+        "image": "https://drive.google.com/file/d/1q2bbURHbOCwuS_N0ZgNkfwHHoALfrkWE/view?usp=sharing",
+        "gallery": "https://drive.google.com/drive/folders/13ZSXhUvzXpKwGuF1HYO1k_SqrRx0z6LH?usp=drive_link"
+    },
+    {
+        "slug": "cocina",
+        "title": "Kitchen",
+        "text": "Fully equipped shared kitchen to cook your own meals any time of day.",
+        "long_text": "A shared kitchen with everything you need to cook: stoves, oven, fridge space and all the utensils. Perfect for saving money, or for sharing a dinner with new friends.",
+        "image": "https://drive.google.com/file/d/1aOn5SQqt0gK5CFqj0ur7sPcXm4Eglx48/view?usp=sharing",
+        "gallery": [
+            "https://drive.google.com/drive/folders/1tOxU5vVil7TUIDcXtSp8mV96eojcyVxU",
+            "https://drive.google.com/file/d/1-GugXZhqhuNbA6xPalNNho2Yuq9RGTWw/view?usp=sharing",
+            "https://drive.google.com/file/d/1O5cc-iCWZuFeCQWzAZ9SM76za3PrhTCC/view?usp=sharing"
+        ]
+    },
+    {
+        "slug": "patio",
+        "title": "Patio",
+        "text": "Our colonial courtyard: sunshine, plants and the best spot for an asado.",
+        "long_text": "The colonial courtyard is the soul of Hostel Plaza. Enjoy your breakfast in the sun, read in the shade or gather around for an evening with the rest of the guests.",
+        "image": "https://drive.google.com/file/d/1Sqz2wqshuX2YCV2Iiu_DaHTb158WVUKG/view?usp=sharing",
+        "gallery": "https://drive.google.com/drive/folders/1RGbDdltvbITMzJjB4clAUQ9FuTO3HJf1"
+    }
+]

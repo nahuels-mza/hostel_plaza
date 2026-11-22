@@ -62,7 +62,7 @@
             scrollbar-width: none;
         }
 
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
 
         .image-reveal {
             position: relative;
@@ -79,7 +79,7 @@
 </head>
 <body class="bg-[#FDFBF7] font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <section class="relative h-[65vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 z-0">
@@ -192,7 +192,7 @@
 
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 md:bottom-6 md:left-6 md:right-auto md:max-w-sm bg-white rounded-t-3xl md:rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-2xl border border-slate-100 z-[100] transform translate-y-full transition-transform duration-500 flex flex-col hidden">
         <div class="p-6">

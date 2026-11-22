@@ -90,7 +90,7 @@ $seo = [
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        /* CSS de nav/lang/google translate vive en header.php */
+        /* CSS de nav/lang/google translate vive en componentes/header.php */
         .hero-gradient {
             background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.4));
         }
@@ -132,7 +132,7 @@ $seo = [
 </head>
 <body class="bg-slate-900 font-sans text-white min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = true; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = true; include __DIR__ . '/componentes/header.php'; ?>
 
     <section class="relative h-[60vh] min-h-[450px] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 z-0">
@@ -233,10 +233,10 @@ $seo = [
         </section>
     </main>
 
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
-        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en header.php
+        // Nav (google-translate, scroll, lang toggle, mobile menu) vive en componentes/header.php
         lucide.createIcons();
 
         // --- CAROUSEL JS ---

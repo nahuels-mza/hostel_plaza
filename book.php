@@ -345,7 +345,7 @@ $seo = [
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <?php $hasHero = false; include __DIR__ . '/header.php'; ?>
+    <?php $hasHero = false; include __DIR__ . '/componentes/header.php'; ?>
 
     <main class="flex-1 py-12 md:py-16 mt-[80px]">
         <div class="max-w-6xl mx-auto px-6">
@@ -735,7 +735,7 @@ $seo = [
         </div>
     </main>
 
-    <?php include __DIR__ . '/footer.php'; ?>
+    <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script>
         lucide.createIcons();
@@ -812,7 +812,7 @@ $seo = [
                         }
 
                         // room-badge/room-cta llevan "notranslate" en su className: son
-                        // llenados acá con hpText() (header.php) en vez de dejar que
+                        // llenados acá con hpText() (componentes/header.php) en vez de dejar que
                         // Google Translate re-escanee texto agregado al DOM después de
                         // cargar — para "Unavailable" suelto, sin contexto de frase,
                         // produce traducciones como "Indisponible" en vez de
