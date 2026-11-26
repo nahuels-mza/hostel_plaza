@@ -220,7 +220,7 @@ $seo = [
             </div>
 
             <div class="lg:col-span-1">
-                <div class="sticky top-32 bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
+                <div class="lg:sticky lg:top-32 bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
                     <?php $ars = hp_format_price($todayPrices, $currentRoom['id']); ?>
                     <div class="mb-8">
                         <?php if ($ars): ?>

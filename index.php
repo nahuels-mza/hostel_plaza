@@ -271,7 +271,7 @@ $areas = hp_load_areas(__DIR__ . '/areas.json');
             <?php hp_carrousel([
                 'id'      => 'areas',
                 'eyebrow' => 'Common Areas',
-                'title'   => 'Conocer nuestra casa por dentro',
+                'title'   => 'Take a look inside our house',
                 'items'   => $areas,
                 'card'    => function ($area) { ?>
                 <div class="<?php echo HP_CARROUSEL_SLIDE; ?> group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col relative">

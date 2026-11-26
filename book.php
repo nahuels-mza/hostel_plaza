@@ -402,7 +402,7 @@ $seo = [
             <!-- ============== STEP 1 + 2: BUSCADOR + HABITACIONES (misma página) ============== -->
             <?php if ($step === 1 || $step === 2): $hasResults = ($step === 2); ?>
                 <form id="search_form" method="GET" action="book.php"
-                      class="mx-auto bg-white border border-slate-200 shadow-sm transition-all <?php echo $hasResults ? 'max-w-4xl rounded-2xl p-4 sticky top-[96px] z-10 flex flex-col md:flex-row md:items-end gap-4' : 'max-w-2xl rounded-3xl p-8'; ?>">
+                      class="mx-auto bg-white border border-slate-200 shadow-sm transition-all <?php echo $hasResults ? 'max-w-4xl rounded-2xl p-4 md:sticky md:top-[96px] z-10 flex flex-col md:flex-row md:items-end gap-4' : 'max-w-2xl rounded-3xl p-8'; ?>">
                     <div id="search_fields" class="grid grid-cols-1 <?php echo $hasResults ? 'md:grid-cols-[1fr_1fr_0.5fr] gap-3 flex-1' : 'md:grid-cols-[1.4fr_1.4fr_0.8fr] gap-6'; ?>">
                         <?php
                             $sf_variant   = 'card';
@@ -781,7 +781,7 @@ $seo = [
             const guInput     = document.getElementById('guests_count_input');
 
             const FORM_FULL    = 'mx-auto bg-white border border-slate-200 shadow-sm transition-all max-w-2xl rounded-3xl p-8';
-            const FORM_COMPACT = 'mx-auto bg-white border border-slate-200 shadow-sm transition-all max-w-4xl rounded-2xl p-4 sticky top-[96px] z-10 flex flex-col md:flex-row md:items-end gap-4';
+            const FORM_COMPACT = 'mx-auto bg-white border border-slate-200 shadow-sm transition-all max-w-4xl rounded-2xl p-4 md:sticky md:top-[96px] z-10 flex flex-col md:flex-row md:items-end gap-4';
             const FIELDS_FULL    = 'grid grid-cols-1 md:grid-cols-[1.4fr_1.4fr_0.8fr] gap-6';
             const FIELDS_COMPACT = 'grid grid-cols-1 md:grid-cols-[1fr_1fr_0.5fr] gap-3 flex-1';
             const BTN_BASE      = 'bg-teal text-white font-bold shadow-md flex items-center justify-center gap-2 transition-all ';
