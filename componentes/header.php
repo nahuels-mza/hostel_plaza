@@ -247,7 +247,10 @@ var HP_I18N_LABELS = {
     checkIn:     { en: 'Check In',    es: 'Check-in',            pt: 'Check-in',      fr: 'Arrivée',         de: 'Anreise' },
     checkOut:    { en: 'Check Out',   es: 'Check-out',           pt: 'Check-out',     fr: 'Départ',          de: 'Abreise' },
     changeDates: { en: 'Change dates', es: 'Cambiar las fechas', pt: 'Alterar as datas', fr: 'Modifier les dates', de: 'Daten ändern' },
+    changeDatesGuests: { en: 'Change dates & guests', es: 'Cambiar fechas y cantidad de huéspedes', pt: 'Alterar datas e hóspedes', fr: 'Modifier dates et voyageurs', de: 'Daten & Gäste ändern' },
     changeRoom:  { en: 'Change room',  es: 'Cambiar habitaciones', pt: 'Alterar quarto', fr: 'Changer de chambre', de: 'Zimmer wechseln' },
+    findRooms:   { en: 'Find available rooms', es: 'Buscar habitaciones disponibles', pt: 'Buscar quartos disponíveis', fr: 'Voir les chambres disponibles', de: 'Verfügbare Zimmer suchen' },
+    updateAvailability: { en: 'Update availability', es: 'Actualizar disponibilidad', pt: 'Atualizar disponibilidade', fr: 'Actualiser la disponibilité', de: 'Verfügbarkeit aktualisieren' },
     available:   { en: 'Available',    es: 'Disponible',         pt: 'Disponível',    fr: 'Disponible',      de: 'Verfügbar' },
     unavailable: { en: 'Unavailable',  es: 'No disponible',      pt: 'Não disponível', fr: 'Indisponible',   de: 'Nicht verfügbar' },
 };

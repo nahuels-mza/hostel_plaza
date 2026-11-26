@@ -1,10 +1,12 @@
 <?php
 // =============================================================================
-// HOSTEL PLAZA · BOOKING WIZARD (3 steps)
+// HOSTEL PLAZA · BOOKING WIZARD (2 pasos visibles)
 // =============================================================================
-// step 1 → fechas
-// step 2 → elegir habitación (disponibilidad + precio en vivo desde BananaDesk)
-// step 3 → datos del huésped + confirmar
+// step 1 → fechas + huéspedes (buscador, sin resultados todavía)
+// step 2 → mismo buscador (compacto) + habitaciones con disponibilidad/precio en
+//          vivo desde BananaDesk. El buscador actualiza solo la grilla (fetch),
+//          sin recargar ni volver atrás.
+// step 3 → datos del huésped + confirmar (2º paso del indicador)
 // step success → confirmación post-POST
 // =============================================================================
 
@@ -310,6 +312,7 @@ $seo = [
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <?php include __DIR__ . "/_flatpickr_i18n.php"; ?>
 
     <script>
         tailwind.config = {
@@ -352,17 +355,17 @@ $seo = [
 
             <!-- ========== HEADER + STEP INDICATOR ========== -->
             <div class="text-center mb-10">
-                <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
+                <h1 id="hero_title" class="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
                     <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? '¡Solicitud Recibida!' : 'Request Received!'; ?></span>
                     <?php elseif ($step === 1):   ?>When are you coming?
                     <?php elseif ($step === 2):   ?>Choose Your Room
                     <?php else:                   ?>Last Step — Your Details
                     <?php endif; ?>
                 </h1>
-                <p class="text-slate-500 text-lg">
+                <p id="hero_sub" class="text-slate-500 text-lg">
                     <?php if ($step === 'success'): ?><span class="notranslate"><?php echo ($guestLang ?? 'en') === 'es' ? 'Revisá los detalles de tu solicitud a continuación.' : 'Check the details of your request below.'; ?></span>
                     <?php elseif ($step === 1):   ?>Pick your check-in &amp; check-out dates to see live availability.
-                    <?php elseif ($step === 2):   ?>Real-time availability for <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?> · <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?>
+                    <?php elseif ($step === 2):   ?>Change dates or guests any time — the list below updates.
                     <?php else:                   ?>You're booking <strong class="text-teal"><?php echo htmlspecialchars($selectedRoom['name'] ?? ''); ?></strong>.
                     <?php endif; ?>
                 </p>
@@ -373,13 +376,13 @@ $seo = [
             <div class="flex items-center justify-center gap-3 mb-12 max-w-md mx-auto">
                 <?php
                 $steps_meta = [
-                    1 => 'Dates',
-                    2 => 'Room',
-                    3 => 'Confirm',
+                    1 => 'Dates & Room',
+                    2 => 'Confirm',
                 ];
+                $displayStep = ($step === 3) ? 2 : 1;
                 foreach ($steps_meta as $sn => $label):
-                    $isCurrent = ($sn === $step);
-                    $isDone    = ($sn < $step);
+                    $isCurrent = ($sn === $displayStep);
+                    $isDone    = ($sn < $displayStep);
                     $color     = $isCurrent ? 'bg-teal text-white' : ($isDone ? 'bg-teal-light text-teal' : 'bg-slate-200 text-slate-400');
                     $textColor = $isCurrent ? 'text-teal font-bold' : ($isDone ? 'text-slate-700' : 'text-slate-400');
                 ?>
@@ -389,49 +392,38 @@ $seo = [
                         </div>
                         <span class="text-sm <?php echo $textColor; ?> hidden sm:inline"><?php echo $label; ?></span>
                     </div>
-                    <?php if ($sn < 3): ?>
+                    <?php if ($sn < 2): ?>
                         <div class="step-bar flex-1 h-0.5 <?php echo $isDone ? 'bg-teal-light' : 'bg-slate-200'; ?>"></div>
                     <?php endif; ?>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
 
-            <!-- ============================ STEP 1: DATES ============================ -->
-            <?php if ($step === 1): ?>
-                <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-8 md:p-10">
-                    <form method="GET" action="book.php" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-[1.4fr_1.4fr_0.8fr] gap-6">
-                            <?php
-                                $sf_variant   = 'card';
-                                $sf_check_in  = $getCheckIn;
-                                $sf_check_out = $getCheckOut;
-                                $sf_guests    = $getGuestsCount;
-                                include __DIR__ . '/_search_fields.php';
-                            ?>
-                        </div>
+            <!-- ============== STEP 1 + 2: BUSCADOR + HABITACIONES (misma página) ============== -->
+            <?php if ($step === 1 || $step === 2): $hasResults = ($step === 2); ?>
+                <form id="search_form" method="GET" action="book.php"
+                      class="mx-auto bg-white border border-slate-200 shadow-sm transition-all <?php echo $hasResults ? 'max-w-4xl rounded-2xl p-4 sticky top-[96px] z-10 flex flex-col md:flex-row md:items-end gap-4' : 'max-w-2xl rounded-3xl p-8'; ?>">
+                    <div id="search_fields" class="grid grid-cols-1 <?php echo $hasResults ? 'md:grid-cols-[1fr_1fr_0.5fr] gap-3 flex-1' : 'md:grid-cols-[1.4fr_1.4fr_0.8fr] gap-6'; ?>">
+                        <?php
+                            $sf_variant   = 'card';
+                            $sf_check_in  = $getCheckIn;
+                            $sf_check_out = $getCheckOut;
+                            $sf_guests    = $getGuestsCount;
+                            include __DIR__ . '/_search_fields.php';
+                        ?>
+                    </div>
+                    <?php /* room_id NO se preserva: el usuario siempre elige habitación
+                              viendo disponibilidad real, incluso viniendo con ?room_id=X. */ ?>
+                    <button type="submit" id="search_btn" <?php echo $hasResults ? 'disabled' : ''; ?>
+                            class="<?php echo $hasResults ? 'md:w-auto w-full whitespace-nowrap px-7 py-4 rounded-xl opacity-40 cursor-not-allowed' : 'mt-6 w-full py-4 rounded-2xl'; ?> bg-teal text-white font-bold shadow-md flex items-center justify-center gap-2 transition-all">
+                        <span id="search_btn_label" class="notranslate" data-hp-i18n="<?php echo $hasResults ? 'updateAvailability' : 'findRooms'; ?>"><?php echo $hasResults ? 'Update availability' : 'Find available rooms'; ?></span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </form>
 
-                        <?php /* room_id NO se preserva acá: queremos que el usuario
-                                  siempre pase por step 2 para ver disponibilidad real,
-                                  incluso si llegó con ?room_id=X desde el index. */ ?>
+                <section id="results" class="mt-8 <?php echo $hasResults ? '' : 'hidden'; ?>">
+                    <p id="rooms_status" class="text-sm text-slate-500 mb-6">Loading availability…</p>
 
-                        <button type="submit"
-                                class="w-full bg-teal text-white font-bold py-4 rounded-2xl hover:bg-teal-hover transition-all shadow-md flex items-center justify-center gap-2 text-base">
-                            Find available rooms <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    </form>
-                </div>
-            <?php endif; ?>
-
-            <!-- ============================ STEP 2: ROOMS GRID ============================ -->
-            <?php if ($step === 2): ?>
-                <div class="flex justify-between items-center mb-6">
-                    <a href="book.php" class="text-slate-500 hover:text-teal flex items-center gap-2 text-sm font-medium">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="notranslate" data-hp-i18n="changeDates">Change dates</span>
-                    </a>
-                    <p id="rooms_status" class="text-sm text-slate-500">Loading availability…</p>
-                </div>
-
-                <div id="rooms_grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="rooms_grid" class="transition-opacity grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <?php foreach ($rooms as $r): ?>
                         <article class="room-card bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
                                  data-room-id="<?php echo htmlspecialchars((string)$r['id']); ?>">
@@ -471,6 +463,7 @@ $seo = [
                         </article>
                     <?php endforeach; ?>
                 </div>
+                </section>
             <?php endif; ?>
 
             <!-- ============================ STEP 3: GUEST DETAILS ============================ -->
@@ -514,19 +507,16 @@ $seo = [
                                     <?php if (stripos($selectedRoom['type'] ?? '', 'female') !== false): ?>
                                         <p class="text-xs font-bold text-pink-700 mb-3">Women only — valid ID may be checked at check-in.</p>
                                     <?php endif; ?>
-                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-                                        <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?></span>
-                                        <span class="flex items-center gap-1"><i data-lucide="moon" class="w-3.5 h-3.5"></i> <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?></span>
-                                        <span class="flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?></span>
-                                    </div>
+                                    <ul class="space-y-2 text-base font-bold text-slate-800">
+                                        <li class="flex items-center gap-2.5"><i data-lucide="calendar" class="w-5 h-5 text-teal shrink-0"></i> <?php echo htmlspecialchars($getCheckIn); ?> → <?php echo htmlspecialchars($getCheckOut); ?></li>
+                                        <li class="flex items-center gap-2.5"><i data-lucide="moon" class="w-5 h-5 text-teal shrink-0"></i> <?php echo $nightsCount; ?> night<?php echo $nightsCount > 1 ? 's' : ''; ?></li>
+                                        <li class="flex items-center gap-2.5"><i data-lucide="users" class="w-5 h-5 text-teal shrink-0"></i> <?php echo (int)$getGuestsCount; ?> guest<?php echo $getGuestsCount > 1 ? 's' : ''; ?></li>
+                                    </ul>
                                     <div class="mt-auto pt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                                         <div class="flex items-center gap-2">
-                                            <a href="book.php" class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
-                                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> <span class="notranslate" data-hp-i18n="changeDates">Change dates</span>
-                                            </a>
                                             <a id="change_room_link" href="book.php?check_in=<?php echo urlencode($getCheckIn); ?>&check_out=<?php echo urlencode($getCheckOut); ?>&guests_count=<?php echo urlencode((string)$getGuestsCount); ?>"
-                                               class="text-xs font-semibold text-slate-600 border border-slate-300 rounded-full px-3 py-1.5 hover:border-teal hover:text-teal transition-all flex items-center gap-1 whitespace-nowrap">
-                                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span class="notranslate" data-hp-i18n="changeRoom">Change room</span>
+                                               class="text-xs font-semibold text-teal border-2 border-teal rounded-full px-3 py-1.5 hover:bg-teal hover:text-white transition-all flex items-center gap-1 whitespace-nowrap">
+                                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span class="notranslate" data-hp-i18n="changeDatesGuests">Change dates &amp; guests</span>
                                             </a>
                                         </div>
                                         <div class="text-left sm:text-right">
@@ -555,7 +545,7 @@ $seo = [
                                     <input type="text" name="guests_count" id="guests_count_input" readonly
                                            value="<?php echo max(1, (int)$getGuestsCount); ?>"
                                            class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium outline-none cursor-not-allowed">
-                                    <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room. To change it, use "<span class="notranslate" data-hp-i18n="changeDates">Change dates</span>" above.</p>
+                                    <p class="text-xs text-slate-400 mt-1.5">Up to <?php echo (int)($selectedRoom['capacity'] ?? 1); ?> guests for this room. To change it, use "<span class="notranslate" data-hp-i18n="changeDatesGuests">Change dates &amp; guests</span>" above.</p>
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Full Legal Name *</label>
@@ -745,9 +735,9 @@ $seo = [
         lucide.createIcons();
 
         // ============================================================
-        // STEP 1: flatpickr para fechas
+        // STEP 1/2: flatpickr para fechas + buscador in-page
         // ============================================================
-        <?php if ($step === 1): ?>
+        <?php if ($step === 1 || $step === 2): ?>
             const today = new Date();
             const ciInput = document.getElementById('check_in_input');
             const coInput = document.getElementById('check_out_input');
@@ -778,24 +768,112 @@ $seo = [
         // ============================================================
         // STEP 2: cargar disponibilidad real desde rooms_for_dates.php
         // ============================================================
-        <?php if ($step === 2): ?>
-            const checkIn     = <?php echo json_encode($getCheckIn); ?>;
-            const checkOut    = <?php echo json_encode($getCheckOut); ?>;
-            const guestsCount = <?php echo (int)$getGuestsCount; ?>;
+        <?php if ($step === 1 || $step === 2): ?>
+            // Valores de la última búsqueda (los de los inputs pueden estar editados sin aplicar).
+            let checkIn     = <?php echo json_encode($getCheckIn); ?>;
+            let checkOut    = <?php echo json_encode($getCheckOut); ?>;
+            let guestsCount = <?php echo (int)$getGuestsCount; ?>;
+            let reqToken    = 0;
+
+            const searchForm  = document.getElementById('search_form');
+            const searchBtn   = document.getElementById('search_btn');
+            const roomsGrid   = document.getElementById('rooms_grid');
+            const guInput     = document.getElementById('guests_count_input');
+
+            const FORM_FULL    = 'mx-auto bg-white border border-slate-200 shadow-sm transition-all max-w-2xl rounded-3xl p-8';
+            const FORM_COMPACT = 'mx-auto bg-white border border-slate-200 shadow-sm transition-all max-w-4xl rounded-2xl p-4 sticky top-[96px] z-10 flex flex-col md:flex-row md:items-end gap-4';
+            const FIELDS_FULL    = 'grid grid-cols-1 md:grid-cols-[1.4fr_1.4fr_0.8fr] gap-6';
+            const FIELDS_COMPACT = 'grid grid-cols-1 md:grid-cols-[1fr_1fr_0.5fr] gap-3 flex-1';
+            const BTN_BASE      = 'bg-teal text-white font-bold shadow-md flex items-center justify-center gap-2 transition-all ';
+            const BTN_FULL      = BTN_BASE + 'mt-6 w-full py-4 rounded-2xl hover:bg-teal-hover';
+            const BTN_COMPACT   = BTN_BASE + 'md:w-auto w-full whitespace-nowrap px-7 py-4 rounded-xl';
+
+            // El botón "Update" solo se habilita cuando algún campo cambió desde la última búsqueda.
+            function setUpdateEnabled(on) {
+                searchBtn.disabled = !on;
+                searchBtn.className = BTN_COMPACT + (on ? ' hover:bg-teal-hover' : ' opacity-40 cursor-not-allowed');
+                roomsGrid.classList.toggle('opacity-40', on);
+                roomsGrid.classList.toggle('pointer-events-none', on);
+            }
+            function markDirty() {
+                if (!document.getElementById('results').classList.contains('hidden')) setUpdateEnabled(true);
+            }
+            [ciInput, coInput, guInput].forEach(el => {
+                el.addEventListener('change', markDirty);
+                el.addEventListener('input', markDirty);
+            });
+
+            function showResultsLayout() {
+                searchForm.className = FORM_COMPACT;
+                document.getElementById('search_fields').className = FIELDS_COMPACT;
+                const lbl = document.getElementById('search_btn_label');
+                lbl.setAttribute('data-hp-i18n', 'updateAvailability');
+                lbl.textContent = hpText('updateAvailability', 'Update availability');
+                document.getElementById('hero_title').textContent = 'Choose Your Room';
+                document.getElementById('hero_sub').textContent = 'Change dates or guests any time — the list below updates.';
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            // Vuelve las tarjetas al estado "Checking…" antes de cada consulta.
+            function resetCards() {
+                document.querySelectorAll('.room-card').forEach(card => {
+                    card.classList.remove('hidden');
+                    const badge = card.querySelector('.room-badge');
+                    badge.textContent = 'Checking…';
+                    badge.className = 'room-badge notranslate absolute top-3 right-3 bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider';
+                    const cta = card.querySelector('.room-cta');
+                    cta.classList.add('opacity-50', 'pointer-events-none');
+                    cta.textContent = 'Select';
+                    cta.setAttribute('href', '#');
+                    card.querySelector('.room-price').textContent = '—';
+                    card.querySelector('.room-total').textContent = '';
+                    const wrap = card.querySelector('.room-price-wrap');
+                    const footer = card.querySelector('.room-card-footer');
+                    if (wrap) wrap.classList.remove('hidden');
+                    if (footer) { footer.classList.remove('justify-center'); footer.classList.add('justify-between'); }
+                });
+            }
+
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (searchBtn.disabled) return;
+                if (!searchForm.reportValidity()) return;
+                const ci = ciInput.value, co = coInput.value;
+                const g  = Math.min(8, Math.max(1, parseInt(guInput.value, 10) || 1));
+                if (!ci || !co || ci >= co) {
+                    alert('Check-out must be after check-in.');
+                    return;
+                }
+                guInput.value = g;
+                checkIn = ci; checkOut = co; guestsCount = g;
+                // URL compartible/recargable sin recargar la página.
+                history.replaceState(null, '', `book.php?check_in=${encodeURIComponent(ci)}&check_out=${encodeURIComponent(co)}&guests_count=${g}`);
+                showResultsLayout();
+                setUpdateEnabled(false);
+                resetCards();
+                loadAvailability();
+            });
 
             async function loadAvailability() {
                 const statusEl = document.getElementById('rooms_status');
+                const myToken = ++reqToken;
+                statusEl.textContent = 'Loading availability…';
+                statusEl.className = 'text-sm text-slate-500 mb-6';
                 try {
                     const r = await fetch(`rooms_for_dates.php?check_in=${encodeURIComponent(checkIn)}&check_out=${encodeURIComponent(checkOut)}&guests_count=${encodeURIComponent(guestsCount)}`, { cache: 'no-store' });
                     const data = await r.json();
+                    if (myToken !== reqToken) return; // llegó una búsqueda más nueva
                     if (!data.ok) throw new Error(data.error || 'No data');
 
-                    statusEl.textContent = data.rooms.filter(x => x.available).length + ' rooms available · ' + data.nights + ' night' + (data.nights > 1 ? 's' : '');
+                    statusEl.textContent = data.rooms.filter(x => x.available).length + ' rooms available · ' + data.nights + ' night' + (data.nights > 1 ? 's' : '') + ' · ' + guestsCount + ' guest' + (guestsCount > 1 ? 's' : '');
 
                     document.querySelectorAll('.room-card').forEach(card => {
                         const id = card.getAttribute('data-room-id');
                         const info = data.rooms.find(x => String(x.id) === String(id));
                         if (!info) return;
+
+                        // Algunas habitaciones (ej. la 1) no se muestran si exceden su capacidad.
+                        card.classList.toggle('hidden', !!info.hidden);
 
                         const badge     = card.querySelector('.room-badge');
                         const price     = card.querySelector('.room-price');
@@ -859,11 +937,11 @@ $seo = [
                     lucide.createIcons();
                 } catch (e) {
                     statusEl.textContent = 'Could not load live availability. Please try again.';
-                    statusEl.className = 'text-sm text-amber-600';
+                    statusEl.className = 'text-sm text-amber-600 mb-6';
                     console.warn(e);
                 }
             }
-            loadAvailability();
+            <?php if ($step === 2): ?>loadAvailability();<?php endif; ?>
         <?php endif; ?>
 
         // ============================================================

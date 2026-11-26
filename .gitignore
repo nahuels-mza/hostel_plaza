@@ -23,3 +23,5 @@ do_not_upload/*
 db/*
 
 /cache
+
+/mockups

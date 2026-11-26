@@ -114,6 +114,7 @@ if (file_exists($bookingsFile)) {
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <?php include __DIR__ . "/_flatpickr_i18n.php"; ?>
 
     <script>
         tailwind.config = {

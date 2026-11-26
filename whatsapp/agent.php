@@ -15,6 +15,7 @@
 require_once __DIR__ . '/availability.php';
 require_once __DIR__ . '/claude_client.php';
 require_once __DIR__ . '/whatsapp_client.php';
+require_once dirname(__DIR__) . '/room_pricing.php';
 
 function hp_cfg(): array
 {
@@ -579,9 +580,11 @@ function hp_run_tool(string $name, array $input, string $phone): array
         $roomsPricing = [];
         $localRooms = hp_load_rooms(__DIR__ . '/../rooms.json');
         $bookingUnitBy = [];
+        $capacityBy    = [];
         foreach ($localRooms as $r) {
             $localId = (string)($r['id'] ?? '');
             $bookingUnitBy[$localId] = $r['bookingUnit'] ?? 'room';
+            $capacityBy[$localId]    = (int)($r['capacity'] ?? 1);
         }
         $avail = hp_bananadesk_fetch($cfg['bananadesk'] ?? [], $checkIn, $checkOut, $cfg['paths']['cache']);
         if (!empty($avail['ok'])) {
@@ -589,9 +592,16 @@ function hp_run_tool(string $name, array $input, string $phone): array
                 $bdId     = (int)$r['room_type_id'];
                 $localId  = hp_banana_to_local($bdId) ?? '';
                 $unit     = $bookingUnitBy[$localId] ?? 'room';
+                $price    = $r['price'];
+                if ($unit === 'room' && $localId !== '') {
+                    // Privada: omitir si no entran los huéspedes; precio BananaDesk es
+                    // para 1 persona, se aplica recargo según huéspedes.
+                    if ($guestsCount > ($capacityBy[$localId] ?? 1)) continue;
+                    $price = round(hp_apply_guest_surcharge((float)$price, $localId, $guestsCount));
+                }
                 $roomsPricing[] = [
                     'name'          => $r['name'],
-                    'price'         => $r['price'],
+                    'price'         => $price,
                     'currency'      => $r['currency'],
                     'booking_unit'  => $unit,   // "room" = se vende la habitación entera; "bed" = se vende cama por cama
                     'nights'        => $nights,
@@ -608,7 +618,7 @@ function hp_run_tool(string $name, array $input, string $phone): array
             'guests_count'         => $guestsCount,
             'nights'               => $nights,
             'rooms_pricing'        => $roomsPricing,
-            'pricing_rules'        => 'Usá estos precios SOLO si el huésped pregunta explícitamente. NUNCA los multipliques por personas para dar un total. Para habitaciones privadas (booking_unit=room) el precio es por la habitación entera. Para dormitorios compartidos (booking_unit=bed) el precio es por cama por noche.',
+            'pricing_rules'        => 'Usá estos precios SOLO si el huésped pregunta explícitamente. NUNCA los multipliques por personas para dar un total. Para habitaciones privadas (booking_unit=room) el precio es por la habitación entera y YA incluye el ajuste por la cantidad de huéspedes de la consulta (no lo recalcules). Para dormitorios compartidos (booking_unit=bed) el precio es por cama por noche.',
             'assistance_scheduled' => true,
             'note'                 => 'Después de que envíes tu mensaje con el link, el bot le va a mandar automáticamente un segundo mensaje con botones ofreciendo asistencia para reservar. NO menciones esos botones en tu respuesta — solo pasá el link con cordialidad. No le listes los precios acá; solo contestá con el precio si te pregunta después.',
         ];
@@ -778,14 +788,28 @@ function hp_run_tool(string $name, array $input, string $phone): array
             return ['error' => 'BananaDesk devolvió error: ' . ($avail['error'] ?? 'desconocido')];
         }
 
+        $localInfo = [];
+        foreach (hp_load_rooms(__DIR__ . '/../rooms.json') as $lr) {
+            $localInfo[(string)($lr['id'] ?? '')] = $lr;
+        }
+
         $rooms = [];
         foreach ($avail['rooms'] as $r) {
             if (empty($r['is_available'])) continue;
+            $localId = hp_banana_to_local((int)$r['room_type_id']) ?? '';
+            $lr      = $localInfo[$localId] ?? [];
+            $price   = $r['price'];
+            if (($lr['bookingUnit'] ?? 'room') !== 'bed' && $lr) {
+                // Privada: no entra si hay más huéspedes que su capacidad; el precio
+                // de BananaDesk es para 1 persona y lleva recargo según huéspedes.
+                if ($gc > (int)($lr['capacity'] ?? 1)) continue;
+                $price = round(hp_apply_guest_surcharge((float)$price, $localId, $gc));
+            }
             $rooms[] = [
                 'room_type_id' => (int)$r['room_type_id'],
                 'name'         => $r['name'],
                 'description'  => mb_substr((string)$r['description'], 0, 200),
-                'price'        => $r['price'],
+                'price'        => $price,
                 'currency'     => $r['currency'],
                 'availability' => $r['availability'],
                 'min_stay'     => $r['min_stay'],

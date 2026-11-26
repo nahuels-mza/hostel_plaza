@@ -55,6 +55,7 @@ header('Cache-Control: public, max-age=120');
 header('Access-Control-Allow-Origin: *');
 
 require_once __DIR__ . '/whatsapp/availability.php';
+require_once __DIR__ . '/room_pricing.php';
 
 // --- params ---
 $checkIn  = isset($_GET['check_in'])  ? trim((string)$_GET['check_in'])  : '';
@@ -130,7 +131,8 @@ foreach ($rooms as $r) {
         } else {
             // Privado: se vende la habitación entera, precio plano, tope = capacity.
             $available    = $withinMinStay && $availability >= 1 && $guestsCount <= $capacity;
-            $totalForStay = $unitPrice;
+            // Precio de BananaDesk es para 1 persona; recargo según huéspedes.
+            $totalForStay = hp_apply_guest_surcharge($unitPrice, $localId, $guestsCount);
             if (!$withinMinStay)              $reason = 'min_stay';
             elseif ($availability < 1)        $reason = 'sold_out';
             elseif ($guestsCount > $capacity) $reason = 'over_capacity';
@@ -173,6 +175,7 @@ foreach ($rooms as $r) {
         'availability_count'  => $availability,
         'available'           => $available,
         'reason'              => $reason,
+        'hidden'              => $reason === 'over_capacity' && hp_hide_when_over_capacity($localId),
         'guests_count'        => $guestsCount,
         'price_per_night_ars' => $pricePerNight,
         'total_ars'           => $totalForStay,

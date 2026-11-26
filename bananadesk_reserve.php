@@ -150,6 +150,11 @@ function hp_bananadesk_reserve(
 
     // --- 2. Armar payload ---
     $unitPrice  = (float)($room['price'] ?? 0); // BananaDesk devuelve el total del stay para UNA unidad
+    if ($bookingUnit !== 'bed') {
+        require_once __DIR__ . '/room_pricing.php';
+        $localId = hp_local_room_id_for_type($roomTypeId);
+        if ($localId !== null) $unitPrice = hp_apply_guest_surcharge($unitPrice, $localId, $guestsCount);
+    }
     $totalPrice = $unitPrice * $quantity;
 
     $roomName  = $room['name'] ?? '';

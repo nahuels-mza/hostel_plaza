@@ -477,6 +477,7 @@ $areas = hp_load_areas(__DIR__ . '/areas.json');
     <?php include __DIR__ . '/componentes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <?php include __DIR__ . "/_flatpickr_i18n.php"; ?>
     <script>
         lucide.createIcons();
 
