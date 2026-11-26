@@ -286,7 +286,7 @@ $areas = hp_load_areas(__DIR__ . '/areas.json');
                         <h3 class="text-2xl font-serif font-bold text-slate-900 leading-tight mb-3"><?php echo htmlspecialchars($area['title']); ?></h3>
                         <p class="text-slate-500 text-sm leading-relaxed mb-8 line-clamp-3"><?php echo htmlspecialchars($area['text']); ?></p>
                         <div class="mt-auto">
-                            <a href="area/<?php echo htmlspecialchars(rawurlencode($area['slug'])); ?>" class="block text-center py-4 bg-teal text-white rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-hover group-hover:shadow-md">
+                            <a href="area/<?php echo htmlspecialchars(rawurlencode($area['slug'])); ?>" onclick="gtag('event','area_click',{location:'home_carousel',area:<?php echo htmlspecialchars(json_encode($area['slug']), ENT_QUOTES); ?>})" class="block text-center py-4 bg-teal text-white rounded-2xl font-bold transition-all shadow-sm border-2 border-teal hover:bg-teal-hover group-hover:shadow-md">
                                 View
                             </a>
                         </div>

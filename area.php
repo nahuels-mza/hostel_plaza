@@ -152,7 +152,7 @@ $seo = [
                     <p class="text-[15px] text-[#475569] leading-relaxed mb-8">
                         Every common area is included in your stay, whichever room you book.
                     </p>
-                    <a href="rooms" class="block text-center w-full py-3.5 bg-[#1c5457] text-white rounded-xl font-bold text-[17px] hover:bg-[#144042] transition-all shadow-md">
+                    <a href="rooms" onclick="gtag('event','ver_habitaciones',{location:'area_page',area:<?php echo htmlspecialchars(json_encode($currentArea['slug']), ENT_QUOTES); ?>})" class="block text-center w-full py-3.5 bg-[#1c5457] text-white rounded-xl font-bold text-[17px] hover:bg-[#144042] transition-all shadow-md">
                         See rooms &amp; prices
                     </a>
                 </div>
@@ -167,7 +167,7 @@ $seo = [
             <h2 class="text-[26px] font-serif font-bold text-[#0f172a] mb-8">Other spaces</h2>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <?php foreach ($otherAreas as $o): ?>
-                <a href="area/<?php echo htmlspecialchars(rawurlencode($o['slug'])); ?>" class="group block bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg transition-all">
+                <a href="area/<?php echo htmlspecialchars(rawurlencode($o['slug'])); ?>" onclick="gtag('event','area_click',{location:'area_related',area:<?php echo htmlspecialchars(json_encode($o['slug']), ENT_QUOTES); ?>})" class="group block bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg transition-all">
                     <div class="h-32 md:h-40 overflow-hidden bg-slate-200">
                         <?php if ($o['image'] !== ''): ?>
                         <img src="<?php echo htmlspecialchars(hp_area_photo_src($o['image'], 600)); ?>" alt="<?php echo htmlspecialchars($o['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">

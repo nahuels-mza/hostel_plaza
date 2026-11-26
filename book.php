@@ -723,11 +723,15 @@ $seo = [
                     </div>
                 </div>
                 <script>
-                    gtag('event', 'reserva_click', {
-                        booking_id: <?php echo json_encode($newReservationId); ?>,
-                        room_id: <?php echo json_encode((string)$newBooking['roomId']); ?>,
-                        value: <?php echo json_encode($newBooking['totalPrice']); ?>,
-                        currency: 'USD'
+                    // gtag() se define en _ga.php, que se incluye al final de footer.php
+                    // (después de este bloque), por eso se espera al evento load.
+                    window.addEventListener('load', function () {
+                        gtag('event', 'reserva_click', {
+                            booking_id: <?php echo json_encode($newReservationId); ?>,
+                            room_id: <?php echo json_encode((string)$newBooking['roomId']); ?>,
+                            value: <?php echo json_encode($newBooking['totalPrice']); ?>,
+                            currency: 'USD'
+                        });
                     });
                 </script>
             <?php endif; ?>
